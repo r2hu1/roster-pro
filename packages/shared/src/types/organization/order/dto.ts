@@ -1,3 +1,4 @@
+import type { MenuItem } from "../menu/types";
 import type { OrderStatus, PaymentStatus } from "./types";
 
 export interface CreateOrderDto {
@@ -6,6 +7,7 @@ export interface CreateOrderDto {
   customerEmail?: string | null;
   tableNumber?: string | null;
   status?: OrderStatus;
+  items?: MenuItem[];
   paymentStatus?: PaymentStatus;
   totalAmount: number;
   notes?: string | null;
@@ -18,6 +20,7 @@ export interface UpdateOrderDto {
   customerEmail?: string | null;
   tableNumber?: string | null;
   status?: OrderStatus;
+  items?: MenuItem[];
   paymentStatus?: PaymentStatus;
   totalAmount?: number;
   notes?: string | null;

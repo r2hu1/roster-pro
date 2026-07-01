@@ -4,10 +4,13 @@ import {
   timestamp,
   integer,
   index,
+  jsonb,
 } from 'drizzle-orm/pg-core';
 
 import { organization } from './auth.js';
 import { menuItem } from './menu.js';
+import type { MenuItem } from '@workspace/shared/types/organization/menu/types';
+
 
 type Status =
   | 'pending'
@@ -43,6 +46,7 @@ export const order = pgTable(
       .notNull(),
     totalAmount: integer('total_amount').notNull(),
     notes: text('notes'),
+    items: jsonb('items').$type<MenuItem[]>(),
     createdAt: timestamp('created_at').defaultNow().notNull(),
     updatedAt: timestamp('updated_at')
       .defaultNow()
