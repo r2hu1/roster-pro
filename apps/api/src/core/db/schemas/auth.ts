@@ -113,6 +113,7 @@ export const organization = pgTable(
     createdAt: timestamp('created_at').notNull(),
     metadata: text('metadata'),
     websiteId: text('website'),
+    address: text('address'),
   },
   (table) => ({
     idIdx: index('org_id_idx').on(table.id),

@@ -9,6 +9,7 @@ export interface Organization {
   createdAt: Date;
   metadata: string | null;
   websiteId: string | null;
+  address: string | null;
 }
 
 export interface Member {
