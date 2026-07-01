@@ -1,3 +1,6 @@
+"use client"
+
+import { useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
 
@@ -78,7 +81,7 @@ const features = [
 
 const navLinks = [
   { label: "Features", href: "#features" },
-  { label: "Pricing", href: "#pricing" },
+  { label: "Testimonials", href: "#testimonials" },
   { label: "About", href: "#about" },
 ]
 
@@ -98,6 +101,16 @@ const statusColor: Record<string, string> = {
 }
 
 export default function LandingPage() {
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+
+  const scrollTo = (id: string) => {
+    const el = document.getElementById(id)
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth" })
+      setMobileMenuOpen(false)
+    }
+  }
+
   return (
     <div className="flex min-h-screen flex-col bg-secondary">
       {/* Navbar */}
@@ -115,19 +128,20 @@ export default function LandingPage() {
           </Link>
           <nav className="hidden items-center gap-1 md:flex">
             {navLinks.map((link) => (
-              <Link
+              <button
                 key={link.href}
-                href={link.href}
+                type="button"
+                onClick={() => scrollTo(link.href.slice(1))}
                 className="rounded-full px-3 py-1.5 text-muted-foreground text-sm transition-colors hover:bg-muted hover:text-foreground"
               >
                 {link.label}
-              </Link>
+              </button>
             ))}
             <div className="ml-4 flex items-center gap-2">
-              <Button variant="ghost" size="sm" className="text-sm">
+              <Button variant="ghost" size="sm" className="text-sm" onClick={() => scrollTo("cta")}>
                 Sign In
               </Button>
-              <Button size="sm" className="text-sm">
+              <Button size="sm" className="text-sm" onClick={() => scrollTo("cta")}>
                 Get Started
               </Button>
             </div>
@@ -136,18 +150,50 @@ export default function LandingPage() {
             type="button"
             className="flex size-9 items-center justify-center rounded-lg md:hidden"
             aria-label="Menu"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           >
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="size-5" aria-hidden="true">
-              <line x1="4" x2="20" y1="12" y2="12" />
-              <line x1="4" x2="20" y1="6" y2="6" />
-              <line x1="4" x2="20" y1="18" y2="18" />
-            </svg>
+            {mobileMenuOpen ? (
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="size-5" aria-hidden="true">
+                <line x1="18" x2="6" y1="6" y2="18" />
+                <line x1="6" x2="18" y1="6" y2="18" />
+              </svg>
+            ) : (
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="size-5" aria-hidden="true">
+                <line x1="4" x2="20" y1="12" y2="12" />
+                <line x1="4" x2="20" y1="6" y2="6" />
+                <line x1="4" x2="20" y1="18" y2="18" />
+              </svg>
+            )}
           </button>
         </div>
+        {mobileMenuOpen && (
+          <div className="border-border/60 border-t px-5 py-4 md:hidden">
+            <div className="flex flex-col gap-2">
+              {navLinks.map((link) => (
+                <button
+                  key={link.href}
+                  type="button"
+                  onClick={() => scrollTo(link.href.slice(1))}
+                  className="rounded-lg px-3 py-2 text-left text-muted-foreground text-sm transition-colors hover:bg-muted hover:text-foreground"
+                >
+                  {link.label}
+                </button>
+              ))}
+              <div className="mt-2 flex flex-col gap-2">
+                <Button variant="ghost" size="sm" className="w-full justify-start text-sm" onClick={() => scrollTo("cta")}>
+                  Sign In
+                </Button>
+                <Button size="sm" className="w-full text-sm" onClick={() => scrollTo("cta")}>
+                  Get Started
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
       </header>
 
       {/* Hero */}
-      <section className="relative flex min-h-dvh flex-col items-center justify-center overflow-hidden px-5 pt-20">
+      <section className="relative flex min-h-[75vh] flex-col items-center justify-center overflow-hidden px-5 pt-16">
         <div className="pointer-events-none absolute inset-0 -z-10">
           <div className="absolute top-1/4 left-1/2 size-[500px] -translate-x-1/2 rounded-full bg-gradient-to-b from-primary/8 to-transparent blur-3xl" />
           <div className="absolute right-0 bottom-0 size-[300px] rounded-full bg-gradient-to-t from-chart-2/8 to-transparent blur-3xl" />
@@ -183,9 +229,66 @@ export default function LandingPage() {
             included
           </p>
         </div>
+      </section>
 
-        {/* Hero Image */}
-        <div className="relative z-10 mt-12 w-full max-w-4xl md:mt-16">
+      {/* Stats */}
+      <section className="border-border border-t bg-background/60 px-5 py-10 md:py-14">
+        <div className="mx-auto max-w-5xl">
+          <div className="grid grid-cols-2 gap-8 md:grid-cols-4">
+            {[
+              { label: "Active restaurants", value: "500+" },
+              { label: "Orders processed", value: "2.4M" },
+              { label: "Avg. ticket time", value: "4.7m" },
+              { label: "Avg. rating", value: "4.9" },
+            ].map((stat) => (
+              <div key={stat.label} className="text-center">
+                <div className="font-bold text-3xl text-foreground tracking-tight md:text-4xl">
+                  {stat.value}
+                </div>
+                <div className="mt-1 text-muted-foreground text-sm">
+                  {stat.label}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Features */}
+      <section id="features" className="scroll-mt-20 px-5 py-18 md:py-24">
+        <div className="mx-auto max-w-6xl">
+          <div className="mb-12 text-center md:mb-16">
+            <h2 className="font-bold text-3xl tracking-tight md:text-4xl">
+              One platform. Every tool you need.
+            </h2>
+            <p className="mx-auto mt-3 max-w-xl text-muted-foreground">
+              Front-of-house, back-of-house, and everything in between —
+              designed to work together seamlessly.
+            </p>
+          </div>
+          <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+            {features.map((feature, i) => (
+              <div
+                key={feature.title}
+                className="group rounded-xl border border-border/60 bg-card p-5 transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/20 hover:shadow-md"
+                style={{ transitionDelay: `${i * 30}ms` }}
+              >
+                <div className="mb-3 flex size-9 items-center justify-center rounded-lg border border-border/60 bg-background text-primary">
+                  {feature.icon}
+                </div>
+                <h3 className="font-semibold text-sm">{feature.title}</h3>
+                <p className="mt-1 text-muted-foreground text-sm leading-relaxed">
+                  {feature.description}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Hero Image */}
+      <section className="px-5 py-18 md:py-24">
+        <div className="mx-auto max-w-5xl">
           <Image
             src="/images_for_show.png"
             alt="RosterPro Dashboard Preview"
@@ -195,9 +298,11 @@ export default function LandingPage() {
             priority
           />
         </div>
+      </section>
 
-        {/* Dashboard mockup */}
-        <div className="relative z-10 mt-16 w-full max-w-4xl md:mt-20">
+      {/* Dashboard mockup */}
+      <section className="px-5 pb-18 md:pb-24">
+        <div className="mx-auto max-w-4xl">
           <div className="group overflow-hidden rounded-xl border border-border/60 bg-background shadow-lg transition-all duration-500 hover:shadow-xl">
             <div className="flex h-8 items-center gap-1.5 border-border/60 border-b bg-muted/40 px-4">
               <span className="size-2 rounded-full bg-red-400/80" />
@@ -287,7 +392,7 @@ export default function LandingPage() {
       </section>
 
       {/* Testimonials */}
-      <section className="px-5 py-18 md:py-24">
+      <section id="testimonials" className="scroll-mt-20 px-5 py-18 md:py-24">
         <div className="mx-auto max-w-6xl">
           <div className="mb-12 text-center md:mb-16">
             <h2 className="font-bold text-3xl tracking-tight md:text-4xl">
@@ -348,66 +453,51 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Stats */}
-      <section className="border-border border-t bg-background/60 px-5 py-14 md:py-18">
+      {/* About */}
+      <section id="about" className="border-border border-t bg-background/60 px-5 py-18 md:py-24">
         <div className="mx-auto max-w-5xl">
-          <div className="grid grid-cols-2 gap-8 md:grid-cols-4">
-            {[
-              { label: "Active restaurants", value: "500+" },
-              { label: "Orders processed", value: "2.4M" },
-              { label: "Avg. ticket time", value: "4.7m" },
-              { label: "Avg. rating", value: "4.9" },
-            ].map((stat) => (
-              <div key={stat.label} className="text-center">
-                <div className="font-bold text-3xl text-foreground tracking-tight md:text-4xl">
-                  {stat.value}
-                </div>
-                <div className="mt-1 text-muted-foreground text-sm">
-                  {stat.label}
-                </div>
+          <div className="grid items-center gap-12 md:grid-cols-2">
+            <div>
+              <h2 className="font-bold text-3xl tracking-tight md:text-4xl">
+                Built for restaurants, by restaurant people
+              </h2>
+              <p className="mt-4 text-muted-foreground leading-relaxed">
+                RosterPro was born from the frustration of juggling multiple tools
+                to run a single restaurant. Our team has worked in kitchens,
+                managed front-of-house operations, and lived the chaos firsthand.
+              </p>
+              <p className="mt-3 text-muted-foreground leading-relaxed">
+                We built one unified platform so you can focus on what matters —
+                serving great food and creating memorable experiences for your guests.
+              </p>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="rounded-xl border border-border/60 bg-card p-5">
+                <p className="font-bold text-2xl text-primary">2023</p>
+                <p className="mt-1 text-muted-foreground text-sm">Founded</p>
               </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Features */}
-      <section id="features" className="px-5 py-18 md:py-24">
-        <div className="mx-auto max-w-6xl">
-          <div className="mb-12 text-center md:mb-16">
-            <h2 className="font-bold text-3xl tracking-tight md:text-4xl">
-              One platform. Every tool you need.
-            </h2>
-            <p className="mx-auto mt-3 max-w-xl text-muted-foreground">
-              Front-of-house, back-of-house, and everything in between —
-              designed to work together seamlessly.
-            </p>
-          </div>
-          <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
-            {features.map((feature, i) => (
-              <div
-                key={feature.title}
-                className="group rounded-xl border border-border/60 bg-card p-5 transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/20 hover:shadow-md"
-                style={{ transitionDelay: `${i * 30}ms` }}
-              >
-                <div className="mb-3 flex size-9 items-center justify-center rounded-lg border border-border/60 bg-background text-primary">
-                  {feature.icon}
-                </div>
-                <h3 className="font-semibold text-sm">{feature.title}</h3>
-                <p className="mt-1 text-muted-foreground text-sm leading-relaxed">
-                  {feature.description}
-                </p>
+              <div className="rounded-xl border border-border/60 bg-card p-5">
+                <p className="font-bold text-2xl text-primary">12</p>
+                <p className="mt-1 text-muted-foreground text-sm">Team members</p>
               </div>
-            ))}
+              <div className="rounded-xl border border-border/60 bg-card p-5">
+                <p className="font-bold text-2xl text-primary">500+</p>
+                <p className="mt-1 text-muted-foreground text-sm">Restaurants served</p>
+              </div>
+              <div className="rounded-xl border border-border/60 bg-card p-5">
+                <p className="font-bold text-2xl text-primary">24/7</p>
+                <p className="mt-1 text-muted-foreground text-sm">Support available</p>
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
       {/* CTA */}
-      <section className="border-border border-t bg-background/60 px-5 py-18 md:py-24">
+      <section id="cta" className="border-border border-t bg-background/60 px-5 py-18 md:py-24">
         <div className="mx-auto max-w-3xl text-center">
           <h2 className="font-bold text-3xl tracking-tight md:text-4xl">
-            Ready to simplify your operation?
+            Grow your restaurant by digitalizing it
           </h2>
           <p className="mx-auto mt-3 max-w-lg text-muted-foreground">
             Join hundreds of restaurants using RosterPro to cut wait times,
@@ -415,40 +505,80 @@ export default function LandingPage() {
           </p>
           <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
             <Button size="lg" className="h-11 px-7 text-sm">
-              Get Started Free
-            </Button>
-            <Button variant="outline" size="lg" className="h-11 px-7 text-sm">
-              Talk to Sales
+              Get Started
             </Button>
           </div>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="border-border border-t bg-background/40 px-5 py-10">
-        <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 md:flex-row">
-          <div className="flex items-center gap-3">
-            <Image
-              src="/logo.png"
-              alt="RosterPro"
-              width={100}
-              height={30}
-              className="h-15 w-auto"
-            />
-            <span className="text-muted-foreground text-xs">
-              &copy; 2026 RosterPro
-            </span>
+      <footer className="border-border border-t bg-background/40">
+        <div className="mx-auto max-w-6xl px-5 py-12">
+          <div className="grid gap-8 md:grid-cols-4">
+            <div className="md:col-span-1">
+              <Image
+                src="/logo.png"
+                alt="RosterPro"
+                width={100}
+                height={30}
+                className="h-15 w-auto"
+              />
+              <p className="mt-3 text-muted-foreground text-sm leading-relaxed">
+                The operating system for modern restaurants.
+              </p>
+            </div>
+            <div>
+              <h4 className="mb-3 font-semibold text-sm">Product</h4>
+              <ul className="space-y-2">
+                {["Features", "Pricing", "Kitchen Display", "Online Ordering", "Table Management", "Analytics"].map((item) => (
+                  <li key={item}>
+                    <Link href="#" className="text-muted-foreground text-sm transition-colors hover:text-foreground">
+                      {item}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div>
+              <h4 className="mb-3 font-semibold text-sm">Company</h4>
+              <ul className="space-y-2">
+                {["About Us", "Careers", "Blog", "Press", "Partners"].map((item) => (
+                  <li key={item}>
+                    <Link href="#" className="text-muted-foreground text-sm transition-colors hover:text-foreground">
+                      {item}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div>
+              <h4 className="mb-3 font-semibold text-sm">Support</h4>
+              <ul className="space-y-2">
+                {["Help Center", "Contact Us", "Documentation", "API Reference", "Status"].map((item) => (
+                  <li key={item}>
+                    <Link href="#" className="text-muted-foreground text-sm transition-colors hover:text-foreground">
+                      {item}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
           </div>
-          <div className="flex gap-6">
-            {["Privacy", "Terms", "Contact"].map((item) => (
-              <Link
-                key={item}
-                href="#"
-                className="text-muted-foreground text-xs transition-colors hover:text-foreground"
-              >
-                {item}
-              </Link>
-            ))}
+          <div className="mt-10 flex flex-col items-center justify-between gap-4 border-t border-border/60 pt-8 md:flex-row">
+            <span className="text-muted-foreground text-xs">
+              &copy; 2026 RosterPro. All rights reserved.
+            </span>
+            <div className="flex gap-6">
+              {["Privacy Policy", "Terms of Service", "Cookie Policy"].map((item) => (
+                <Link
+                  key={item}
+                  href="#"
+                  className="text-muted-foreground text-xs transition-colors hover:text-foreground"
+                >
+                  {item}
+                </Link>
+              ))}
+            </div>
           </div>
         </div>
       </footer>
