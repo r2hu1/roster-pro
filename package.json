@@ -8,7 +8,19 @@
     "lint": "turbo lint",
     "format": "turbo format",
     "typecheck": "turbo typecheck",
-    "fix": "turbo fix"
+    "fix": "turbo fix",
+    "dev:web": "turbo run dev --filter=web",
+    "dev:api": "turbo run dev --filter=api",
+    "dev:marketing": "turbo run dev --filter=marketing",
+    "dev:client-web": "turbo run dev --filter=client-web",
+    "build:web": "turbo run build --filter=web",
+    "build:api": "turbo run build --filter=api",
+    "build:marketing": "turbo run build --filter=marketing",
+    "build:client-web": "turbo run build --filter=client-web",
+    "db:generate": "turbo run db:generate --filter=api",
+    "db:push": "turbo run db:push --filter=api",
+    "db:migrate": "turbo run db:migrate --filter=api",
+    "db:studio": "turbo run db:studio --filter=api"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.5.1",

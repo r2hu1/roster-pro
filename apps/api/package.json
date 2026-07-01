@@ -9,7 +9,11 @@
     "format": "biome format . --write",
     "check": "biome check .",
     "fix": "biome check . --write",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "db:push": "tsx ./node_modules/drizzle-kit/bin.cjs push",
+    "db:migrate": "tsx ./node_modules/drizzle-kit/bin.cjs migrate",
+    "db:studio": "tsx ./node_modules/drizzle-kit/bin.cjs studio",
+    "db:generate": "tsx ./node_modules/drizzle-kit/bin.cjs generate"
   },
   "dependencies": {
     "@hono/node-server": "^2.0.6",
@@ -17,6 +21,7 @@
     "@upstash/redis": "^1.38.0",
     "better-auth": "^1.6.23",
     "chalk": "^5.6.2",
+    "dotenv": "^17.4.2",
     "drizzle-kit": "^0.31.10",
     "drizzle-orm": "^0.45.2",
     "hono": "^4.12.27",
