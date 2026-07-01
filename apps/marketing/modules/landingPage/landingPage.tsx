@@ -359,7 +359,7 @@ export default function LandingPage() {
               alt="RosterPro"
               width={100}
               height={30}
-              className="h-7 w-auto"
+              className="h-15 w-auto"
             />
             <span className="text-muted-foreground text-xs">
               &copy; 2026 RosterPro

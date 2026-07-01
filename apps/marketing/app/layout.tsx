@@ -40,7 +40,7 @@ export default function RootLayout({
         fontSans.variable
       )}
     >
-      <body style={{ backgroundColor: "oklch(0.967 0.001 286.375)" }}>
+      <body>
         <ThemeProvider>{children}</ThemeProvider>
       </body>
     </html>
