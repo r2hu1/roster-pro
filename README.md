@@ -48,6 +48,10 @@ Use modules to organize code by feature.
       - interactive-page.tsx
   - server/
     - functions.ts
+  - utils/
+    - some-utility-fn.ts
+  - types/
+    - some-types.ts
 
 ## Packages
 
