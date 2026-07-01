@@ -33,7 +33,7 @@ const features = [
     description:
       "Visual floor plan with drag-and-drop seating, waitlist, reservations, and turn-time tracking.",
     icon: (
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="size-5" aria-hidden="true">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="size-5" aria-hidden="true">
         <circle cx="12" cy="12" r="10" />
         <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20" />
         <path d="M2 12h20" />
@@ -109,7 +109,7 @@ export default function LandingPage() {
               alt="RosterPro"
               width={130}
               height={39}
-              className="h-8 w-auto"
+              className="h-18 w-auto"
               priority
             />
           </Link>
