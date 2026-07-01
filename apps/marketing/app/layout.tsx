@@ -1,8 +1,8 @@
-import { Geist, Geist_Mono, Instrument_Sans } from "next/font/google"
+import { Geist_Mono, Instrument_Sans } from "next/font/google"
 
 import "@workspace/ui/globals.css"
-import { ThemeProvider } from "@/components/theme-provider"
 import { cn } from "@workspace/ui/lib/utils"
+import { ThemeProvider } from "@/components/theme-provider"
 
 const instrumentSans = Instrument_Sans({
   subsets: ["latin"],
