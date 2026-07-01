@@ -1,13 +1,12 @@
 {
   "name": "@workspace/shared",
-  "module": "index.ts",
   "type": "module",
   "private": true,
   "devDependencies": {
     "@types/bun": "latest"
   },
   "exports": {
-    ".": "./index.ts"
+    "./types/*": "./src/types/*.ts"
   },
   "peerDependencies": {
     "typescript": "^5"

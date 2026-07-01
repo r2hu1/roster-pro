@@ -16,6 +16,7 @@
     "db:generate": "tsx ./node_modules/drizzle-kit/bin.cjs generate"
   },
   "dependencies": {
+    "@workspace/shared": "workspace:*",
     "@hono/node-server": "^2.0.6",
     "@hono/zod-validator": "^0.8.0",
     "@upstash/redis": "^1.38.0",

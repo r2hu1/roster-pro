@@ -3,9 +3,7 @@ import {
   text,
   timestamp,
   boolean,
-  integer,
   index,
-  jsonb,
 } from 'drizzle-orm/pg-core';
 
 export const user = pgTable(
@@ -111,7 +109,7 @@ export const organization = pgTable(
     name: text('name').notNull(),
     slug: text('slug').notNull().unique(),
     logo: text('logo'),
-    imageKey: text('image_key'),
+    logoKey: text('image_key'),
     createdAt: timestamp('created_at').notNull(),
     metadata: text('metadata'),
     websiteId: text('website'),
