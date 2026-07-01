@@ -35,7 +35,7 @@ export const order = pgTable(
     customerName: text('customer_name'),
     customerPhone: text('customer_phone'),
     customerEmail: text('customer_email'),
-    tableNumber: text('table_number'),
+    tableNumber: text('table_number').notNull(),
     status: text('status')
       .$type<Status>()
       .default('pending')

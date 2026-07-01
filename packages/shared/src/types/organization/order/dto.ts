@@ -5,7 +5,7 @@ export interface CreateOrderDto {
   customerName?: string | null;
   customerPhone?: string | null;
   customerEmail?: string | null;
-  tableNumber?: string | null;
+  tableNumber: string;
   status?: OrderStatus;
   items?: MenuItem[];
   paymentStatus?: PaymentStatus;
@@ -18,7 +18,7 @@ export interface UpdateOrderDto {
   customerName?: string | null;
   customerPhone?: string | null;
   customerEmail?: string | null;
-  tableNumber?: string | null;
+  tableNumber: string;
   status?: OrderStatus;
   items?: MenuItem[];
   paymentStatus?: PaymentStatus;

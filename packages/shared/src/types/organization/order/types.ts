@@ -21,7 +21,7 @@ export interface Order {
   customerName: string | null;
   customerPhone: string | null;
   customerEmail: string | null;
-  tableNumber: string | null;
+  tableNumber: string;
   status: OrderStatus;
   paymentStatus: PaymentStatus;
   items: MenuItem[];
