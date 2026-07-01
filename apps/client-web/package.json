@@ -16,13 +16,16 @@
   "dependencies": {
     "@tabler/icons-react": "^3.44.0",
     "@workspace/ui": "workspace:*",
+    "lucide-react": "^1.22.0",
     "next": "16.2.6",
     "next-themes": "^0.4.6",
+    "postcss": "^8.5.16",
     "react": "19.2.4",
-    "react-dom": "19.2.4"
+    "react-dom": "19.2.4",
+    "tailwindcss": "^4.3.2"
   },
   "devDependencies": {
-    "@tailwindcss/postcss": "^4",
+    "@tailwindcss/postcss": "^4.3.2",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
