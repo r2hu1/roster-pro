@@ -1,18 +1,17 @@
 export interface CreateMenuDto {
-  id: string;
   name: string;
   description?: string | null;
   isActive?: boolean;
 }
 
 export interface UpdateMenuDto {
+  id: string;
   name?: string;
   description?: string | null;
   isActive?: boolean;
 }
 
 export interface CreateMenuItemDto {
-  id: string;
   menuId: string;
   name: string;
   description?: string | null;
@@ -29,6 +28,7 @@ export interface CreateMenuItemDto {
 }
 
 export interface UpdateMenuItemDto {
+  id: string;
   name?: string;
   description?: string | null;
   ingredients?: string[] | null;
