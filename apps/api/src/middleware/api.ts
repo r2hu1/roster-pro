@@ -1,14 +1,15 @@
-import { createMiddleware } from 'hono/factory';
-import { HTTPException } from 'hono/http-exception';
+import { createMiddleware } from "hono/factory"
 
 export const apiKeyMiddleware = createMiddleware(async (c, next) => {
-  const apiKey = c.req.header('x-api-key');
+  const apiKey = c.req.header("x-api-key")
 
   if (!apiKey || apiKey !== process.env.API_KEY) {
-    throw new HTTPException(401, {
-      message: 'Invalid API key',
-    });
+    return c.json({
+      status: "error",
+      code: 401,
+      message: "Invalid API key",
+    })
   }
 
-  await next();
-});
+  await next()
+})
