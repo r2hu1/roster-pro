@@ -4,6 +4,7 @@ import { Geist_Mono, Instrument_Sans } from "next/font/google"
 import "@workspace/ui/globals.css"
 import { cn } from "@workspace/ui/lib/utils"
 import { ThemeProvider } from "@/components/theme-provider"
+import { Footer } from "@/modules/home/views/ui/footer"
 
 const fontSans = Instrument_Sans({
   subsets: ["latin"],
@@ -41,7 +42,8 @@ export default function RootLayout({
       )}
     >
       <body>
-        <ThemeProvider>{children}</ThemeProvider>
+        {children}
+        <Footer/>
       </body>
     </html>
   )
