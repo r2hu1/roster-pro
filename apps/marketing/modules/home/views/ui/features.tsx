@@ -55,7 +55,7 @@ const plusPoints = [
 export function Features() {
   return (
     <div
-      className="mx-auto max-w-(--breakpoint-xl) overflow-clip px-8 py-17 text-center"
+      className="mx-auto max-w-(--breakpoint-xl) overflow-clip  px-6 py-12 sm:py-20 text-center"
       id="why-choose-us"
     >
       <div className="flex flex-wrap gap-10 items-center justify-between">

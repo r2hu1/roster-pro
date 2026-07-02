@@ -1,72 +1,101 @@
+import { Button } from "@workspace/ui/components/button";
+import { ArrowUpRightIcon } from "lucide-react";
+
 const testimonials = [
   {
-    quote:
-      "RosterPro cut our ticket times in half. Our kitchen staff finally works as one unit instead of scrambling between screens.",
-    name: "Marcus Chen",
-    role: "Owner, Golden Dragon Bistro",
-    rating: 5,
+    name: "Rahul Sharma",
+    role: "Owner, Spice Junction",
+    avatar: "https://randomuser.me/api/portraits/men/32.jpg",
+    testimonial:
+      "Our customers love the QR menu. Orders reach the kitchen instantly, and we've significantly reduced order mistakes during peak hours.",
   },
   {
-    quote:
-      "We switched from three separate tools to RosterPro and saved over $800 a month. The analytics alone paid for the subscription in week one.",
-    name: "Sarah Mitchell",
-    role: "GM, The Oak Table",
-    rating: 5,
+    name: "Priya Nair",
+    role: "Manager, Kerala Kitchen",
+    avatar: "https://randomuser.me/api/portraits/women/44.jpg",
+    testimonial:
+      "The Scan-to-Order experience has made table service much faster. We now serve more customers without increasing staff, and the analytics help us understand our busiest hours.",
   },
   {
-    quote:
-      "Our online orders went up 40% after launching the branded ordering site. Customers love the live tracking feature.",
-    name: "David Ramirez",
-    role: "Owner, Casa del Sabor",
-    rating: 5,
+    name: "Amit Verma",
+    role: "Owner, Chai & Co.",
+    avatar: "https://randomuser.me/api/portraits/men/54.jpg",
+    testimonial:
+      "The sales dashboard shows exactly what's selling and what's not. It's helped us optimize our menu and increase revenue every month.",
   },
-]
-
-export function Testimonials() {
+  {
+    name: "Neha Kapoor",
+    role: "Owner, Urban Bites",
+    avatar: "https://randomuser.me/api/portraits/women/65.jpg",
+    testimonial:
+      "Setting up the QR menu took just a few minutes. Customers place orders themselves, and our staff can focus entirely on delivering great service.",
+  },
+  {
+    name: "Vikram Singh",
+    role: "Owner, Punjab Grill House",
+    avatar: "https://randomuser.me/api/portraits/men/76.jpg",
+    testimonial:
+      "We've reduced waiting time, improved customer satisfaction, and gained valuable business insights—all from one platform.",
+  },
+  {
+    name: "Ananya Desai",
+    role: "Partner, Bombay Bistro",
+    avatar: "https://randomuser.me/api/portraits/women/29.jpg",
+    testimonial:
+      "From QR ordering to detailed analytics, everything works seamlessly. It's become an essential part of our daily restaurant operations.",
+  },
+];
+export const Testimonials = () => {
   return (
-    <section id="testimonials" className="scroll-mt-20 px-5 py-18 md:py-24">
-      <div className="mx-auto max-w-6xl">
-        <div className="mb-12 text-center md:mb-16">
-          <h2 className="font-bold text-3xl tracking-tight md:text-4xl">
-            Loved by restaurant owners
-          </h2>
-          <p className="mx-auto mt-3 max-w-xl text-muted-foreground">
-            See what our customers have to say about transforming their
-            operations with RosterPro.
+    <div className="mx-auto max-w-7xl px-6 py-12 sm:py-20">
+
+    <div className="flex flex-wrap gap-10 items-center justify-between">
+        <div className="md:max-w-xl text-left space-y-2">
+          <h2 className="font-medium text-3xl tracking-[-0.04em] md:text-4xl">
+        Loved by hundreds of restaurant owners.
+      </h2>
+      <p className="mt-2 text-balance text-lg text-muted-foreground tracking-[-0.015em] sm:mt-4">
+        Their experiences speak louder than words, and we're proud to be part of their journey.
           </p>
         </div>
-        <div className="grid gap-6 md:grid-cols-3">
-          {testimonials.map((testimonial) => (
-            <div
-              key={testimonial.name}
-              className="flex flex-col rounded-xl border border-border/60 bg-card p-6"
-            >
-              <div className="mb-3 flex gap-0.5">
-                {Array.from({ length: testimonial.rating }).map((_, i) => (
-                  <svg
-                    key={i}
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 24 24"
-                    fill="currentColor"
-                    className="size-4 text-amber-500"
-                  >
-                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-                  </svg>
-                ))}
-              </div>
-              <p className="flex-1 text-muted-foreground text-sm leading-relaxed">
-                &ldquo;{testimonial.quote}&rdquo;
-              </p>
-              <div className="mt-4 border-t border-border/60 pt-4">
-                <p className="font-semibold text-sm">{testimonial.name}</p>
-                <p className="text-muted-foreground text-xs">
-                  {testimonial.role}
-                </p>
+        <div className="flex md:flex-col-reverse items-center gap-2">
+          <Button size="lg" variant="secondary">
+            Schedule Meeting
+          </Button>
+          <Button size="lg">
+            Get Started <ArrowUpRightIcon/>
+          </Button>
+        </div>
+        </div>
+
+      <div className="mx-auto mt-16 max-w-5xl columns-1 gap-6 sm:columns-2 lg:columns-3">
+        {testimonials.map(({ name, avatar, role, testimonial }, index) => (
+          <div
+            className="mb-6 break-inside-avoid rounded-lg border bg-muted p-1"
+            key={index}
+          >
+            <div className="relative flex flex-col rounded-md border bg-linear-to-bl from-muted/50 via-background to-background px-5 pt-10 pb-3 dark:border-muted-foreground/30 dark:bg-background">
+              {/* Quote */}
+              <span className="absolute top-0 left-4 font-satoshi text-9xl text-foreground/30">
+                &ldquo;
+              </span>
+
+              <p className="grow py-6 font-medium text-lg">{testimonial}</p>
+              <div className="mt-2 flex items-center gap-3 py-3.5 sm:mt-4">
+                <img
+                  alt=""
+                  className="h-12 w-12 rounded-full ring-2 ring-border ring-offset-[2px] ring-offset-background"
+                  src={avatar}
+                />
+                <div className="flex flex-col">
+                  <p className="font-medium">{name}</p>
+                  <p className="text-muted-foreground text-sm">{role}</p>
+                </div>
               </div>
             </div>
-          ))}
-        </div>
+          </div>
+        ))}
       </div>
-    </section>
-  )
-}
+    </div>
+  );
+};

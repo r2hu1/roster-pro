@@ -4,7 +4,6 @@ import { useCallback } from "react"
 import { Hero } from "./hero"
 import { Stats } from "./stats"
 import { Features } from "./features"
-import { DashboardMockup } from "./dashboard-mockup"
 import { Testimonials } from "./testimonials"
 import { About } from "./about"
 import { CTA } from "./cta"
@@ -25,7 +24,6 @@ export default function LandingPage() {
       <Hero />
       <Stats />
       <Features />
-      <DashboardMockup />
       <Testimonials />
       <About />
       <CTA />
