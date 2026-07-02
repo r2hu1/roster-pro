@@ -8,6 +8,13 @@
       "when": 1782891367925,
       "tag": "0000_lively_grim_reaper",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1782929637628,
+      "tag": "0001_misty_starbolt",
+      "breakpoints": true
     }
   ]
 }
