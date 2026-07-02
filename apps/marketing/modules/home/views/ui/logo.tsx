@@ -10,7 +10,7 @@ export const Logo = ({ className }: { className?: string }) => {
       unoptimized
       width={100}
       alt="Logo"
-      className={cn("h-9 w-auto", className)}
+      className={cn("h-9 w-auto mix-blend-multiply", className)}
     />
   )
 }

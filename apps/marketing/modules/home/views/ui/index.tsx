@@ -25,7 +25,6 @@ export default function LandingPage() {
       <Stats />
       <Features />
       <Testimonials />
-      <About />
       <CTA />
     </div>
   )

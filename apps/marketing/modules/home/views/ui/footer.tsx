@@ -24,11 +24,11 @@ const footerLinks = [
 
 export const Footer = () => {
   return (
-    <footer className="w-full bg-zinc-950 text-zinc-400 border-t border-zinc-800">
+    <footer className="w-full border-t mt-18">
       <div className="max-w-7xl mx-auto px-4 pt-16 pb-8 sm:px-6 lg:px-8">
         <div className="grid grid-cols-2 gap-8 md:grid-cols-4 lg:grid-cols-5">
-          <div className="col-span-2 lg:col-span-1">
-            <Logo/>
+          <div className="col-span-2 lg:col-span-1 space-y-3">
+            <Logo className='-ml-2'/>
             <p className="text-sm text-pretty leading-relaxed mb-6">
               Building the next generation of restaurant.
             </p>
@@ -36,7 +36,7 @@ export const Footer = () => {
 
           {footerLinks.map((section) => (
             <div key={section.title}>
-              <h3 className="text-xs font-semibold text-white uppercase tracking-wider mb-4">
+              <h3 className="text-xs font-semibold uppercase tracking-wider mb-4">
                 {section.title}
               </h3>
               <ul className="space-y-3">
@@ -55,7 +55,7 @@ export const Footer = () => {
           ))}
         </div>
 
-        <div className="mt-16 pt-8 border-t border-zinc-800 flex flex-col items-center justify-between gap-4 md:flex-row">
+        <div className="mt-16 pt-8 border-t flex flex-col items-center justify-between gap-4 md:flex-row">
           <div className="flex gap-4">
             <span className="text-xs">© 2026 Platform Inc.</span>
             <a href="#" className="text-xs hover:text-white">
