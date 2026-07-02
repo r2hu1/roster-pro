@@ -103,10 +103,11 @@ const statusColor: Record<string, string> = {
 export default function LandingPage() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
-  const scrollTo = (id: string) => {
+  const scrollToSection = (id: string) => {
     const el = document.getElementById(id)
     if (el) {
-      el.scrollIntoView({ behavior: "smooth" })
+      const y = el.getBoundingClientRect().top + window.scrollY - 80
+      window.scrollTo({ top: y, behavior: "smooth" })
       setMobileMenuOpen(false)
     }
   }
@@ -118,11 +119,11 @@ export default function LandingPage() {
         <div className="flex h-14 items-center justify-between px-5 md:h-14 md:px-6">
           <Link href="/" className="flex shrink-0 items-center gap-2">
             <Image
-              src="/logo.png"
+              src="/Logo-rosterpro.png"
               alt="RosterPro"
               width={130}
               height={39}
-              className="h-18 w-auto"
+              className="h-16 w-auto"
               priority
             />
           </Link>
@@ -131,17 +132,17 @@ export default function LandingPage() {
               <button
                 key={link.href}
                 type="button"
-                onClick={() => scrollTo(link.href.slice(1))}
+                onClick={() => scrollToSection(link.href.slice(1))}
                 className="rounded-full px-3 py-1.5 text-muted-foreground text-sm transition-colors hover:bg-muted hover:text-foreground"
               >
                 {link.label}
               </button>
             ))}
             <div className="ml-4 flex items-center gap-2">
-              <Button variant="ghost" size="sm" className="text-sm" onClick={() => scrollTo("cta")}>
+              <Button variant="ghost" size="sm" className="text-sm" onClick={() => scrollToSection("cta")}>
                 Sign In
               </Button>
-              <Button size="sm" className="text-sm" onClick={() => scrollTo("cta")}>
+              <Button size="sm" className="text-sm" onClick={() => scrollToSection("cta")}>
                 Get Started
               </Button>
             </div>
@@ -173,17 +174,17 @@ export default function LandingPage() {
                 <button
                   key={link.href}
                   type="button"
-                  onClick={() => scrollTo(link.href.slice(1))}
+                  onClick={() => scrollToSection(link.href.slice(1))}
                   className="rounded-lg px-3 py-2 text-left text-muted-foreground text-sm transition-colors hover:bg-muted hover:text-foreground"
                 >
                   {link.label}
                 </button>
               ))}
               <div className="mt-2 flex flex-col gap-2">
-                <Button variant="ghost" size="sm" className="w-full justify-start text-sm" onClick={() => scrollTo("cta")}>
+                <Button variant="ghost" size="sm" className="w-full justify-start text-sm" onClick={() => scrollToSection("cta")}>
                   Sign In
                 </Button>
-                <Button size="sm" className="w-full text-sm" onClick={() => scrollTo("cta")}>
+                <Button size="sm" className="w-full text-sm" onClick={() => scrollToSection("cta")}>
                   Get Started
                 </Button>
               </div>
