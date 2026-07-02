@@ -7,8 +7,8 @@ import { ArrowUpRight } from "lucide-react"
 
 export const Hero = () => {
   return (
-    <section className="overflow-hidden">
-      <div className="relative mx-auto max-w-5xl w-full px-6 py-16 md:py-28 lg:py-24">
+    <section className="overflow-hidden px-6">
+      <div className="relative mx-auto max-w-5xl w-full py-16 md:py-28 lg:py-24">
         <div className="relative z-10 mx-auto max-w-5xl text-center">
           <h1 className="text-balance text-4xl font-semibold leading-tight md:text-5xl lg:text-6xl">
             The Complete Operating System for Modern {" "}
@@ -42,7 +42,7 @@ export const Hero = () => {
         </div>
       </div>
 
-      <div className="mx-auto max-w-5xl relative pt-12 -mt-12 px-6">
+      <div className="mx-auto max-w-5xl relative pt-12 -mt-12">
         <Glow variant="top" className="-z-10" />
         <Image
           className="rounded-xl border-5 border-secondary sm:aspect-video bg-contain"

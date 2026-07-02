@@ -11,7 +11,7 @@ export function CTA() {
   const [isHovered, setIsHovered] = useState(false)
 
   return (
-    <section className="py-12 w-full flex justify-center items-center px-4 md:px-6">
+    <section className="py-12 w-full flex justify-center items-center px-6">
       <div
         className="w-full max-w-6xl relative"
         onMouseEnter={() => setIsHovered(true)}
