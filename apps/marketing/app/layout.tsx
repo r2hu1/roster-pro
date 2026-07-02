@@ -20,8 +20,8 @@ export const metadata: Metadata = {
   title: "RosterPro",
   description: "The operating system for modern restaurants",
   icons: {
-    icon: "/logo.png",
-    shortcut: "/logo.png",
+    icon: "/assets/roster-pro-logo.jpeg",
+    shortcut: "/assets/roster-pro-logo.jpeg",
   },
 }
 
