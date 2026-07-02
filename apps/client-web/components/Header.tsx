@@ -12,7 +12,7 @@ export default function Header({ data }: { data: { name: string; address: string
                 </div>
                 <div className="flex flex-col justify-center">
                     <h1 className="text-font-heading  text-lg font-extrabold">{data.name}</h1>
-                    <p className="text-foreground/50 leading-4">{data.address}</p>
+                    <p className="text-foreground/50 leading-4">{data.address.slice(0, 15)} ...</p>
                 </div>
             </div>
             <div>
