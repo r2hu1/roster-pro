@@ -64,12 +64,12 @@ export const orderItem = pgTable(
   "order_item",
   {
     id: uuid("id").defaultRandom().primaryKey(),
-    orderId: text("order_id")
+    orderId: uuid("order_id")
       .notNull()
       .references(() => order.id, {
         onDelete: "cascade",
       }),
-    menuItemId: text("menu_item_id")
+    menuItemId: uuid("menu_item_id")
       .notNull()
       .references(() => menuItem.id),
     quantity: integer("quantity").default(1).notNull(),

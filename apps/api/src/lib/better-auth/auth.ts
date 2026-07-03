@@ -33,17 +33,21 @@ export const auth = betterAuth({
       organizationHooks: {
         afterCreateOrganization: async ({ organization, user }) => {
           try {
-            await db.update(userSchema).set({ organizationId: organization.id }).where(eq(userSchema.id, user.id));
-          }
-          catch {}
+            await db
+              .update(userSchema)
+              .set({ organizationId: organization.id })
+              .where(eq(userSchema.id, user.id))
+          } catch {}
         },
         afterDeleteOrganization: async ({ user }) => {
           try {
-            await db.update(userSchema).set({ organizationId: null }).where(eq(userSchema.id, user.id));
-          }
-          catch {}
+            await db
+              .update(userSchema)
+              .set({ organizationId: null })
+              .where(eq(userSchema.id, user.id))
+          } catch {}
         },
-      }
+      },
     }),
     polar({
       client: polarClient,

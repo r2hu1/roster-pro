@@ -37,7 +37,7 @@ export const menuItem = pgTable(
   "menu_item",
   {
     id: uuid("id").defaultRandom().primaryKey(),
-    menuId: text("menu_id")
+    menuId: uuid("menu_id")
       .notNull()
       .references(() => menu.id, {
         onDelete: "cascade",
