@@ -1,15 +1,8 @@
 import React from "react";
-import {
-    Sheet,
-    SheetClose,
-    SheetContent,
-    SheetDescription,
-    SheetFooter,
-    SheetHeader,
-    SheetTitle,
-    SheetTrigger,
-} from "@workspace/ui/components/sheet";
-import {  Search, Settings2 } from "lucide-react";
+import { Sheet, SheetTrigger } from "@workspace/ui/components/sheet";
+import { Search, Settings2 } from "lucide-react";
+import Filter from "./Filter";
+import {menus} from "@/dummy/menu";
 
 export default function SearchBar() {
     return (
@@ -27,18 +20,11 @@ export default function SearchBar() {
             <Sheet>
                 <SheetTrigger>
                     <button className="flex h-12 w-12 justify-center items-center gap-2 rounded-full border-2  border-primary/50  text-primary  text-sm font-medium transition-colors hover:bg-primary/10   hover:text-primary">
-                        <Settings2 size={20} className=""/>
+                        <Settings2 size={20} className="" />
                     </button>
                 </SheetTrigger>
 
-                <SheetContent>
-                    <SheetHeader>
-                        <SheetTitle>Filters</SheetTitle>
-                        <SheetDescription>Narrow down your search results.</SheetDescription>
-                    </SheetHeader>
-
-                    {/* Filter options */}
-                </SheetContent>
+                <Filter menus={menus}/>
             </Sheet>
         </div>
     );
