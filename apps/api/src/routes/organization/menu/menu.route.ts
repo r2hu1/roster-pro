@@ -1,16 +1,15 @@
 import { zValidator } from "@hono/zod-validator"
 import { Hono } from "hono"
-import { flattenError } from "zod/v4/core"
 import type { AppEnv } from "../../../index.js"
-import { HTTP_STATUS_CODES } from "../../../lib/utils.js"
+import { HTTP_STATUS_CODES, zvalidator } from "../../../lib/utils.js"
 import { sessionMiddleware } from "../../../middleware/session.js"
-import { menuLogic } from "./menu.logic.js"
+import { menuItemLogic } from "./menu-item/menu-item.logic.js"
 import {
   createMenuItemSchema,
-  createMenuSchema,
   updateMenuItemSchema,
-  updateMenuSchema,
-} from "./menu.validation.js"
+} from "./menu-item/menu-item.validation.js"
+import { menuLogic } from "./menu.logic.js"
+import { createMenuSchema, updateMenuSchema } from "./menu.validation.js"
 
 export const menuRouter = new Hono<AppEnv>()
 
@@ -53,19 +52,7 @@ menuRouter.get("/:id", async (c) => {
 
 menuRouter.post(
   "/",
-  zValidator("json", createMenuSchema, (result, c) => {
-    if (!result.success) {
-      return c.json(
-        {
-          status: "error",
-          code: HTTP_STATUS_CODES.BAD_REQUEST,
-          message: "Validation failed",
-          errors: flattenError(result.error).fieldErrors,
-        },
-        HTTP_STATUS_CODES.BAD_REQUEST
-      )
-    }
-  }),
+  zvalidator(createMenuSchema),
   async (c) => {
     const organizationId = c.get("organizationId")
     if (!organizationId) {
@@ -87,19 +74,7 @@ menuRouter.post(
 
 menuRouter.put(
   "/",
-  zValidator("json", updateMenuSchema, (result, c) => {
-    if (!result.success) {
-      return c.json(
-        {
-          status: "error",
-          code: HTTP_STATUS_CODES.BAD_REQUEST,
-          message: "Validation failed",
-          errors: flattenError(result.error).fieldErrors,
-        },
-        HTTP_STATUS_CODES.BAD_REQUEST
-      )
-    }
-  }),
+  zvalidator(updateMenuSchema),
   async (c) => {
     const organizationId = c.get("organizationId")
     if (!organizationId) {
@@ -151,7 +126,7 @@ menuRouter.get("/items/:menuId", async (c) => {
   }
 
   const menuId = c.req.param("menuId")
-  const result = await menuLogic.getAllItems(menuId, organizationId)
+  const result = await menuItemLogic.getAllItems(menuId, organizationId)
   return c.json(result)
 })
 
@@ -169,25 +144,13 @@ menuRouter.get("/item/:id", async (c) => {
   }
 
   const id = c.req.param("id")
-  const result = await menuLogic.getItemById(id, organizationId)
+  const result = await menuItemLogic.getItemById(id, organizationId)
   return c.json(result)
 })
 
 menuRouter.post(
   "/item",
-  zValidator("json", createMenuItemSchema, (result, c) => {
-    if (!result.success) {
-      return c.json(
-        {
-          status: "error",
-          code: HTTP_STATUS_CODES.BAD_REQUEST,
-          message: "Validation failed",
-          errors: flattenError(result.error).fieldErrors,
-        },
-        HTTP_STATUS_CODES.BAD_REQUEST
-      )
-    }
-  }),
+  zvalidator(createMenuItemSchema),
   async (c) => {
     const body = c.req.valid("json")
     const organizationId = c.get("organizationId")
@@ -212,26 +175,14 @@ menuRouter.post(
       }
     }
 
-    const result = await menuLogic.createItem(organizationId, body, file)
+    const result = await menuItemLogic.createItem(organizationId, body, file)
     return c.json(result)
   }
 )
 
 menuRouter.put(
   "/item",
-  zValidator("json", updateMenuItemSchema, (result, c) => {
-    if (!result.success) {
-      return c.json(
-        {
-          status: "error",
-          code: HTTP_STATUS_CODES.BAD_REQUEST,
-          message: "Validation failed",
-          errors: flattenError(result.error).fieldErrors,
-        },
-        HTTP_STATUS_CODES.BAD_REQUEST
-      )
-    }
-  }),
+  zvalidator(updateMenuItemSchema),
   async (c) => {
     const organizationId = c.get("organizationId")
     if (!organizationId) {
@@ -257,7 +208,7 @@ menuRouter.put(
       }
     }
 
-    const result = await menuLogic.updateItem(organizationId, body, file)
+    const result = await menuItemLogic.updateItem(organizationId, body, file)
     return c.json(result)
   }
 )
@@ -276,6 +227,6 @@ menuRouter.delete("/item/:id", async (c) => {
   }
 
   const id = c.req.param("id")
-  const result = await menuLogic.deleteItem(organizationId, id)
+  const result = await menuItemLogic.deleteItem(organizationId, id)
   return c.json(result)
 })

@@ -1,3 +1,6 @@
+import { zValidator } from "@hono/zod-validator"
+import { flattenError, type ZodSchema } from "zod"
+
 export const HTTP_STATUS_CODES = {
   OK: 200,
   CREATED: 201,
@@ -17,3 +20,18 @@ export const parseFile = async (file: File): Promise<Buffer> => {
 
   return Buffer.from(await file.arrayBuffer())
 }
+
+export const zvalidator = <T extends ZodSchema>(schema: T) =>
+  zValidator("json", schema, (result, c) => {
+    if (!result.success) {
+      return c.json(
+        {
+          status: "error",
+          code: HTTP_STATUS_CODES.BAD_REQUEST,
+          message: "Validation failed",
+          errors: flattenError(result.error).fieldErrors,
+        },
+        HTTP_STATUS_CODES.BAD_REQUEST
+      )
+    }
+  })
