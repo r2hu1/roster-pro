@@ -13,7 +13,7 @@ export const menuItemRouter = new Hono<AppEnv>()
 
 menuItemRouter.use(sessionMiddleware)
 
-menuItemRouter.get("/items/:menuId", async (c) => {
+menuItemRouter.get("/:menuId", async (c) => {
   const organizationId = c.get("organizationId")
   if (!organizationId) {
     return c.json(
@@ -31,7 +31,7 @@ menuItemRouter.get("/items/:menuId", async (c) => {
   return c.json(result)
 })
 
-menuItemRouter.get("/item/:id", async (c) => {
+menuItemRouter.get("/:id", async (c) => {
   const organizationId = c.get("organizationId")
   if (!organizationId) {
     return c.json(
@@ -50,7 +50,7 @@ menuItemRouter.get("/item/:id", async (c) => {
 })
 
 menuItemRouter.post(
-  "/item",
+  "/",
   zvalidator(createMenuItemSchema),
   async (c) => {
     const body = c.req.valid("json")
@@ -82,7 +82,7 @@ menuItemRouter.post(
 )
 
 menuItemRouter.put(
-  "/item",
+  "/",
   zvalidator(updateMenuItemSchema),
   async (c) => {
     const organizationId = c.get("organizationId")
@@ -114,7 +114,7 @@ menuItemRouter.put(
   }
 )
 
-menuItemRouter.delete("/item/:id", async (c) => {
+menuItemRouter.delete("/:id", async (c) => {
   const organizationId = c.get("organizationId")
   if (!organizationId) {
     return c.json(
