@@ -15,8 +15,9 @@ import { Button } from "@workspace/ui/components/button";
 import { Badge } from "@workspace/ui/components/badge";
 import { Clock, Leaf, Tag, CircleCheck, CircleX, Ham } from "lucide-react";
 import FormatPrice from "@/util/FormatPrice";
+import MenuAction from "./MenuAction";
 
-export default function Menu({MenuItems}: {MenuItems: MenuItem[]}) {
+export default function Menu({ MenuItems }: { MenuItems: MenuItem[] }) {
     return (
         <div className="grid grid-cols-2 gap-4 sm:gap-5 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
             {MenuItems.map((item) => (
@@ -98,12 +99,7 @@ export default function Menu({MenuItems}: {MenuItems: MenuItem[]}) {
                             <DrawerFooter className="flex-row gap-2">
                                 {item.isAvailable && (
                                     <>
-                                        <DrawerClose asChild>
-                                            <Button variant="outline" className="flex-1">
-                                                Add To cart
-                                            </Button>
-                                        </DrawerClose>
-                                        <Button className="flex-1">Order Now</Button>
+                                       <MenuAction/> 
                                     </>
                                 )}
                             </DrawerFooter>

@@ -143,9 +143,9 @@ export default function Filter({ menus }: { menus: Menu[] }) {
                     <div className="flex items-center justify-between rounded-lg border bg-muted/30 px-3.5 py-3">
                         <div className="space-y-0.5">
                             <Label htmlFor="availability" className="text-sm font-medium">
-                                In stock only
+                                Available Foods Only
                             </Label>
-                            <p className="text-xs text-muted-foreground">Hide items that are sold out</p>
+                            <p className="text-xs text-muted-foreground">Hide items that are no longer available</p>
                         </div>
                         <Switch id="availability" checked={availability} onCheckedChange={setAvailability} />
                     </div>
