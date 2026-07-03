@@ -100,3 +100,11 @@ export const chippedNumbers = {
   99: "97325061489",
   100: "25870419365",
 } as const;
+
+export const retriveChippedNumber = (index: keyof typeof chippedNumbers) => {
+  return chippedNumbers[index];
+};
+
+export const generateChippedNumber = (index: keyof typeof chippedNumbers) => {
+  return chippedNumbers[index];
+}
