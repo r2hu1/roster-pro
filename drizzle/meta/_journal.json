@@ -5,29 +5,15 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1783095631327,
-      "tag": "0000_simple_post",
+      "when": 1783096022731,
+      "tag": "0000_famous_thaddeus_ross",
       "breakpoints": true
     },
     {
       "idx": 1,
       "version": "7",
-      "when": 1783095827966,
-      "tag": "0001_windy_earthquake",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1783095885703,
-      "tag": "0002_burly_chronomancer",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "7",
-      "when": 1783095899697,
-      "tag": "0003_violet_red_shift",
+      "when": 1783096182039,
+      "tag": "0001_striped_dragon_man",
       "breakpoints": true
     }
   ]

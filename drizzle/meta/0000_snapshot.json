@@ -1,5 +1,5 @@
 {
-  "id": "ecc8d89b-4895-43cf-8399-884f6edf3f28",
+  "id": "9cc4f8be-00d9-4b2b-8527-babd02224369",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -1008,7 +1008,7 @@
         },
         "menu_id": {
           "name": "menu_id",
-          "type": "text",
+          "type": "uuid",
           "primaryKey": false,
           "notNull": true
         },
@@ -1516,13 +1516,13 @@
         },
         "order_id": {
           "name": "order_id",
-          "type": "text",
+          "type": "uuid",
           "primaryKey": false,
           "notNull": true
         },
         "menu_item_id": {
           "name": "menu_item_id",
-          "type": "text",
+          "type": "uuid",
           "primaryKey": false,
           "notNull": true
         },

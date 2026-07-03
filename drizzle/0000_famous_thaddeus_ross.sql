@@ -92,7 +92,7 @@ CREATE TABLE "menu" (
 --> statement-breakpoint
 CREATE TABLE "menu_item" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
-	"menu_id" text NOT NULL,
+	"menu_id" uuid NOT NULL,
 	"organization_id" text NOT NULL,
 	"name" text NOT NULL,
 	"description" text,
@@ -135,8 +135,8 @@ CREATE TABLE "order" (
 --> statement-breakpoint
 CREATE TABLE "order_item" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
-	"order_id" text NOT NULL,
-	"menu_item_id" text NOT NULL,
+	"order_id" uuid NOT NULL,
+	"menu_item_id" uuid NOT NULL,
 	"quantity" integer DEFAULT 1 NOT NULL,
 	"unit_price" integer NOT NULL,
 	"total_price" integer NOT NULL,

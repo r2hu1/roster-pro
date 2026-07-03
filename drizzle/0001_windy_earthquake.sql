@@ -1,1 +1,0 @@
-ALTER TABLE "menu_item" ALTER COLUMN "menu_id" SET DATA TYPE uuid;

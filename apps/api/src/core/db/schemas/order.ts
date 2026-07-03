@@ -11,6 +11,7 @@ import {
 import { organization } from "./auth.js"
 import { menuItem } from "./menu.js"
 import type { MenuItem } from "@workspace/shared/types/organization/menu/types"
+import { v4 as uuidv4 } from "uuid";
 
 type Status =
   | "pending"
@@ -26,7 +27,7 @@ type PaymentStatus = "pending" | "paid" | "failed" | "refunded"
 export const order = pgTable(
   "order",
   {
-    id: uuid("id").defaultRandom().primaryKey(),
+    id: text("id").primaryKey().default(uuidv4()),
     organizationId: text("organization_id")
       .notNull()
       .references(() => organization.id, {
@@ -63,13 +64,13 @@ export const order = pgTable(
 export const orderItem = pgTable(
   "order_item",
   {
-    id: uuid("id").defaultRandom().primaryKey(),
-    orderId: uuid("order_id")
+    id: text("id").primaryKey().default(uuidv4()),
+    orderId: text("order_id")
       .notNull()
       .references(() => order.id, {
         onDelete: "cascade",
       }),
-    menuItemId: uuid("menu_item_id")
+    menuItemId: text("menu_item_id")
       .notNull()
       .references(() => menuItem.id),
     quantity: integer("quantity").default(1).notNull(),

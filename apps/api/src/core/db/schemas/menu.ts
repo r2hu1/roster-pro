@@ -5,14 +5,14 @@ import {
   boolean,
   integer,
   index,
-  uuid,
 } from "drizzle-orm/pg-core"
 import { organization } from "./auth.js"
+import { v4 as uuidv4 } from "uuid";
 
 export const menu = pgTable(
   "menu",
   {
-    id: uuid("id").defaultRandom().primaryKey(),
+    id: text("id").primaryKey().default(uuidv4()),
     organizationId: text("organization_id")
       .notNull()
       .references(() => organization.id, {
@@ -36,8 +36,8 @@ export const menu = pgTable(
 export const menuItem = pgTable(
   "menu_item",
   {
-    id: uuid("id").defaultRandom().primaryKey(),
-    menuId: uuid("menu_id")
+    id: text("id").primaryKey().default(uuidv4()),
+    menuId: text("menu_id")
       .notNull()
       .references(() => menu.id, {
         onDelete: "cascade",

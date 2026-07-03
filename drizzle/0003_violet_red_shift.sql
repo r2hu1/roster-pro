@@ -1,1 +1,0 @@
-ALTER TABLE "order_item" ALTER COLUMN "order_id" SET DATA TYPE uuid;
