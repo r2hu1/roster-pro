@@ -4,6 +4,8 @@ import { db } from "../../core/db/client.js"
 import { organization } from "better-auth/plugins"
 import { polarClient } from "../polar/client.js"
 import { polar, checkout, portal, webhooks } from "@polar-sh/better-auth"
+import { user as userSchema } from "../../core/db/schemas/auth.js"
+import { eq } from "drizzle-orm"
 
 export const auth = betterAuth({
   basePath: "/v1/auth",
@@ -21,8 +23,28 @@ export const auth = betterAuth({
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
     },
   },
+  user: {
+    additionalFields: {
+      organizationId: { type: "string", optional: true },
+    },
+  },
   plugins: [
-    organization(),
+    organization({
+      organizationHooks: {
+        afterCreateOrganization: async ({ organization, user }) => {
+          try {
+            await db.update(userSchema).set({ organizationId: organization.id }).where(eq(userSchema.id, user.id));
+          }
+          catch {}
+        },
+        afterDeleteOrganization: async ({ user }) => {
+          try {
+            await db.update(userSchema).set({ organizationId: null }).where(eq(userSchema.id, user.id));
+          }
+          catch {}
+        },
+      }
+    }),
     polar({
       client: polarClient,
       createCustomerOnSignUp: true,

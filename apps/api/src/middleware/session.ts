@@ -17,13 +17,9 @@ export const sessionMiddleware = async (
     headers: c.req.raw.headers,
   })
 
-  const organizationId = await auth.api.listOrganizations({
-    headers: c.req.raw.headers,
-  })
-
   c.set("user", session?.user ?? null)
   c.set("session", session?.session ?? null)
-  c.set("organizationId", organizationId?.[0]?.id ?? null)
+  c.set("organizationId", session?.user.organizationId ?? null)
 
   await next()
 }
