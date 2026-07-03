@@ -59,10 +59,10 @@ export const Footer = () => {
           <div className="flex gap-4">
             <span className="text-xs">© 2026 Platform Inc.</span>
             <a href="/terms&cond" className="text-xs hover:text-white">
-              Terms
+              Terms&condition
             </a>
-            <a href="#" className="text-xs hover:text-white">
-              Privacy
+            <a href="/privacy_policy" className="text-xs hover:text-white">
+              Privacy Policy
             </a>
           </div>
         </div>
