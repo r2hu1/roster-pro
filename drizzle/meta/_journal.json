@@ -15,6 +15,13 @@
       "when": 1782929637628,
       "tag": "0001_misty_starbolt",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1783089681102,
+      "tag": "0002_smart_sharon_carter",
+      "breakpoints": true
     }
   ]
 }

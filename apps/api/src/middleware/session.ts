@@ -2,10 +2,7 @@ import type { Context } from "hono"
 import type { AppEnv } from "../index.js"
 import { auth } from "../lib/better-auth/auth.js"
 
-const excludedPaths = [
-  "/v1/auth/polar/webhooks",
-  "v1/"
-]
+const excludedPaths = ["/v1/auth/polar/webhooks", "v1/"]
 
 export const sessionMiddleware = async (
   c: Context<AppEnv>,

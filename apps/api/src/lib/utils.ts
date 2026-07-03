@@ -9,3 +9,11 @@ export const HTTP_STATUS_CODES = {
   INTERNAL_SERVER_ERROR: 500,
   PAYMENT_REQUIRED: 402,
 }
+
+export const parseFile = async (file: File): Promise<Buffer> => {
+  if (!(file instanceof File)) {
+    throw new Error("Expected a File");
+  }
+
+  return Buffer.from(await file.arrayBuffer());
+};

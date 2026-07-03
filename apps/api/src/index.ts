@@ -11,6 +11,7 @@ export type AppEnv = {
   Variables: {
     user: typeof auth.$Infer.Session.user | null
     session: typeof auth.$Infer.Session.session | null
+    organizationId: string | null
   }
 }
 export type AppHono = Hono<AppEnv>

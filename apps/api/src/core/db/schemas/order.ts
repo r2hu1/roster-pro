@@ -5,6 +5,7 @@ import {
   integer,
   index,
   jsonb,
+  uuid,
 } from "drizzle-orm/pg-core"
 
 import { organization } from "./auth.js"
@@ -25,7 +26,7 @@ type PaymentStatus = "pending" | "paid" | "failed" | "refunded"
 export const order = pgTable(
   "order",
   {
-    id: text("id").primaryKey(),
+    id: uuid("id").defaultRandom().primaryKey(),
     organizationId: text("organization_id")
       .notNull()
       .references(() => organization.id, {
@@ -62,7 +63,7 @@ export const order = pgTable(
 export const orderItem = pgTable(
   "order_item",
   {
-    id: text("id").primaryKey(),
+    id: uuid("id").defaultRandom().primaryKey(),
     orderId: text("order_id")
       .notNull()
       .references(() => order.id, {

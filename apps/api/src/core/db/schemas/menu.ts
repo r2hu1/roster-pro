@@ -5,13 +5,14 @@ import {
   boolean,
   integer,
   index,
+  uuid,
 } from "drizzle-orm/pg-core"
 import { organization } from "./auth.js"
 
 export const menu = pgTable(
   "menu",
   {
-    id: text("id").primaryKey(),
+    id: uuid("id").defaultRandom().primaryKey(),
     organizationId: text("organization_id")
       .notNull()
       .references(() => organization.id, {
@@ -22,8 +23,7 @@ export const menu = pgTable(
     isActive: boolean("is_active").default(true).notNull(),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at")
-      .defaultNow()
-      .$onUpdate(() => new Date())
+      .$onUpdate(() => /* @__PURE__ */ new Date())
       .notNull(),
   },
   (table) => ({
@@ -38,10 +38,15 @@ export type MenuItem = typeof menuItem.$inferSelect
 export const menuItem = pgTable(
   "menu_item",
   {
-    id: text("id").primaryKey(),
+    id: uuid("id").defaultRandom().primaryKey(),
     menuId: text("menu_id")
       .notNull()
       .references(() => menu.id, {
+        onDelete: "cascade",
+      }),
+    organizationId: text("organization_id")
+      .notNull()
+      .references(() => organization.id, {
         onDelete: "cascade",
       }),
     name: text("name").notNull(),

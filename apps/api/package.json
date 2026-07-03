@@ -18,6 +18,7 @@
   "dependencies": {
     "@hono/node-server": "^2.0.6",
     "@hono/zod-validator": "^0.8.0",
+    "@imagekit/nodejs": "^7.9.1",
     "@polar-sh/better-auth": "^1.8.4",
     "@polar-sh/sdk": "^0.48.1",
     "@upstash/redis": "^1.38.0",
