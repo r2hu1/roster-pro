@@ -7,14 +7,14 @@ export const createMenuSchema = z.object({
 })
 
 export const updateMenuSchema = z.object({
-  id: z.string().uuid("Invalid menu ID"),
+  id: z.string(),
   name: z.string().min(1).optional(),
   description: z.string().nullable().optional(),
   isActive: z.boolean().optional(),
 })
 
 export const createMenuItemSchema = z.object({
-  menuId: z.string().uuid("Invalid menu ID"),
+  menuId: z.string(),
   name: z.string().min(1, "Name is required"),
   description: z.string().nullable().optional(),
   ingredients: z.array(z.string()).nullable().optional(),
@@ -26,7 +26,7 @@ export const createMenuItemSchema = z.object({
 })
 
 export const updateMenuItemSchema = z.object({
-  id: z.string().uuid("Invalid menu item ID"),
+  id: z.string(),
   name: z.string().min(1).optional(),
   description: z.string().nullable().optional(),
   ingredients: z.array(z.string()).nullable().optional(),
