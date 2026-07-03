@@ -9,6 +9,8 @@ import {
 import { organization } from "./auth.js"
 import { v4 as uuidv4 } from "uuid"
 
+export type TableStatus = "available" | "occupied";
+
 export const tableSchema = pgTable(
   "table",
   {
@@ -20,6 +22,7 @@ export const tableSchema = pgTable(
       .references(() => organization.id, {
         onDelete: "cascade",
       }),
+    status: text("status").$type<TableStatus>().notNull(),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at")
       .$onUpdate(() => /* @__PURE__ */ new Date())
