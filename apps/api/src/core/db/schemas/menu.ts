@@ -33,8 +33,6 @@ export const menu = pgTable(
   })
 )
 
-export type MenuItem = typeof menuItem.$inferSelect
-
 export const menuItem = pgTable(
   "menu_item",
   {

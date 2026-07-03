@@ -8,7 +8,7 @@ export const HTTP_STATUS_CODES = {
   NOT_FOUND: 404,
   INTERNAL_SERVER_ERROR: 500,
   PAYMENT_REQUIRED: 402,
-}
+} as const
 
 export const parseFile = async (file: File): Promise<Buffer> => {
   if (!(file instanceof File)) {
