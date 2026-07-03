@@ -4,7 +4,6 @@ import { organization } from "../../core/db/schemas/auth.js"
 import { auth } from "../../lib/better-auth/auth.js"
 import { HTTP_STATUS_CODES } from "../../lib/utils.js"
 import type { UpdateOrganizationDto } from "@workspace/shared/types/organization/dto"
-import { date } from "better-auth"
 
 export const organizationLogic = {
   me: async (headers: HeadersInit) => {
@@ -39,22 +38,29 @@ export const organizationLogic = {
   update: async (headers: HeadersInit, body: UpdateOrganizationDto) => {
     const userOrg = await auth.api.getFullOrganization({
       headers,
-    });
-    if (!userOrg) return {
-      status: "error",
-      code: HTTP_STATUS_CODES.NOT_FOUND,
-      message: "Organization not found",
-    };
-    const [getOrg] = await db.select().from(organization).where(eq(userOrg.id as any, organization.id));
+    })
+    if (!userOrg)
+      return {
+        status: "error",
+        code: HTTP_STATUS_CODES.NOT_FOUND,
+        message: "Organization not found",
+      }
+    const [getOrg] = await db
+      .select()
+      .from(organization)
+      .where(eq(userOrg.id as any, organization.id))
 
-    const updOrg = await db.update(organization).set({
-      name: body.name ?? getOrg.name,
-      logo: body.logo ?? getOrg.logo,
-      logoKey: body.logoKey ?? getOrg.logoKey,
-      address: body.address ?? getOrg.address,
-      metadata: JSON.stringify(body.metadata) ?? getOrg.metadata,
-      websiteId: body.websiteId ?? getOrg.websiteId
-    }).returning();
+    const updOrg = await db
+      .update(organization)
+      .set({
+        name: body.name ?? getOrg.name,
+        logo: body.logo ?? getOrg.logo,
+        logoKey: body.logoKey ?? getOrg.logoKey,
+        address: body.address ?? getOrg.address,
+        metadata: JSON.stringify(body.metadata) ?? getOrg.metadata,
+        websiteId: body.websiteId ?? getOrg.websiteId,
+      })
+      .returning()
 
     if (updOrg!) {
       return {
@@ -66,7 +72,7 @@ export const organizationLogic = {
     return {
       status: "success",
       code: HTTP_STATUS_CODES.OK,
-      data: updOrg[0]
+      data: updOrg[0],
     }
-  }
+  },
 }

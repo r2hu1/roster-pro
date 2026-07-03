@@ -3,9 +3,8 @@ import type { AppEnv } from "../index.js"
 import { auth } from "../lib/better-auth/auth.js"
 
 const excludedPaths = [
-  "/v1/stripe/webhooks",
-  "/v1/uber/webhooks",
-  "/v1/organization/login",
+  "/v1/auth/polar/webhooks",
+  "v1/"
 ]
 
 export const sessionMiddleware = async (
