@@ -18,9 +18,9 @@ userRouter.get("/me", async (c) => {
   })
 });
 
-userRouter.get("/organizations", async (c) => {
+userRouter.get("/organization", async (c) => {
   const headers = c.req.raw.headers;
   const res = await userLogic.organization(headers);
 
-  c.json(res)
+  return c.json(res);
 });
