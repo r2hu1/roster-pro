@@ -17,7 +17,7 @@ const MENU_ITEMS_CACHE_PREFIX = "menu_items:"
 const CACHE_TTL = 300
 
 export const menuLogic = {
-  getAll: async (organizationId:string) => {
+  getAll: async (organizationId: string) => {
     if (!organizationId) {
       return {
         status: "error",
@@ -42,7 +42,7 @@ export const menuLogic = {
     return { status: "success", code: HTTP_STATUS_CODES.OK, data: menus }
   },
 
-  getById: async (id: string,organizationId:string) => {
+  getById: async (id: string, organizationId: string) => {
     if (!organizationId) {
       return {
         status: "error",
@@ -75,7 +75,7 @@ export const menuLogic = {
     return { status: "success", code: HTTP_STATUS_CODES.OK, data: found }
   },
 
-  create: async (body: CreateMenuDto,organizationId:string) => {
+  create: async (body: CreateMenuDto, organizationId: string) => {
     if (!organizationId) {
       return {
         status: "error",
@@ -99,7 +99,7 @@ export const menuLogic = {
     return { status: "success", code: HTTP_STATUS_CODES.CREATED, data: created }
   },
 
-  update: async (body: UpdateMenuDto,organizationId:string) => {
+  update: async (body: UpdateMenuDto, organizationId: string) => {
     if (!organizationId) {
       return {
         status: "error",
@@ -141,7 +141,7 @@ export const menuLogic = {
     return { status: "success", code: HTTP_STATUS_CODES.OK, data: updated }
   },
 
-  delete: async (id: string,organizationId:string) => {
+  delete: async (id: string, organizationId: string) => {
     if (!organizationId) {
       return {
         status: "error",
@@ -184,7 +184,7 @@ export const menuLogic = {
     return { status: "success", code: HTTP_STATUS_CODES.NO_CONTENT }
   },
 
-  getAllItems: async (menuId: string,organizationId:string) => {
+  getAllItems: async (menuId: string, organizationId: string) => {
     if (!organizationId) {
       return {
         status: "error",
@@ -215,7 +215,7 @@ export const menuLogic = {
     return { status: "success", code: HTTP_STATUS_CODES.OK, data: items }
   },
 
-  getItemById: async (id: string,organizationId:string) => {
+  getItemById: async (id: string, organizationId: string) => {
     if (!organizationId) {
       return {
         status: "error",
@@ -253,7 +253,7 @@ export const menuLogic = {
   createItem: async (
     organizationId: string,
     body: CreateMenuItemDto,
-    file?: File,
+    file?: File
   ) => {
     if (!organizationId) {
       return {

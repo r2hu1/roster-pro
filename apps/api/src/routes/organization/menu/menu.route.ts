@@ -17,8 +17,7 @@ export const menuRouter = new Hono<AppEnv>()
 menuRouter.use(sessionMiddleware)
 
 menuRouter.get("/", async (c) => {
-  const headers = c.req.raw.headers
-  const organizationId = c.get("organizationId");
+  const organizationId = c.get("organizationId")
   if (!organizationId) {
     return c.json(
       {
@@ -35,7 +34,7 @@ menuRouter.get("/", async (c) => {
 })
 
 menuRouter.get("/:id", async (c) => {
-  const organizationId = c.get("organizationId");
+  const organizationId = c.get("organizationId")
   if (!organizationId) {
     return c.json(
       {
@@ -68,7 +67,7 @@ menuRouter.post(
     }
   }),
   async (c) => {
-    const organizationId = c.get("organizationId");
+    const organizationId = c.get("organizationId")
     if (!organizationId) {
       return c.json(
         {
@@ -102,7 +101,7 @@ menuRouter.put(
     }
   }),
   async (c) => {
-    const organizationId = c.get("organizationId");
+    const organizationId = c.get("organizationId")
     if (!organizationId) {
       return c.json(
         {
@@ -115,13 +114,13 @@ menuRouter.put(
     }
 
     const body = c.req.valid("json")
-    const result = await menuLogic.update(body,organizationId)
+    const result = await menuLogic.update(body, organizationId)
     return c.json(result)
   }
 )
 
 menuRouter.delete("/:id", async (c) => {
-  const organizationId = c.get("organizationId");
+  const organizationId = c.get("organizationId")
   if (!organizationId) {
     return c.json(
       {
@@ -134,12 +133,12 @@ menuRouter.delete("/:id", async (c) => {
   }
 
   const id = c.req.param("id")
-  const result = await menuLogic.delete(id,organizationId)
+  const result = await menuLogic.delete(id, organizationId)
   return c.json(result)
 })
 
 menuRouter.get("/items/:menuId", async (c) => {
-  const organizationId = c.get("organizationId");
+  const organizationId = c.get("organizationId")
   if (!organizationId) {
     return c.json(
       {
@@ -152,12 +151,12 @@ menuRouter.get("/items/:menuId", async (c) => {
   }
 
   const menuId = c.req.param("menuId")
-  const result = await menuLogic.getAllItems(menuId,organizationId)
+  const result = await menuLogic.getAllItems(menuId, organizationId)
   return c.json(result)
 })
 
 menuRouter.get("/item/:id", async (c) => {
-  const organizationId = c.get("organizationId");
+  const organizationId = c.get("organizationId")
   if (!organizationId) {
     return c.json(
       {
@@ -170,7 +169,7 @@ menuRouter.get("/item/:id", async (c) => {
   }
 
   const id = c.req.param("id")
-  const result = await menuLogic.getItemById(id,organizationId)
+  const result = await menuLogic.getItemById(id, organizationId)
   return c.json(result)
 })
 
@@ -191,7 +190,7 @@ menuRouter.post(
   }),
   async (c) => {
     const body = c.req.valid("json")
-    const organizationId = c.get("organizationId");
+    const organizationId = c.get("organizationId")
     if (!organizationId) {
       return c.json(
         {
@@ -203,7 +202,6 @@ menuRouter.post(
       )
     }
 
-
     let file: File | undefined
     const contentType = c.req.header("content-type")
     if (contentType?.includes("multipart/form-data")) {
@@ -214,7 +212,7 @@ menuRouter.post(
       }
     }
 
-    const result = await menuLogic.createItem(organizationId,body, file)
+    const result = await menuLogic.createItem(organizationId, body, file)
     return c.json(result)
   }
 )
@@ -235,7 +233,7 @@ menuRouter.put(
     }
   }),
   async (c) => {
-    const organizationId = c.get("organizationId");
+    const organizationId = c.get("organizationId")
     if (!organizationId) {
       return c.json(
         {
@@ -265,7 +263,7 @@ menuRouter.put(
 )
 
 menuRouter.delete("/item/:id", async (c) => {
-  const organizationId = c.get("organizationId");
+  const organizationId = c.get("organizationId")
   if (!organizationId) {
     return c.json(
       {

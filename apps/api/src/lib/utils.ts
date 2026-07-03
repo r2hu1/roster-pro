@@ -12,8 +12,8 @@ export const HTTP_STATUS_CODES = {
 
 export const parseFile = async (file: File): Promise<Buffer> => {
   if (!(file instanceof File)) {
-    throw new Error("Expected a File");
+    throw new Error("Expected a File")
   }
 
-  return Buffer.from(await file.arrayBuffer());
-};
+  return Buffer.from(await file.arrayBuffer())
+}
