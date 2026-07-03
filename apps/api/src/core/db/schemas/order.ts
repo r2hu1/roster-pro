@@ -11,7 +11,7 @@ import {
 import { organization } from "./auth.js"
 import { menuItem } from "./menu.js"
 import type { MenuItem } from "@workspace/shared/types/organization/menu/types"
-import { v4 as uuidv4 } from "uuid";
+import { v4 as uuidv4 } from "uuid"
 
 type Status =
   | "pending"
