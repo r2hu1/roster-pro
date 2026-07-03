@@ -1,5 +1,5 @@
-import { Button } from "@workspace/ui/components/button";
-import { ArrowUpRightIcon } from "lucide-react";
+import { Button } from "@workspace/ui/components/button"
+import { ArrowUpRightIcon } from "lucide-react"
 
 const testimonials = [
   {
@@ -44,18 +44,18 @@ const testimonials = [
     testimonial:
       "From QR ordering to detailed analytics, everything works seamlessly. It's become an essential part of our daily restaurant operations.",
   },
-];
+]
 export const Testimonials = () => {
   return (
     <div className="mx-auto max-w-7xl px-6 py-12 sm:py-20">
-
-    <div className="flex flex-wrap gap-10 items-center justify-between">
+      <div className="flex flex-wrap gap-10 items-center justify-between">
         <div className="md:max-w-xl text-left space-y-2">
           <h2 className="font-medium text-3xl tracking-[-0.04em] md:text-4xl">
-        Loved by hundreds of restaurant owners.
-      </h2>
-      <p className="mt-2 text-balance text-lg text-muted-foreground tracking-[-0.015em] sm:mt-4">
-        Their experiences speak louder than words, and we're proud to be part of their journey.
+            Loved by hundreds of restaurant owners.
+          </h2>
+          <p className="mt-2 text-balance text-lg text-muted-foreground tracking-[-0.015em] sm:mt-4">
+            Their experiences speak louder than words, and we're proud to be
+            part of their journey.
           </p>
         </div>
         <div className="flex md:flex-col-reverse items-center gap-2">
@@ -63,10 +63,10 @@ export const Testimonials = () => {
             Schedule Meeting
           </Button>
           <Button size="lg">
-            Get Started <ArrowUpRightIcon/>
+            Get Started <ArrowUpRightIcon />
           </Button>
         </div>
-        </div>
+      </div>
 
       <div className="mx-auto mt-16 max-w-5xl columns-1 gap-6 sm:columns-2 lg:columns-3">
         {testimonials.map(({ name, avatar, role, testimonial }, index) => (
@@ -97,5 +97,5 @@ export const Testimonials = () => {
         ))}
       </div>
     </div>
-  );
-};
+  )
+}

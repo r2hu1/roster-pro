@@ -2,6 +2,8 @@ import { betterAuth } from "better-auth"
 import { drizzleAdapter } from "better-auth/adapters/drizzle"
 import { db } from "../../core/db/client.js"
 import { organization } from "better-auth/plugins"
+import { polarClient } from "../polar/client.js"
+import { polar, checkout, portal, webhooks } from "@polar-sh/better-auth"
 
 export const auth = betterAuth({
   basePath: "/v1/auth",
@@ -19,5 +21,26 @@ export const auth = betterAuth({
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
     },
   },
-  plugins: [organization()],
+  plugins: [
+    organization(),
+    polar({
+      client: polarClient,
+      createCustomerOnSignUp: true,
+      use: [
+        checkout({
+          products: [
+            {
+              productId: process.env.POLAR_MONTHLY_PRODUCT_ID!,
+              slug: "pro",
+            },
+          ],
+          authenticatedUsersOnly: true,
+        }),
+        portal(),
+        webhooks({
+          secret: process.env.POLAR_WEBHOOK_SECRET!,
+        }),
+      ],
+    }),
+  ],
 })

@@ -1,5 +1,5 @@
-import { Button } from "@workspace/ui/components/button";
-import { cn } from "@workspace/ui/lib/utils";
+import { Button } from "@workspace/ui/components/button"
+import { cn } from "@workspace/ui/lib/utils"
 import {
   AppWindow,
   ArrowUpRightIcon,
@@ -14,7 +14,7 @@ import {
   ScanQrCode,
   ShieldCheckIcon,
   ZapIcon,
-} from "lucide-react";
+} from "lucide-react"
 
 const plusPoints = [
   {
@@ -26,12 +26,14 @@ const plusPoints = [
   {
     icon: ScanQrCode,
     title: "QR Ordering",
-    description: "Your customers will scan a QR code to view menu and place an order in real-time.",
+    description:
+      "Your customers will scan a QR code to view menu and place an order in real-time.",
   },
   {
     icon: ReceiptText,
     title: "GST Compliance Billing",
-    description: "No need to worry about GST compliance billing, we handle it for you.",
+    description:
+      "No need to worry about GST compliance billing, we handle it for you.",
   },
   {
     icon: RockingChair,
@@ -42,7 +44,8 @@ const plusPoints = [
   {
     icon: ChefHat,
     title: "Kitchen Display",
-    description: "Get live orders on the kitchen screen in real-time. Update order status from the kitchen screen.",
+    description:
+      "Get live orders on the kitchen screen in real-time. Update order status from the kitchen screen.",
   },
   {
     icon: ChartArea,
@@ -50,7 +53,7 @@ const plusPoints = [
     description:
       "Get real-time insights into your restaurant's performance, revenue and customer behavior.",
   },
-];
+]
 
 export function Features() {
   return (
@@ -59,12 +62,13 @@ export function Features() {
       id="why-choose-us"
     >
       <div className="flex flex-wrap gap-10 items-center justify-between">
-      <div className="md:max-w-xl text-left space-y-2">
-        <h2 className="text-balance font-medium text-3xl md:text-4xl leading-[1.3] tracking-[-0.04em]">
-          Lightning Fast Restaurant Management Solution.
-        </h2>
-        <p className="text-pretty text-muted-foreground text-lg -tracking-[0.01em]">
-          Advanced restaurant management system that delivers lightning fast performance and seamless customer experiences.
+        <div className="md:max-w-xl text-left space-y-2">
+          <h2 className="text-balance font-medium text-3xl md:text-4xl leading-[1.3] tracking-[-0.04em]">
+            Lightning Fast Restaurant Management Solution.
+          </h2>
+          <p className="text-pretty text-muted-foreground text-lg -tracking-[0.01em]">
+            Advanced restaurant management system that delivers lightning fast
+            performance and seamless customer experiences.
           </p>
         </div>
         <div className="flex md:flex-col-reverse items-center gap-2">
@@ -72,7 +76,7 @@ export function Features() {
             Schedule Meeting
           </Button>
           <Button size="lg">
-            Get Started <ArrowUpRightIcon/>
+            Get Started <ArrowUpRightIcon />
           </Button>
         </div>
       </div>
@@ -106,5 +110,5 @@ export function Features() {
         ))}
       </div>
     </div>
-  );
+  )
 }

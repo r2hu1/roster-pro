@@ -11,14 +11,13 @@ export const Hero = () => {
       <div className="relative mx-auto max-w-5xl w-full py-16 md:py-28 lg:py-24">
         <div className="relative z-10 mx-auto max-w-5xl text-center">
           <h1 className="text-balance text-4xl font-semibold leading-tight md:text-5xl lg:text-6xl">
-            The Complete Operating System for Modern {" "}
-            <span
-                        className="relative inline-block border-2 border-primary px-4 py-1 bg-primary/10 text-primary rounded-md"
-                      >Restaurants
-                        <div className="absolute -top-1.5 -left-1.5 w-3 h-3 bg-white border-2 border-primary"></div>
-                        <div className="absolute -top-1.5 -right-1.5 w-3 h-3 bg-white border-2 border-primary"></div>
-                        <div className="absolute -bottom-1.5 -left-1.5 w-3 h-3 bg-white border-2 border-primary"></div>
-                        <div className="absolute -bottom-1.5 -right-1.5 w-3 h-3 bg-white border-2 border-primary"></div>
+            The Complete Operating System for Modern{" "}
+            <span className="relative inline-block border-2 border-primary px-4 py-1 bg-primary/10 text-primary rounded-md">
+              Restaurants
+              <div className="absolute -top-1.5 -left-1.5 w-3 h-3 bg-white border-2 border-primary"></div>
+              <div className="absolute -top-1.5 -right-1.5 w-3 h-3 bg-white border-2 border-primary"></div>
+              <div className="absolute -bottom-1.5 -left-1.5 w-3 h-3 bg-white border-2 border-primary"></div>
+              <div className="absolute -bottom-1.5 -right-1.5 w-3 h-3 bg-white border-2 border-primary"></div>
             </span>
           </h1>
           <p className="mx-auto my-8 text-muted-foreground max-w-2xl text-xl">

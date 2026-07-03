@@ -16,10 +16,12 @@
     "db:generate": "tsx ./node_modules/drizzle-kit/bin.cjs generate"
   },
   "dependencies": {
-    "@workspace/shared": "workspace:*",
     "@hono/node-server": "^2.0.6",
     "@hono/zod-validator": "^0.8.0",
+    "@polar-sh/better-auth": "^1.8.4",
+    "@polar-sh/sdk": "^0.48.1",
     "@upstash/redis": "^1.38.0",
+    "@workspace/shared": "workspace:*",
     "better-auth": "^1.6.23",
     "chalk": "^5.6.2",
     "dotenv": "^17.4.2",
