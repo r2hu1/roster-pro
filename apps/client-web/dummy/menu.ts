@@ -47,7 +47,7 @@ const menuItems: MenuItem[] = [
     name: "Avocado Toast",
     description: "Toasted sourdough with smashed avocado.",
     ingredients: ["Bread", "Avocado", "Olive Oil", "Chili Flakes"],
-    price: 8.99,
+    price: { half: 450, full: 899 },
     image:
       "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQAMcj9aRfzu8bVJPPqO1NBK8FThjH48OrzXapmas7_v2SFA0yfy-vvnYw&s=10",
     imageKey: null,
@@ -65,7 +65,7 @@ const menuItems: MenuItem[] = [
     name: "Pancake Stack",
     description: "Fluffy pancakes with maple syrup.",
     ingredients: ["Flour", "Eggs", "Milk", "Maple Syrup"],
-    price: 9.5,
+    price: { half: 475, full: 950 },
     image:
       "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRjQatQ5E7CtvRq1WlHBv_8FppsxsABaQK31NqSkXtWOg&s=10",
     imageKey: null,
@@ -83,7 +83,7 @@ const menuItems: MenuItem[] = [
     name: "Grilled Chicken Burger",
     description: "Served with fries.",
     ingredients: ["Chicken", "Burger Bun", "Lettuce", "Cheese"],
-    price: 13.99,
+    price: { half: 699, full: 1399 },
     image:
       "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTC6zMZAWvnsKr_Y_C8aFkWnwYKmHSa0J2qmbXenAomZiTzFN0oj1y9TbT2&s=10",
     imageKey: null,
@@ -101,7 +101,7 @@ const menuItems: MenuItem[] = [
     name: "Margherita Pizza",
     description: "Classic Italian pizza.",
     ingredients: ["Mozzarella", "Tomato", "Basil"],
-    price: 12.49,
+    price: { half: 625, full: 1249 },
     image:
       "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQKalkvtRkhdgSC4w4yzQRmfH2-2W_j2SWQ_ST2CYTyuU_l18j-AEPRfrs&s=10",
     imageKey: null,
@@ -119,7 +119,7 @@ const menuItems: MenuItem[] = [
     name: "Grilled Salmon",
     description: "Served with roasted vegetables.",
     ingredients: ["Salmon", "Broccoli", "Carrots"],
-    price: 18.99,
+    price: { half: 949, full: 1899 },
     image:
       "https://images.unsplash.com/photo-1717587052948-fb9825de50f8?fm=jpg&q=60&w=3000&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8M3x8aW5kaWFuJTIwc3RyZWV0JTIwZm9vZHxlbnwwfHwwfHx8MA%3D%3D",
     imageKey: null,
@@ -137,7 +137,7 @@ const menuItems: MenuItem[] = [
     name: "Veggie Pasta",
     description: "Creamy Alfredo pasta with vegetables.",
     ingredients: ["Pasta", "Cream", "Bell Pepper", "Mushrooms"],
-    price: 14.99,
+    price: { half: 749, full: 1499 },
     image:
       "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTbwBKv27wX6nD-lRnk-qQxlS-2qqNKIQfYVf5hT3skxw3doMuLgPZC1Bw&s=10",
     imageKey: null,
@@ -155,7 +155,7 @@ const menuItems: MenuItem[] = [
     name: "Cappuccino",
     description: "Freshly brewed coffee.",
     ingredients: ["Espresso", "Milk"],
-    price: 45000,
+    price: { half: 225, full: 450 },
     image:
       "https://t4.ftcdn.net/jpg/20/16/04/77/360_F_2016047758_4XWyzbZ3RWZZixlmg2ChskAJhTWZo4Da.jpg",
     imageKey: null,
@@ -173,7 +173,7 @@ const menuItems: MenuItem[] = [
     name: "Fresh Orange Juice",
     description: "100% freshly squeezed oranges.",
     ingredients: ["Orange"],
-    price: 5.25,
+    price: { half: 263, full: 525 },
     image:
       "https://production-nuego-cms.blr1.digitaloceanspaces.com/static-contents/prod-v1/Poha_Jalebi_shutterstock_2402519779_557_X_310_px_210f04507f.webp",
     imageKey: null,
@@ -191,7 +191,7 @@ const menuItems: MenuItem[] = [
     name: "Caesar Salad",
     description: "Crisp romaine with Caesar dressing.",
     ingredients: ["Lettuce", "Croutons", "Parmesan"],
-    price: 10.99,
+    price: { half: 549, full: 1099 },
     image:
       "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQeFsBy8CXPD0DFrlCB_57LbVlWh_CFzEAfquRSQVAhcA&s",
     imageKey: null,
@@ -209,7 +209,7 @@ const menuItems: MenuItem[] = [
     name: "BBQ Ribs",
     description: "Slow-cooked BBQ pork ribs.",
     ingredients: ["Pork", "BBQ Sauce"],
-    price: 22.99,
+    price: { half: 1149, full: 2299 },
     image:
       "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQFXra9gSYy6fv2NffmI_iiMmN_eKg9XepdSNr05PFakG46BvIJsgRte18&s=10",
     imageKey: null,
