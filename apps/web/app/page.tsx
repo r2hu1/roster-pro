@@ -1,11 +1,10 @@
-"use client"
-import { authClient } from "@/lib/better-auth/client"
+import { redirect } from "next/navigation"
 
-export default function Page() {
-  const session = authClient.useSession();
+export default async function Page() {
+  const session = await fetch("/user/me")
   if (!session) {
-    return <div>Not authenticated</div>
+    return redirect("/login")
   }
 
-  return <div>{session.error?.message}</div>
+  return "E"
 }

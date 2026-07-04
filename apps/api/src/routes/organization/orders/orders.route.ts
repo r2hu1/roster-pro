@@ -5,14 +5,11 @@ import type { OrderResponse } from "@workspace/shared/schemas/order/index"
 import { HTTP_STATUS_CODES, zvalidator } from "../../../lib/utils.js"
 import { sessionMiddleware } from "../../../middleware/session.js"
 import { orderLogic, orderEmitter } from "./orders.logic.js"
-import {
-  createOrderSchema,
-  updateOrderSchema,
-} from "./orders.validation.js"
+import { createOrderSchema, updateOrderSchema } from "./orders.validation.js"
 
 export const orderRouter = new Hono<AppEnv>()
 
-orderRouter.get("/",sessionMiddleware, async (c) => {
+orderRouter.get("/", sessionMiddleware, async (c) => {
   const organizationId = c.get("organizationId")
   if (!organizationId) {
     return c.json(
@@ -54,7 +51,10 @@ orderRouter.get("/:id/stream", async (c) => {
       data: JSON.stringify(existing.data),
     })
 
-    const listener = (event: { type: string; data: OrderResponse | { id: string } }) => {
+    const listener = (event: {
+      type: string
+      data: OrderResponse | { id: string }
+    }) => {
       stream.writeSSE({
         event: event.type,
         data: JSON.stringify(event.data),
@@ -97,25 +97,30 @@ orderRouter.post("/", zvalidator(createOrderSchema), async (c) => {
   return c.json(result)
 })
 
-orderRouter.put("/",sessionMiddleware, zvalidator(updateOrderSchema), async (c) => {
-  const organizationId = c.get("organizationId")
-  if (!organizationId) {
-    return c.json(
-      {
-        status: "error",
-        code: HTTP_STATUS_CODES.UNAUTHORIZED,
-        message: "Organization not found",
-      },
-      HTTP_STATUS_CODES.UNAUTHORIZED
-    )
+orderRouter.put(
+  "/",
+  sessionMiddleware,
+  zvalidator(updateOrderSchema),
+  async (c) => {
+    const organizationId = c.get("organizationId")
+    if (!organizationId) {
+      return c.json(
+        {
+          status: "error",
+          code: HTTP_STATUS_CODES.UNAUTHORIZED,
+          message: "Organization not found",
+        },
+        HTTP_STATUS_CODES.UNAUTHORIZED
+      )
+    }
+
+    const body = c.req.valid("json")
+    const result = await orderLogic.update(body, organizationId)
+    return c.json(result)
   }
+)
 
-  const body = c.req.valid("json")
-  const result = await orderLogic.update(body, organizationId)
-  return c.json(result)
-})
-
-orderRouter.delete("/:id",sessionMiddleware, async (c) => {
+orderRouter.delete("/:id", sessionMiddleware, async (c) => {
   const organizationId = c.get("organizationId")
   if (!organizationId) {
     return c.json(
@@ -133,7 +138,7 @@ orderRouter.delete("/:id",sessionMiddleware, async (c) => {
   return c.json(result)
 })
 
-orderRouter.get("/stream",sessionMiddleware, async (c) => {
+orderRouter.get("/stream", sessionMiddleware, async (c) => {
   const organizationId = c.get("organizationId")
   if (!organizationId) {
     return c.json(
@@ -157,7 +162,10 @@ orderRouter.get("/stream",sessionMiddleware, async (c) => {
       data: JSON.stringify(initialOrders.data),
     })
 
-    const listener = (event: { type: string; data: OrderResponse | { id: string } }) => {
+    const listener = (event: {
+      type: string
+      data: OrderResponse | { id: string }
+    }) => {
       stream.writeSSE({
         event: event.type,
         data: JSON.stringify(event.data),
@@ -177,7 +185,7 @@ orderRouter.get("/stream",sessionMiddleware, async (c) => {
 })
 
 orderRouter.get("/:orderId/invoice", async (c) => {
-  const organizationId = c.req.query("organizationId");
+  const organizationId = c.req.query("organizationId")
   if (!organizationId) {
     return c.json(
       {

@@ -10,6 +10,7 @@ import {
   updateTableSchema,
   updateTableStatusSchema,
 } from "./table.validation.js"
+import type { ContentfulStatusCode } from "hono/utils/http-status"
 
 export const tableRouter = new Hono<AppEnv>()
 
@@ -29,7 +30,7 @@ tableRouter.get("/", async (c) => {
   }
 
   const result = await tableLogic.getAll(organizationId)
-  return c.json(result)
+  return c.json(result, result.code)
 })
 
 tableRouter.get("/:id", async (c) => {
@@ -47,7 +48,7 @@ tableRouter.get("/:id", async (c) => {
 
   const id = c.req.param("id")
   const result = await tableLogic.getById(id, organizationId)
-  return c.json(result)
+  return c.json(result, result.code)
 })
 
 tableRouter.post("/", zvalidator(createTableSchema), async (c) => {
@@ -65,7 +66,7 @@ tableRouter.post("/", zvalidator(createTableSchema), async (c) => {
 
   const body = c.req.valid("json")
   const result = await tableLogic.create(body, organizationId)
-  return c.json(result)
+  return c.json(result, result.code)
 })
 
 tableRouter.put("/", zvalidator(updateTableSchema), async (c) => {
@@ -83,7 +84,7 @@ tableRouter.put("/", zvalidator(updateTableSchema), async (c) => {
 
   const body = c.req.valid("json")
   const result = await tableLogic.update(body, organizationId)
-  return c.json(result)
+  return c.json(result, result.code)
 })
 
 tableRouter.delete("/:id", async (c) => {
@@ -101,7 +102,7 @@ tableRouter.delete("/:id", async (c) => {
 
   const id = c.req.param("id")
   const result = await tableLogic.delete(id, organizationId)
-  return c.json(result)
+  return c.json(result, result.code as ContentfulStatusCode)
 })
 
 tableRouter.patch("/status", zvalidator(updateTableStatusSchema), async (c) => {
@@ -119,7 +120,7 @@ tableRouter.patch("/status", zvalidator(updateTableStatusSchema), async (c) => {
 
   const body = c.req.valid("json")
   const result = await tableLogic.updateStatus(body, organizationId)
-  return c.json(result)
+  return c.json(result, result.code)
 })
 
 tableRouter.get("/status/stream", async (c) => {
@@ -184,5 +185,5 @@ tableRouter.post("/token", sessionMiddleware, async (c) => {
     organizationId,
     body.tableNumber
   )
-  return c.json(result)
+  return c.json(result, result.code)
 })

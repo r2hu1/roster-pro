@@ -31,7 +31,10 @@ type OrderDeletedEvent = {
   data: { id: string }
 }
 
-export type OrderEvent = OrderCreatedEvent | OrderUpdatedEvent | OrderDeletedEvent
+export type OrderEvent =
+  | OrderCreatedEvent
+  | OrderUpdatedEvent
+  | OrderDeletedEvent
 
 export const orderLogic = {
   getAll: async (organizationId: string) => {
@@ -44,7 +47,8 @@ export const orderLogic = {
     }
 
     const cacheKey = `${ORDER_CACHE_PREFIX}all:${organizationId}`
-    const cached = await redisClient.get<(typeof order.$inferSelect)[]>(cacheKey)
+    const cached =
+      await redisClient.get<(typeof order.$inferSelect)[]>(cacheKey)
     if (cached) {
       return { status: "success", code: HTTP_STATUS_CODES.OK, data: cached }
     }
@@ -186,7 +190,9 @@ export const orderLogic = {
     const [existing] = await db
       .select()
       .from(order)
-      .where(and(eq(order.id, body.id), eq(order.organizationId, organizationId)))
+      .where(
+        and(eq(order.id, body.id), eq(order.organizationId, organizationId))
+      )
 
     if (!existing) {
       return {
@@ -200,16 +206,24 @@ export const orderLogic = {
       .update(order)
       .set({
         customerName:
-          body.customerName !== undefined ? body.customerName : existing.customerName,
+          body.customerName !== undefined
+            ? body.customerName
+            : existing.customerName,
         customerPhone:
-          body.customerPhone !== undefined ? body.customerPhone : existing.customerPhone,
+          body.customerPhone !== undefined
+            ? body.customerPhone
+            : existing.customerPhone,
         customerEmail:
-          body.customerEmail !== undefined ? body.customerEmail : existing.customerEmail,
+          body.customerEmail !== undefined
+            ? body.customerEmail
+            : existing.customerEmail,
         tableNumber: body.tableNumber ?? existing.tableNumber,
         status: body.status ?? existing.status,
         paymentStatus: body.paymentStatus ?? existing.paymentStatus,
         paymentMethod:
-          body.paymentMethod !== undefined ? body.paymentMethod : existing.paymentMethod,
+          body.paymentMethod !== undefined
+            ? body.paymentMethod
+            : existing.paymentMethod,
         items: body.items !== undefined ? body.items : existing.items,
         subtotal: body.subtotal ?? existing.subtotal,
         discount: body.discount ?? existing.discount,
@@ -222,10 +236,9 @@ export const orderLogic = {
         notes: body.notes !== undefined ? body.notes : existing.notes,
         updatedAt: new Date(),
       })
-      .where(and(
-        eq(order.id, body.id),
-        eq(order.organizationId, organizationId)
-      ))
+      .where(
+        and(eq(order.id, body.id), eq(order.organizationId, organizationId))
+      )
       .returning()
 
     await redisClient.del(`${ORDER_CACHE_PREFIX}${body.id}`)
@@ -266,7 +279,9 @@ export const orderLogic = {
       }
     }
 
-    await db.delete(order).where(and(eq(order.id, id), eq(order.organizationId, organizationId)))
+    await db
+      .delete(order)
+      .where(and(eq(order.id, id), eq(order.organizationId, organizationId)))
 
     await redisClient.del(`${ORDER_CACHE_PREFIX}${id}`)
     await redisClient.delPattern(`${ORDER_CACHE_PREFIX}*:${organizationId}`)
@@ -288,12 +303,14 @@ export const orderLogic = {
     const [existingOrder] = await db
       .select()
       .from(order)
-      .where(and(eq(order.id, orderId), eq(order.organizationId, organizationId)));
+      .where(
+        and(eq(order.id, orderId), eq(order.organizationId, organizationId))
+      )
 
     const [org] = await db
       .select()
       .from(organization)
-      .where(eq(organization.id, organizationId));
+      .where(eq(organization.id, organizationId))
 
     if (!org) {
       return {
@@ -333,7 +350,7 @@ export const orderLogic = {
           tableNumber: existingOrder.tableNumber,
         },
 
-        items: existingOrder.items.map(item => ({
+        items: existingOrder.items.map((item) => ({
           id: item.menuItemId,
           name: item.name,
           quantity: item.quantity,

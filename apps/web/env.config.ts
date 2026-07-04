@@ -1,6 +1,6 @@
-import { defineEnv } from "envin";
-import { vercel } from "envin/presets/zod";
-import * as z from "zod";
+import { defineEnv } from "envin"
+import { vercel } from "envin/presets/zod"
+import * as z from "zod"
 
 const env: ReturnType<typeof defineEnv> = defineEnv({
   extends: [vercel],
@@ -21,6 +21,6 @@ const env: ReturnType<typeof defineEnv> = defineEnv({
       process.env.NEXT_PUBLIC_CLIENT_WEB_BASE_URL,
     API_KEY: process.env.API_KEY,
   },
-});
+})
 
-export default env;
+export default env

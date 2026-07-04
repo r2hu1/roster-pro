@@ -13,7 +13,7 @@ export const organizationRouter = new Hono<AppEnv>()
 organizationRouter.get("/", sessionMiddleware, async (c) => {
   const headers = c.req.raw.headers
   const result = await organizationLogic.me(headers)
-  return c.json(result)
+  return c.json(result, result.code)
 })
 
 organizationRouter.post(
@@ -46,7 +46,7 @@ organizationRouter.post(
     }
 
     const result = await organizationLogic.create(headers, body, file)
-    return c.json(result)
+    return c.json(result, result.code)
   }
 )
 
@@ -69,6 +69,6 @@ organizationRouter.put(
     }
 
     const result = await organizationLogic.update(headers, body, file)
-    return c.json(result)
+    return c.json(result, result.code)
   }
 )

@@ -1,4 +1,6 @@
-export default function FormatPrice(price: number | { half: number; full: number }) {
+export default function FormatPrice(
+  price: number | { half: number; full: number }
+) {
   if (typeof price === "object" && "full" in price) {
     return new Intl.NumberFormat("en-IN", {
       style: "currency",

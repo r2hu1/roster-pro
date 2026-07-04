@@ -1,6 +1,7 @@
 import type { Context } from "hono"
 import type { AppEnv } from "../index.js"
 import { auth } from "../lib/better-auth/auth.js"
+import { HTTP_STATUS_CODES } from "@workspace/shared/constants"
 
 const excludedPaths = ["/v1/auth/polar/webhooks", "v1/"]
 
@@ -16,6 +17,17 @@ export const sessionMiddleware = async (
   const session = await auth.api.getSession({
     headers: c.req.raw.headers,
   })
+  if (!session) {
+    return c.json(
+      {
+        status: "error",
+        data: null,
+        code: HTTP_STATUS_CODES.UNAUTHORIZED,
+        message: "Unauthorized",
+      },
+      HTTP_STATUS_CODES.UNAUTHORIZED
+    )
+  }
 
   c.set("user", session?.user ?? null)
   c.set("session", session?.session ?? null)

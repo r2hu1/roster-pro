@@ -8,10 +8,7 @@ function buildTargetUrl(path: string, searchParams: URLSearchParams): string {
   return url.toString()
 }
 
-function buildForwardHeaders(
-  requestHeaders: Headers,
-  isSSE: boolean
-): Headers {
+function buildForwardHeaders(requestHeaders: Headers, isSSE: boolean): Headers {
   const headers = new Headers()
 
   const cookie = requestHeaders.get("cookie")

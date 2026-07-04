@@ -7,10 +7,9 @@ import {
   createMenuItemSchema,
   updateMenuItemSchema,
 } from "./menu-item.validation.js"
+import type { ContentfulStatusCode } from "hono/utils/http-status"
 
 export const menuItemRouter = new Hono<AppEnv>()
-
-menuItemRouter.use(sessionMiddleware)
 
 menuItemRouter.get("/:menuId", async (c) => {
   const organizationId = c.get("organizationId")
@@ -27,7 +26,7 @@ menuItemRouter.get("/:menuId", async (c) => {
 
   const menuId = c.req.param("menuId")
   const result = await menuItemLogic.getAllItems(menuId, organizationId)
-  return c.json(result)
+  return c.json(result, result.code)
 })
 
 menuItemRouter.get("/:id", async (c) => {
@@ -45,7 +44,7 @@ menuItemRouter.get("/:id", async (c) => {
 
   const id = c.req.param("id")
   const result = await menuItemLogic.getItemById(id, organizationId)
-  return c.json(result)
+  return c.json(result, result.code)
 })
 
 menuItemRouter.post("/", zvalidator(createMenuItemSchema), async (c) => {
@@ -73,7 +72,7 @@ menuItemRouter.post("/", zvalidator(createMenuItemSchema), async (c) => {
   }
 
   const result = await menuItemLogic.createItem(organizationId, body, file)
-  return c.json(result)
+  return c.json(result, result.code)
 })
 
 menuItemRouter.put("/", zvalidator(updateMenuItemSchema), async (c) => {
@@ -102,7 +101,7 @@ menuItemRouter.put("/", zvalidator(updateMenuItemSchema), async (c) => {
   }
 
   const result = await menuItemLogic.updateItem(organizationId, body, file)
-  return c.json(result)
+  return c.json(result, result.code)
 })
 
 menuItemRouter.delete("/:id", async (c) => {
@@ -120,5 +119,5 @@ menuItemRouter.delete("/:id", async (c) => {
 
   const id = c.req.param("id")
   const result = await menuItemLogic.deleteItem(organizationId, id)
-  return c.json(result)
+  return c.json(result, result.code as ContentfulStatusCode)
 })
