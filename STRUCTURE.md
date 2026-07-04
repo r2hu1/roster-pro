@@ -8,7 +8,7 @@ End-to-end type-safe monorepo with `@workspace/shared` as the single source of t
 - [Shared Package Structure](#shared-package-structure)
 - [Schema Conventions](#schema-conventions)
 - [Creating a New Feature](#creating-a-new-feature)
-- [Creating API Routes](#creating-api-routes)
+- [Realtime SSE Pattern](#realtime-sse-pattern)
 - [Using Schemas in the Frontend](#using-schemas-in-the-frontend)
 - [Barrel Exports](#barrel-exports)
 - [Rules](#rules)
