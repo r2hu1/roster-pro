@@ -5,7 +5,10 @@ export const CreateMenuItemSchema = z.object({
   name: z.string().min(1, "Name is required"),
   description: z.string().nullable().optional(),
   ingredients: z.array(z.string()).nullable().optional(),
-  price: z.number().positive("Price must be positive"),
+  price: z.object({
+    half: z.number().positive("Half price must be positive"),
+    full: z.number().positive("Full price must be positive"),
+  }),
   image: z.string().nullable().optional(),
   imageKey: z.string().nullable().optional(),
   category: z.string().nullable().optional(),
@@ -19,5 +22,5 @@ export type CreateMenuItemDto = z.infer<typeof CreateMenuItemSchema>
 export const defaultCreateMenuItem: z.input<typeof CreateMenuItemSchema> = {
   menuId: "",
   name: "",
-  price: 0,
+  price: { half: 0, full: 0 },
 }

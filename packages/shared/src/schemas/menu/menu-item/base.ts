@@ -14,7 +14,7 @@ export const MenuItemSchema = z.object({
   name: z.string(),
   description: z.string().nullable(),
   ingredients: z.array(z.string()).nullable(),
-  price: z.number(),
+  price: PriceSchema,
   image: z.string().nullable(),
   imageKey: z.string().nullable(),
   category: z.string().nullable(),

@@ -5,7 +5,10 @@ export const UpdateMenuItemSchema = z.object({
   name: z.string().min(1).optional(),
   description: z.string().nullable().optional(),
   ingredients: z.array(z.string()).nullable().optional(),
-  price: z.number().positive().optional(),
+  price: z.object({
+    half: z.number().positive("Half price must be positive"),
+    full: z.number().positive("Full price must be positive"),
+  }).optional(),
   image: z.string().nullable().optional(),
   imageKey: z.string().nullable().optional(),
   category: z.string().nullable().optional(),
