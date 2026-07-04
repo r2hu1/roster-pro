@@ -124,6 +124,11 @@ export const orderLogic = {
       data: created,
     } satisfies OrderCreatedEvent)
 
+    orderEmitter.emit(`order:${created.id}`, {
+      type: "created",
+      data: created,
+    } satisfies OrderCreatedEvent)
+
     return { status: "success", code: HTTP_STATUS_CODES.CREATED, data: created }
   },
 
@@ -177,6 +182,11 @@ export const orderLogic = {
       data: updated,
     } satisfies OrderUpdatedEvent)
 
+    orderEmitter.emit(`order:${updated.id}`, {
+      type: "updated",
+      data: updated,
+    } satisfies OrderUpdatedEvent)
+
     return { status: "success", code: HTTP_STATUS_CODES.OK, data: updated }
   },
 
@@ -208,6 +218,11 @@ export const orderLogic = {
     await redisClient.delPattern(`${ORDER_CACHE_PREFIX}*:${organizationId}`)
 
     orderEmitter.emit(`orders:${organizationId}`, {
+      type: "deleted",
+      data: { id },
+    } satisfies OrderDeletedEvent)
+
+    orderEmitter.emit(`order:${id}`, {
       type: "deleted",
       data: { id },
     } satisfies OrderDeletedEvent)
