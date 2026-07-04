@@ -1,5 +1,6 @@
 import { z } from "zod"
 import { OrderStatus, PaymentStatus } from "../../enums/index.js"
+import { MenuItemSchema } from "../menu/menu-item/base.js"
 
 export const UpdateOrderSchema = z.object({
   id: z.string(),
@@ -9,6 +10,7 @@ export const UpdateOrderSchema = z.object({
   tableNumber: z.string().optional(),
   status: OrderStatus.optional(),
   paymentStatus: PaymentStatus.optional(),
+  items: z.array(MenuItemSchema).nullable().optional(),
   totalAmount: z.number().positive().optional(),
   notes: z.string().nullable().optional(),
 })

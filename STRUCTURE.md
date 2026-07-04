@@ -377,6 +377,196 @@ export const feature = pgTable("feature", {
 
 ---
 
+## Realtime SSE Pattern
+
+For features that need real-time updates (orders, table status, etc.), use Server-Sent Events (SSE) via an `EventEmitter`.
+
+### Architecture
+
+```
+Client  <--SSE-->  Route  <-->  Logic  <-->  DB
+                       ^
+                       |
+                  EventEmitter
+```
+
+1. **Logic layer** emits events after each mutation (create/update/delete)
+2. **Route layer** streams events to connected clients via `streamSSE`
+3. **Client** receives events in real-time via `EventSource`
+
+### 1. Add EventEmitter to logic file
+
+```ts
+// apps/api/src/routes/{feature}/{feature}.logic.ts
+import { EventEmitter } from "node:events"
+
+export const featureEmitter = new EventEmitter()
+featureEmitter.setMaxListeners(100)
+
+type FeatureCreatedEvent = { type: "created"; data: typeof feature.$inferSelect }
+type FeatureUpdatedEvent = { type: "updated"; data: typeof feature.$inferSelect }
+type FeatureDeletedEvent = { type: "deleted"; data: { id: string } }
+
+export type FeatureEvent = FeatureCreatedEvent | FeatureUpdatedEvent | FeatureDeletedEvent
+```
+
+### 2. Emit events after mutations
+
+```ts
+create: async (body, organizationId) => {
+  const [created] = await db.insert(feature).values({ ...body, organizationId }).returning()
+
+  // Emit realtime event
+  featureEmitter.emit(`features:${organizationId}`, {
+    type: "created",
+    data: created,
+  } satisfies FeatureCreatedEvent)
+
+  return { status: "success", code: HTTP_STATUS_CODES.CREATED, data: created }
+},
+
+delete: async (id, organizationId) => {
+  await db.delete(feature).where(eq(feature.id, id))
+
+  // Emit realtime event
+  featureEmitter.emit(`features:${organizationId}`, {
+    type: "deleted",
+    data: { id },
+  } satisfies FeatureDeletedEvent)
+
+  return { status: "success", code: HTTP_STATUS_CODES.NO_CONTENT }
+},
+```
+
+### 3. Add SSE stream endpoint to route
+
+```ts
+// apps/api/src/routes/{feature}/{feature}.route.ts
+import { streamSSE } from "hono/streaming"
+import type { FeatureResponse } from "@workspace/shared/schemas/{feature}/index"
+import { featureLogic, featureEmitter } from "./{feature}.logic.js"
+
+featureRouter.get("/stream", async (c) => {
+  const organizationId = c.get("organizationId")
+  if (!organizationId) return c.json({ ... }, HTTP_STATUS_CODES.UNAUTHORIZED)
+
+  // Send initial state
+  const initialData = await featureLogic.getAll(organizationId)
+  if (initialData.status === "error") {
+    return c.json(initialData, initialData.code as 404)
+  }
+
+  return streamSSE(c, async (stream) => {
+    // Send full list on connect
+    await stream.writeSSE({
+      event: "init",
+      data: JSON.stringify(initialData.data),
+    })
+
+    // Listen for realtime events
+    const listener = (event: FeatureEvent) => {
+      stream.writeSSE({
+        event: event.type,
+        data: JSON.stringify(event.data),
+      })
+    }
+
+    featureEmitter.on(`features:${organizationId}`, listener)
+
+    // Cleanup on disconnect
+    stream.onAbort(() => {
+      featureEmitter.off(`features:${organizationId}`, listener)
+    })
+
+    await new Promise<void>((resolve) => {
+      stream.onAbort(() => resolve())
+    })
+  })
+})
+```
+
+### 4. Consume SSE on the client
+
+```ts
+// apps/web/modules/{feature}/hooks/use-{feature}-stream.ts
+"use client"
+
+import { useEffect, useState, useCallback } from "react"
+import type { FeatureResponse } from "@workspace/shared/schemas/{feature}/index"
+
+type FeatureEvent =
+  | { type: "created"; data: FeatureResponse }
+  | { type: "updated"; data: FeatureResponse }
+  | { type: "deleted"; data: { id: string } }
+
+export function useFeatureStream() {
+  const [features, setFeatures] = useState<FeatureResponse[]>([])
+  const [connected, setConnected] = useState(false)
+
+  useEffect(() => {
+    const es = new EventSource("/api/{feature}/stream")
+
+    es.addEventListener("init", (e) => {
+      setFeatures(JSON.parse(e.data))
+      setConnected(true)
+    })
+
+    es.addEventListener("created", (e) => {
+      const newFeature: FeatureResponse = JSON.parse(e.data)
+      setFeatures((prev) => [...prev, newFeature])
+    })
+
+    es.addEventListener("updated", (e) => {
+      const updated: FeatureResponse = JSON.parse(e.data)
+      setFeatures((prev) =>
+        prev.map((f) => (f.id === updated.id ? updated : f))
+      )
+    })
+
+    es.addEventListener("deleted", (e) => {
+      const { id } = JSON.parse(e.data) as { id: string }
+      setFeatures((prev) => prev.filter((f) => f.id !== id))
+    })
+
+    es.onerror = () => setConnected(false)
+
+    return () => es.close()
+  }, [])
+
+  return { features, connected }
+}
+```
+
+### SSE Event Flow
+
+```
+Client connects to GET /{feature}/stream
+  |
+  v
+Server sends: event: "init", data: [...all items]
+  |
+  v
+Client creates/updates/deletes via POST/PUT/DELETE
+  |
+  v
+Logic emits EventEmitter event
+  |
+  v
+SSE stream sends: event: "created"|"updated"|"deleted", data: {...}
+  |
+  v
+Client updates local state instantly (no polling)
+```
+
+### Existing SSE Implementations
+
+| Feature | Stream Endpoint | Events |
+|---------|----------------|--------|
+| Orders | `GET /organization/orders/stream` | `init`, `created`, `updated`, `deleted` |
+| Table Status | `GET /organization/table/status/stream` | `init`, `status` |
+
+---
+
 ## Using Schemas in the Frontend
 
 ### Forms with React Hook Form
