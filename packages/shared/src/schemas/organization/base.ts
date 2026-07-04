@@ -11,6 +11,8 @@ export const OrganizationSchema = z.object({
   metadata: z.string().nullable(),
   websiteId: z.string().nullable(),
   address: z.string().nullable(),
+  gstin: z.string().nullable(),
+  phone: z.string().nullable(),
 })
 
 export type Organization = z.infer<typeof OrganizationSchema>

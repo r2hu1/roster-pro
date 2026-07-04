@@ -108,6 +108,8 @@ export const organization = pgTable(
     createdAt: timestamp("created_at").notNull(),
     metadata: text("metadata"),
     websiteId: text("website"),
+    gstin: text("gstin"),
+    phone: text("number"),
     hsnSac: integer("hsn_sac").default(996331),
     address: text("address"),
   },

@@ -9,6 +9,8 @@ export const UpdateOrganizationSchema = z.object({
   metadata: z.record(z.string(), z.unknown()).nullable().optional(),
   websiteId: z.string().nullable().optional(),
   address: z.string().nullable().optional(),
+  gstin: z.string().nullable().optional(),
+  phone: z.string().nullable().optional(),
 })
 
 export type UpdateOrganizationDto = z.infer<typeof UpdateOrganizationSchema>

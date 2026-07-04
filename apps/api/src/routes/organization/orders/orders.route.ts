@@ -175,3 +175,21 @@ orderRouter.get("/stream",sessionMiddleware, async (c) => {
     })
   })
 })
+
+orderRouter.get("/:orderId/invoice", async (c) => {
+  const organizationId = c.req.query("organizationId");
+  if (!organizationId) {
+    return c.json(
+      {
+        status: "error",
+        code: HTTP_STATUS_CODES.UNAUTHORIZED,
+        message: "Organization not found",
+      },
+      HTTP_STATUS_CODES.UNAUTHORIZED
+    )
+  }
+
+  const orderId = c.req.param("orderId")!
+  const result = await orderLogic.invoice(orderId, organizationId)
+  return c.json(result)
+})

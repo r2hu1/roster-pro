@@ -8,6 +8,7 @@ import type {
   UpdateOrderDto,
 } from "@workspace/shared/schemas/order/index"
 import { EventEmitter } from "node:events"
+import { organization } from "../../../core/db/schemas/auth.js"
 
 const ORDER_CACHE_PREFIX = "order:"
 const CACHE_TTL = 300
@@ -281,5 +282,83 @@ export const orderLogic = {
     } satisfies OrderDeletedEvent)
 
     return { status: "success", code: HTTP_STATUS_CODES.NO_CONTENT }
+  },
+
+  invoice: async (orderId: string, organizationId: string) => {
+    const [existingOrder] = await db
+      .select()
+      .from(order)
+      .where(and(eq(order.id, orderId), eq(order.organizationId, organizationId)));
+
+    const [org] = await db
+      .select()
+      .from(organization)
+      .where(eq(organization.id, organizationId));
+
+    if (!org) {
+      return {
+        status: "error",
+        code: HTTP_STATUS_CODES.NOT_FOUND,
+        message: "Organization not found",
+      }
+    }
+
+    if (!existingOrder) {
+      return {
+        status: "error",
+        code: HTTP_STATUS_CODES.NOT_FOUND,
+        message: "Order not found",
+      }
+    }
+
+    return {
+      status: "success",
+      code: HTTP_STATUS_CODES.OK,
+      data: {
+        invoiceNumber: existingOrder.invoiceNumber,
+        issuedAt: existingOrder.createdAt,
+
+        organization: {
+          id: org.id,
+          name: org.name,
+          address: org.address,
+          phone: org.phone,
+          gstin: org.gstin,
+        },
+
+        customer: {
+          name: existingOrder.customerName,
+          email: existingOrder.customerEmail,
+          phone: existingOrder.customerPhone,
+          tableNumber: existingOrder.tableNumber,
+        },
+
+        items: existingOrder.items.map(item => ({
+          id: item.menuItemId,
+          name: item.name,
+          quantity: item.quantity,
+          unitPrice: item.unitPrice,
+          total: item.quantity * item.unitPrice,
+        })),
+
+        totals: {
+          subtotal: existingOrder.subtotal,
+          discount: existingOrder.discount,
+          taxableAmount: existingOrder.taxableAmount,
+          cgst: existingOrder.cgstAmount,
+          sgst: existingOrder.sgstAmount,
+          igst: existingOrder.igstAmount,
+          roundOff: existingOrder.roundOff,
+          grandTotal: existingOrder.grandTotal,
+        },
+
+        payment: {
+          status: existingOrder.paymentStatus,
+          method: existingOrder.paymentMethod,
+        },
+
+        notes: existingOrder.notes,
+      },
+    }
   },
 }

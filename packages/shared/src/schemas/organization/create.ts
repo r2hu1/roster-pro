@@ -12,6 +12,8 @@ export const CreateOrganizationSchema = z.object({
   metadata: z.record(z.string(), z.unknown()).optional(),
   websiteId: z.string().nullable().optional(),
   address: z.string().nullable().optional(),
+  gstin: z.string().nullable().optional(),
+  phone: z.string().nullable().optional(),
 })
 
 export type CreateOrganizationDto = z.infer<typeof CreateOrganizationSchema>
