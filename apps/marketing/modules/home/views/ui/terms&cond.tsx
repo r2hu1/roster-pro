@@ -59,11 +59,11 @@ export default function TermsAndConditions() {
             <h1 className="mt-4 text-balance font-semibold text-4xl tracking-[-0.04em] md:text-5xl">
               Terms &amp; Conditions
             </h1>
-            <p className="mt-3 text-lg text-muted-foreground">
+            <p className="mt-3 text-sm text-muted-foreground">
               <strong className="text-foreground">Last Updated:</strong> July 3,
               2026
             </p>
-            <p className="mt-6 max-w-2xl text-muted-foreground leading-relaxed">
+            <p className="mt-6 max-w-4xl text-muted-foreground leading-relaxed">
               Welcome to RosterPro. These Terms &amp; Conditions explain the
               rules for using our website and services. By accessing or using
               RosterPro, you agree to these terms. If you do not agree with any
