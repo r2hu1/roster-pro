@@ -9,6 +9,7 @@ import type {
 } from "@workspace/shared/schemas/order/index"
 import { EventEmitter } from "node:events"
 import { organization } from "../../../core/db/schemas/auth.js"
+import { analyticsEmitter } from "../analytics/analytics.logic.js"
 
 const ORDER_CACHE_PREFIX = "order:"
 const CACHE_TTL = 300
@@ -172,6 +173,10 @@ export const orderLogic = {
         type: "created",
         data: created,
       } satisfies OrderCreatedEvent)
+      analyticsEmitter.emit(`analytics:${organizationId}`, {
+        type: "updated",
+        data: null,
+      })
     } catch (err) {
       console.error("Failed to emit order events", err)
     }
@@ -254,6 +259,11 @@ export const orderLogic = {
       data: updated,
     } satisfies OrderUpdatedEvent)
 
+    analyticsEmitter.emit(`analytics:${organizationId}`, {
+      type: "updated",
+      data: null,
+    })
+
     return { status: "success", code: HTTP_STATUS_CODES.OK, data: updated }
   },
 
@@ -295,6 +305,11 @@ export const orderLogic = {
       type: "deleted",
       data: { id },
     } satisfies OrderDeletedEvent)
+
+    analyticsEmitter.emit(`analytics:${organizationId}`, {
+      type: "updated",
+      data: null,
+    })
 
     return { status: "success", code: HTTP_STATUS_CODES.NO_CONTENT }
   },
