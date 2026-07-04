@@ -1,9 +1,9 @@
 import { Geist, Geist_Mono, Instrument_Sans } from "next/font/google"
 
 import "@workspace/ui/globals.css"
-import { ThemeProvider } from "@/components/theme-provider"
 import { cn } from "@workspace/ui/lib/utils"
 import { TooltipProvider } from "@workspace/ui/components/tooltip"
+import { Toaster } from "@workspace/ui/components/sonner"
 
 const instrumentSans = Instrument_Sans({
   subsets: ["latin"],
@@ -33,6 +33,7 @@ export default function RootLayout({
     >
       <body>
         <TooltipProvider>{children}</TooltipProvider>
+        <Toaster/>
       </body>
     </html>
   )
