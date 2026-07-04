@@ -1,6 +1,6 @@
-import { and, eq, desc, like } from "drizzle-orm"
+import { and, eq, desc, like, sql } from "drizzle-orm"
 import { db } from "../../../core/db/client.js"
-import { order } from "../../../core/db/schemas/order.js"
+import { order, orderCounter } from "../../../core/db/schemas/order.js"
 import { redisClient } from "../../../core/redis/client.js"
 import { HTTP_STATUS_CODES } from "../../../lib/utils.js"
 import type {
@@ -105,27 +105,16 @@ export const orderLogic = {
       const year = new Date().getFullYear()
       const prefix = `INV-${year}-`
 
-      const [lastOrder] = await tx
-        .select({ invoiceNumber: order.invoiceNumber })
-        .from(order)
-        .where(
-          and(
-            eq(order.organizationId, organizationId),
-            like(order.invoiceNumber, `${prefix}%`)
-          )
-        )
-        .orderBy(desc(order.createdAt))
-        .limit(1)
+      const [counter] = await tx
+        .insert(orderCounter)
+        .values({ organizationId, year, lastSequence: 1 })
+        .onConflictDoUpdate({
+          target: [orderCounter.organizationId, orderCounter.year],
+          set: { lastSequence: sql`${orderCounter.lastSequence} + 1` },
+        })
+        .returning()
 
-      let nextSequence = 1
-      if (lastOrder?.invoiceNumber) {
-        const lastSeq = Number.parseInt(lastOrder.invoiceNumber.split("-")[2], 10)
-        if (!Number.isNaN(lastSeq)) {
-          nextSequence = lastSeq + 1
-        }
-      }
-
-      const invoiceNumber = `${prefix}${nextSequence.toString().padStart(6, "0")}`
+      const invoiceNumber = `${prefix}${counter.lastSequence.toString().padStart(6, "0")}`
 
       const [result] = await tx
         .insert(order)
@@ -158,26 +147,32 @@ export const orderLogic = {
     if (!created) {
       return {
         status: "error",
-        code: HTTP_STATUS_CODES.BAD_REQUEST,
+        code: HTTP_STATUS_CODES.INTERNAL_SERVER_ERROR,
         message: "Failed to create order",
       }
     }
 
-    await redisClient.delPattern(`${ORDER_CACHE_PREFIX}*:${organizationId}`)
+    try {
+      await redisClient.delPattern(`${ORDER_CACHE_PREFIX}*:${organizationId}`)
+    } catch (err) {
+      console.error("Failed to invalidate order cache", err)
+    }
 
-    orderEmitter.emit(`orders:${organizationId}`, {
-      type: "created",
-      data: created,
-    } satisfies OrderCreatedEvent)
-
-    orderEmitter.emit(`order:${created.id}`, {
-      type: "created",
-      data: created,
-    } satisfies OrderCreatedEvent)
+    try {
+      orderEmitter.emit(`orders:${organizationId}`, {
+        type: "created",
+        data: created,
+      } satisfies OrderCreatedEvent)
+      orderEmitter.emit(`order:${created.id}`, {
+        type: "created",
+        data: created,
+      } satisfies OrderCreatedEvent)
+    } catch (err) {
+      console.error("Failed to emit order events", err)
+    }
 
     return { status: "success", code: HTTP_STATUS_CODES.CREATED, data: created }
   },
-
   update: async (body: UpdateOrderDto, organizationId: string) => {
     if (!organizationId) {
       return {
@@ -226,7 +221,10 @@ export const orderLogic = {
         notes: body.notes !== undefined ? body.notes : existing.notes,
         updatedAt: new Date(),
       })
-      .where(eq(order.id, body.id))
+      .where(and(
+        eq(order.id, body.id),
+        eq(order.organizationId, organizationId)
+      ))
       .returning()
 
     await redisClient.del(`${ORDER_CACHE_PREFIX}${body.id}`)
@@ -267,7 +265,7 @@ export const orderLogic = {
       }
     }
 
-    await db.delete(order).where(eq(order.id, id))
+    await db.delete(order).where(and(eq(order.id, id), eq(order.organizationId, organizationId)))
 
     await redisClient.del(`${ORDER_CACHE_PREFIX}${id}`)
     await redisClient.delPattern(`${ORDER_CACHE_PREFIX}*:${organizationId}`)

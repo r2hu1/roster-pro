@@ -5,6 +5,7 @@ import {
   integer,
   index,
   jsonb,
+  primaryKey,
 } from "drizzle-orm/pg-core"
 
 import { organization } from "./auth.js"
@@ -90,5 +91,17 @@ export const orderItem = pgTable(
   (table) => ({
     orderIdx: index("order_item_order_idx").on(table.orderId),
     menuItemIdx: index("order_item_menu_item_idx").on(table.menuItemId),
+  })
+)
+
+export const orderCounter = pgTable(
+  "order_counter",
+  {
+    organizationId: text("organization_id").notNull(),
+    year: integer("year").notNull(),
+    lastSequence: integer("last_sequence").notNull().default(0),
+  },
+  (table) => ({
+    pk: primaryKey({ columns: [table.organizationId, table.year] }),
   })
 )
