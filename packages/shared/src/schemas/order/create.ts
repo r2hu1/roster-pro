@@ -3,6 +3,7 @@ import { OrderStatus, PaymentStatus } from "../../enums/index.js"
 import { MenuItemSchema } from "../menu/menu-item/base.js"
 
 export const CreateOrderSchema = z.object({
+  organizationId: z.string(),
   customerName: z.string().nullable().optional(),
   customerPhone: z.string().nullable().optional(),
   customerEmail: z.string().email().nullable().optional(),
@@ -17,6 +18,7 @@ export const CreateOrderSchema = z.object({
 export type CreateOrderDto = z.infer<typeof CreateOrderSchema>
 
 export const defaultCreateOrder: z.input<typeof CreateOrderSchema> = {
+  organizationId: "",
   tableNumber: "",
   totalAmount: 0,
 }

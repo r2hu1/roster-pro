@@ -91,7 +91,8 @@ export const orderLogic = {
     return { status: "success", code: HTTP_STATUS_CODES.OK, data: found }
   },
 
-  create: async (body: CreateOrderDto, organizationId: string) => {
+  create: async (body: CreateOrderDto) => {
+    const organizationId = body.organizationId
     if (!organizationId) {
       return {
         status: "error",

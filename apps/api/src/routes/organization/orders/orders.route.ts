@@ -12,9 +12,7 @@ import {
 
 export const orderRouter = new Hono<AppEnv>()
 
-orderRouter.use(sessionMiddleware)
-
-orderRouter.get("/", async (c) => {
+orderRouter.get("/",sessionMiddleware, async (c) => {
   const organizationId = c.get("organizationId")
   if (!organizationId) {
     return c.json(
@@ -50,24 +48,13 @@ orderRouter.get("/:id", async (c) => {
 })
 
 orderRouter.post("/", zvalidator(createOrderSchema), async (c) => {
-  const organizationId = c.get("organizationId")
-  if (!organizationId) {
-    return c.json(
-      {
-        status: "error",
-        code: HTTP_STATUS_CODES.UNAUTHORIZED,
-        message: "Organization not found",
-      },
-      HTTP_STATUS_CODES.UNAUTHORIZED
-    )
-  }
 
   const body = c.req.valid("json")
-  const result = await orderLogic.create(body, organizationId)
+  const result = await orderLogic.create(body)
   return c.json(result)
 })
 
-orderRouter.put("/", zvalidator(updateOrderSchema), async (c) => {
+orderRouter.put("/",sessionMiddleware, zvalidator(updateOrderSchema), async (c) => {
   const organizationId = c.get("organizationId")
   if (!organizationId) {
     return c.json(
@@ -85,7 +72,7 @@ orderRouter.put("/", zvalidator(updateOrderSchema), async (c) => {
   return c.json(result)
 })
 
-orderRouter.delete("/:id", async (c) => {
+orderRouter.delete("/:id",sessionMiddleware, async (c) => {
   const organizationId = c.get("organizationId")
   if (!organizationId) {
     return c.json(
@@ -98,12 +85,12 @@ orderRouter.delete("/:id", async (c) => {
     )
   }
 
-  const id = c.req.param("id")
+  const id = c.req.param("id")!
   const result = await orderLogic.delete(id, organizationId)
   return c.json(result)
 })
 
-orderRouter.get("/stream", async (c) => {
+orderRouter.get("/stream",sessionMiddleware, async (c) => {
   const organizationId = c.get("organizationId")
   if (!organizationId) {
     return c.json(
