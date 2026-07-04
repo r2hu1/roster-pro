@@ -213,6 +213,15 @@ All endpoints return responses in this shape:
 | `GET` | `/v1/organization/table/status/stream` | Session | SSE: table status realtime |
 | `POST` | `/v1/organization/table/token` | Session | Generate QR token for table |
 
+### Analytics
+
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| `GET` | `/v1/organization/analytics` | Session | Get analytics for date range |
+| `GET` | `/v1/organization/analytics/stream` | Session | SSE: analytics realtime |
+
+Both endpoints require `from` and `to` query parameters (any valid date string, e.g. `2024-01-15` or `2024-01-15T10:30:00Z`). `from` must be before `to`.
+
 ### Status
 
 | Method | Path | Auth | Description |
