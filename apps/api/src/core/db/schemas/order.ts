@@ -11,18 +11,8 @@ import {
 import { organization } from "./auth.js"
 import { menuItem } from "./menu.js"
 import type { MenuItem } from "@workspace/shared/types/organization/menu/types"
+import type { OrderStatus, PaymentStatus } from "@workspace/shared/enums/index"
 import { v4 as uuidv4 } from "uuid"
-
-type Status =
-  | "pending"
-  | "confirmed"
-  | "preparing"
-  | "ready"
-  | "served"
-  | "completed"
-  | "cancelled"
-
-type PaymentStatus = "pending" | "paid" | "failed" | "refunded"
 
 export const order = pgTable(
   "order",
@@ -37,7 +27,7 @@ export const order = pgTable(
     customerPhone: text("customer_phone"),
     customerEmail: text("customer_email"),
     tableNumber: text("table_number").notNull(),
-    status: text("status").$type<Status>().default("pending").notNull(),
+    status: text("status").$type<OrderStatus>().default("pending").notNull(),
     paymentStatus: text("payment_status")
       .$type<PaymentStatus>()
       .default("pending")

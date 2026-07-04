@@ -1,17 +1,6 @@
 import { zValidator } from "@hono/zod-validator"
 import { flattenError, type ZodSchema } from "zod"
-
-export const HTTP_STATUS_CODES = {
-  OK: 200,
-  CREATED: 201,
-  NO_CONTENT: 204,
-  BAD_REQUEST: 400,
-  UNAUTHORIZED: 401,
-  FORBIDDEN: 403,
-  NOT_FOUND: 404,
-  INTERNAL_SERVER_ERROR: 500,
-  PAYMENT_REQUIRED: 402,
-} as const
+import { HTTP_STATUS_CODES } from "@workspace/shared/constants"
 
 export const parseFile = async (file: File): Promise<Buffer> => {
   if (!(file instanceof File)) {
@@ -35,3 +24,5 @@ export const zvalidator = <T extends ZodSchema>(schema: T) =>
       )
     }
   })
+
+export { HTTP_STATUS_CODES }

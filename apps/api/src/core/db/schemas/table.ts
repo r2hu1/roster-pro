@@ -6,10 +6,9 @@ import {
   timestamp,
   uuid,
 } from "drizzle-orm/pg-core"
+import type { TableStatus } from "@workspace/shared/enums/index"
 import { organization } from "./auth.js"
 import { v4 as uuidv4 } from "uuid"
-
-export type TableStatus = "available" | "occupied"
 
 export const tableSchema = pgTable(
   "table",

@@ -1,6 +1,7 @@
 import { Hono } from "hono"
 import { streamSSE } from "hono/streaming"
 import type { AppEnv } from "../../../index.js"
+import type { TableStatusResponse } from "@workspace/shared/schemas/table/index"
 import { HTTP_STATUS_CODES, zvalidator } from "../../../lib/utils.js"
 import { sessionMiddleware } from "../../../middleware/session.js"
 import { tableLogic, tableEmitter } from "./table.logic.js"
@@ -145,13 +146,7 @@ tableRouter.get("/status/stream", async (c) => {
       data: JSON.stringify(initialStatus.data),
     })
 
-    const listener = (data: {
-      tableId: string
-      number: number
-      name: string | null
-      status: string
-      updatedAt: Date
-    }) => {
+    const listener = (data: TableStatusResponse) => {
       stream.writeSSE({
         event: "status",
         data: JSON.stringify(data),

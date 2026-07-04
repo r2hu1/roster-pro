@@ -138,6 +138,9 @@
     },
     "packages/shared": {
       "name": "@workspace/shared",
+      "dependencies": {
+        "zod": "^4.4.3",
+      },
       "devDependencies": {
         "@types/bun": "latest",
       },

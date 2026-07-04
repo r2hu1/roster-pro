@@ -1,17 +1,10 @@
 "use client"
 
 import { useEffect, useState, useCallback } from "react"
-
-type TableStatus = {
-  tableId: string
-  number: number
-  name: string | null
-  status: "available" | "occupied"
-  updatedAt: Date
-}
+import type { TableStatusResponse } from "@workspace/shared/schemas/table/index"
 
 export function useTableStatusStream() {
-  const [tables, setTables] = useState<TableStatus[]>([])
+  const [tables, setTables] = useState<TableStatusResponse[]>([])
   const [connected, setConnected] = useState(false)
 
   useEffect(() => {
@@ -23,10 +16,8 @@ export function useTableStatusStream() {
     })
 
     es.addEventListener("status", (e) => {
-      const updated: TableStatus = JSON.parse(e.data)
-      setTables((prev) =>
-        prev.map((t) => (t.tableId === updated.tableId ? updated : t))
-      )
+      const updated: TableStatusResponse = JSON.parse(e.data)
+      setTables((prev) => prev.map((t) => (t.id === updated.id ? updated : t)))
     })
 
     es.onerror = () => setConnected(false)

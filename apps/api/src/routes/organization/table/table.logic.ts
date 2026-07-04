@@ -1,16 +1,14 @@
 import { and, eq } from "drizzle-orm"
+import type { TableStatus } from "@workspace/shared/enums/index"
 import { db } from "../../../core/db/client.js"
-import {
-  tableSchema,
-  type TableStatus,
-} from "../../../core/db/schemas/table.js"
+import { tableSchema } from "../../../core/db/schemas/table.js"
 import { redisClient } from "../../../core/redis/client.js"
 import { HTTP_STATUS_CODES } from "../../../lib/utils.js"
 import type {
   CreateTableDto,
   UpdateTableDto,
   UpdateTableStatusDto,
-} from "./table.validation.js"
+} from "@workspace/shared/schemas/table/index"
 import { EventEmitter } from "node:events"
 import { cryptoUtil } from "../../../lib/crypto.js"
 
@@ -229,7 +227,7 @@ export const tableLogic = {
     await redisClient.delPattern(`${TABLE_CACHE_PREFIX}all:${organizationId}`)
 
     tableEmitter.emit(`status:${organizationId}`, {
-      tableId: updated.id,
+      id: updated.id,
       number: updated.number,
       name: updated.name,
       status: updated.status,

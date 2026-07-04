@@ -1,13 +1,4 @@
-export interface CreateReviewDto {
-  rating: number;
-  comment: string;
-  organizationId: string;
-  orderId: string;
-}
-
-export interface UpdateReviewDto {
-  rating?: number;
-  comment?: string;
-  orderId?: string;
-  organizationId?: string;
-}
+export {
+  type CreateReviewDto,
+  type UpdateReviewDto,
+} from "../../../schemas/review/index.js"

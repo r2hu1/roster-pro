@@ -43,6 +43,7 @@ const menuItems: MenuItem[] = [
   {
     id: "item_1",
     menuId: "menu_1",
+    organizationId: "org_1",
     name: "Avocado Toast",
     description: "Toasted sourdough with smashed avocado.",
     ingredients: ["Bread", "Avocado", "Olive Oil", "Chili Flakes"],
@@ -60,6 +61,7 @@ const menuItems: MenuItem[] = [
   {
     id: "item_2",
     menuId: "menu_1",
+    organizationId: "org_1",
     name: "Pancake Stack",
     description: "Fluffy pancakes with maple syrup.",
     ingredients: ["Flour", "Eggs", "Milk", "Maple Syrup"],
@@ -77,6 +79,7 @@ const menuItems: MenuItem[] = [
   {
     id: "item_3",
     menuId: "menu_2",
+    organizationId: "org_1",
     name: "Grilled Chicken Burger",
     description: "Served with fries.",
     ingredients: ["Chicken", "Burger Bun", "Lettuce", "Cheese"],
@@ -94,6 +97,7 @@ const menuItems: MenuItem[] = [
   {
     id: "item_4",
     menuId: "menu_2",
+    organizationId: "org_1",
     name: "Margherita Pizza",
     description: "Classic Italian pizza.",
     ingredients: ["Mozzarella", "Tomato", "Basil"],
@@ -111,6 +115,7 @@ const menuItems: MenuItem[] = [
   {
     id: "item_5",
     menuId: "menu_3",
+    organizationId: "org_1",
     name: "Grilled Salmon",
     description: "Served with roasted vegetables.",
     ingredients: ["Salmon", "Broccoli", "Carrots"],
@@ -128,6 +133,7 @@ const menuItems: MenuItem[] = [
   {
     id: "item_6",
     menuId: "menu_3",
+    organizationId: "org_1",
     name: "Veggie Pasta",
     description: "Creamy Alfredo pasta with vegetables.",
     ingredients: ["Pasta", "Cream", "Bell Pepper", "Mushrooms"],
@@ -145,6 +151,7 @@ const menuItems: MenuItem[] = [
   {
     id: "item_7",
     menuId: "menu_4",
+    organizationId: "org_1",
     name: "Cappuccino",
     description: "Freshly brewed coffee.",
     ingredients: ["Espresso", "Milk"],
@@ -162,6 +169,7 @@ const menuItems: MenuItem[] = [
   {
     id: "item_8",
     menuId: "menu_4",
+    organizationId: "org_1",
     name: "Fresh Orange Juice",
     description: "100% freshly squeezed oranges.",
     ingredients: ["Orange"],
@@ -179,6 +187,7 @@ const menuItems: MenuItem[] = [
   {
     id: "item_9",
     menuId: "menu_2",
+    organizationId: "org_1",
     name: "Caesar Salad",
     description: "Crisp romaine with Caesar dressing.",
     ingredients: ["Lettuce", "Croutons", "Parmesan"],
@@ -196,6 +205,7 @@ const menuItems: MenuItem[] = [
   {
     id: "item_10",
     menuId: "menu_3",
+    organizationId: "org_1",
     name: "BBQ Ribs",
     description: "Slow-cooked BBQ pork ribs.",
     ingredients: ["Pork", "BBQ Sauce"],
