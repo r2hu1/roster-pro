@@ -80,7 +80,6 @@ export type {
 // Order
 export {
   OrderSchema,
-  OrderItemSchema,
   CreateOrderSchema,
   UpdateOrderSchema,
   DeleteOrderSchema,
@@ -89,13 +88,28 @@ export {
 } from "./schemas/order/index.js"
 export type {
   Order,
-  OrderItem,
   CreateOrderDto,
   UpdateOrderDto,
   DeleteOrderDto,
   OrderResponse,
   OrderListResponse,
 } from "./schemas/order/index.js"
+
+// Order Item
+export {
+  OrderItemSchema,
+  CreateOrderItemSchema,
+  UpdateOrderItemSchema,
+  OrderItemResponseSchema,
+  OrderItemListResponseSchema,
+} from "./schemas/order/order-item/index.js"
+export type {
+  OrderItem,
+  CreateOrderItemDto,
+  UpdateOrderItemDto,
+  OrderItemResponse,
+  OrderItemListResponse,
+} from "./schemas/order/order-item/index.js"
 
 // Table
 export {

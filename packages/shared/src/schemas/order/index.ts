@@ -1,4 +1,4 @@
-export { OrderSchema, type Order, OrderItemSchema, type OrderItem } from "./base.js"
+export { OrderSchema, type Order } from "./base.js"
 
 export {
   CreateOrderSchema,
@@ -19,3 +19,17 @@ export {
   OrderListResponseSchema,
   type OrderListResponse,
 } from "./response.js"
+
+export {
+  OrderItemSchema,
+  type OrderItem,
+  CreateOrderItemSchema,
+  type CreateOrderItemDto,
+  defaultCreateOrderItem,
+  UpdateOrderItemSchema,
+  type UpdateOrderItemDto,
+  OrderItemResponseSchema,
+  type OrderItemResponse,
+  OrderItemListResponseSchema,
+  type OrderItemListResponse,
+} from "./order-item/index.js"

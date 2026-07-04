@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, boolean, index } from "drizzle-orm/pg-core"
+import { pgTable, text, timestamp, boolean, index, integer } from "drizzle-orm/pg-core"
 
 export const user = pgTable(
   "user",
@@ -108,6 +108,7 @@ export const organization = pgTable(
     createdAt: timestamp("created_at").notNull(),
     metadata: text("metadata"),
     websiteId: text("website"),
+    hsnSac: integer("hsn_sac").default(996331),
     address: text("address"),
   },
   (table) => ({

@@ -1,5 +1,5 @@
 {
-  "id": "21c108c6-e9b2-4502-bb4d-fe11ae8b5b48",
+  "id": "1f2ad56f-3b91-4ed4-ae04-7aa537374458",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -487,6 +487,13 @@
           "primaryKey": false,
           "notNull": false
         },
+        "hsn_sac": {
+          "name": "hsn_sac",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "default": 996331
+        },
         "address": {
           "name": "address",
           "type": "text",
@@ -886,7 +893,7 @@
           "type": "text",
           "primaryKey": true,
           "notNull": true,
-          "default": "'664155fa-d600-4d09-845a-1ea8794d7da0'"
+          "default": "'05ce0ec9-ce6c-426b-9bc9-b6312886f09c'"
         },
         "organization_id": {
           "name": "organization_id",
@@ -1004,7 +1011,7 @@
           "type": "text",
           "primaryKey": true,
           "notNull": true,
-          "default": "'045eca23-5eab-483d-a065-83325869aba2'"
+          "default": "'8df56f15-7ef6-48ae-b49f-812a2d636b4a'"
         },
         "menu_id": {
           "name": "menu_id",
@@ -1215,7 +1222,7 @@
           "type": "text",
           "primaryKey": true,
           "notNull": true,
-          "default": "'a7d42570-2140-4558-be60-bbd8e81a1387'"
+          "default": "'a466d7bd-8be1-4eff-8768-271ea62b61d7'"
         },
         "number": {
           "name": "number",
@@ -1323,10 +1330,16 @@
           "type": "text",
           "primaryKey": true,
           "notNull": true,
-          "default": "'fd83c1b8-e8a0-4106-8e81-82395789c208'"
+          "default": "'235d5032-4f6c-462a-a3ff-b5eb16d7b951'"
         },
         "organization_id": {
           "name": "organization_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "invoice_number": {
+          "name": "invoice_number",
           "type": "text",
           "primaryKey": false,
           "notNull": true
@@ -1369,14 +1382,8 @@
           "notNull": true,
           "default": "'pending'"
         },
-        "total_amount": {
-          "name": "total_amount",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "notes": {
-          "name": "notes",
+        "payment_method": {
+          "name": "payment_method",
           "type": "text",
           "primaryKey": false,
           "notNull": false
@@ -1384,6 +1391,65 @@
         "items": {
           "name": "items",
           "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "subtotal": {
+          "name": "subtotal",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "discount": {
+          "name": "discount",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "taxable_amount": {
+          "name": "taxable_amount",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "cgst_amount": {
+          "name": "cgst_amount",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "sgst_amount": {
+          "name": "sgst_amount",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "igst_amount": {
+          "name": "igst_amount",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "round_off": {
+          "name": "round_off",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "grand_total": {
+          "name": "grand_total",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "notes": {
+          "name": "notes",
+          "type": "text",
           "primaryKey": false,
           "notNull": false
         },
@@ -1408,6 +1474,21 @@
           "columns": [
             {
               "expression": "id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "order_invoice_idx": {
+          "name": "order_invoice_idx",
+          "columns": [
+            {
+              "expression": "invoice_number",
               "isExpression": false,
               "asc": true,
               "nulls": "last"
@@ -1448,21 +1529,6 @@
           "method": "btree",
           "with": {}
         },
-        "order_customer_email_idx": {
-          "name": "order_customer_email_idx",
-          "columns": [
-            {
-              "expression": "customer_email",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
         "order_payment_status_idx": {
           "name": "order_payment_status_idx",
           "columns": [
@@ -1492,6 +1558,21 @@
           "concurrently": false,
           "method": "btree",
           "with": {}
+        },
+        "order_customer_email_idx": {
+          "name": "order_customer_email_idx",
+          "columns": [
+            {
+              "expression": "customer_email",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
         }
       },
       "foreignKeys": {
@@ -1510,7 +1591,15 @@
         }
       },
       "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
+      "uniqueConstraints": {
+        "order_invoice_number_unique": {
+          "name": "order_invoice_number_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "invoice_number"
+          ]
+        }
+      },
       "policies": {},
       "checkConstraints": {},
       "isRLSEnabled": false
@@ -1524,7 +1613,7 @@
           "type": "text",
           "primaryKey": true,
           "notNull": true,
-          "default": "'c5a97cdf-024d-411d-9682-beba69205374'"
+          "default": "'0798bb28-c6c2-4477-817d-f2ae6bd08d2a'"
         },
         "order_id": {
           "name": "order_id",
@@ -1538,6 +1627,12 @@
           "primaryKey": false,
           "notNull": true
         },
+        "variant": {
+          "name": "variant",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
         "quantity": {
           "name": "quantity",
           "type": "integer",
@@ -1547,12 +1642,6 @@
         },
         "unit_price": {
           "name": "unit_price",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "total_price": {
-          "name": "total_price",
           "type": "integer",
           "primaryKey": false,
           "notNull": true

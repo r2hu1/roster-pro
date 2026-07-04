@@ -42,6 +42,7 @@ CREATE TABLE "organization" (
 	"created_at" timestamp NOT NULL,
 	"metadata" text,
 	"website" text,
+	"hsn_sac" integer DEFAULT 996331,
 	"address" text,
 	CONSTRAINT "organization_slug_unique" UNIQUE("slug")
 );
@@ -81,7 +82,7 @@ CREATE TABLE "verification" (
 );
 --> statement-breakpoint
 CREATE TABLE "menu" (
-	"id" text PRIMARY KEY DEFAULT '664155fa-d600-4d09-845a-1ea8794d7da0' NOT NULL,
+	"id" text PRIMARY KEY DEFAULT '05ce0ec9-ce6c-426b-9bc9-b6312886f09c' NOT NULL,
 	"organization_id" text NOT NULL,
 	"name" text NOT NULL,
 	"description" text,
@@ -91,7 +92,7 @@ CREATE TABLE "menu" (
 );
 --> statement-breakpoint
 CREATE TABLE "menu_item" (
-	"id" text PRIMARY KEY DEFAULT '045eca23-5eab-483d-a065-83325869aba2' NOT NULL,
+	"id" text PRIMARY KEY DEFAULT '8df56f15-7ef6-48ae-b49f-812a2d636b4a' NOT NULL,
 	"menu_id" text NOT NULL,
 	"organization_id" text NOT NULL,
 	"name" text NOT NULL,
@@ -109,7 +110,7 @@ CREATE TABLE "menu_item" (
 );
 --> statement-breakpoint
 CREATE TABLE "table" (
-	"id" text PRIMARY KEY DEFAULT 'a7d42570-2140-4558-be60-bbd8e81a1387' NOT NULL,
+	"id" text PRIMARY KEY DEFAULT 'a466d7bd-8be1-4eff-8768-271ea62b61d7' NOT NULL,
 	"number" integer NOT NULL,
 	"name" text,
 	"organization_id" text NOT NULL,
@@ -120,28 +121,38 @@ CREATE TABLE "table" (
 );
 --> statement-breakpoint
 CREATE TABLE "order" (
-	"id" text PRIMARY KEY DEFAULT 'fd83c1b8-e8a0-4106-8e81-82395789c208' NOT NULL,
+	"id" text PRIMARY KEY DEFAULT '235d5032-4f6c-462a-a3ff-b5eb16d7b951' NOT NULL,
 	"organization_id" text NOT NULL,
+	"invoice_number" text NOT NULL,
 	"customer_name" text,
 	"customer_phone" text,
 	"customer_email" text,
 	"table_number" text NOT NULL,
 	"status" text DEFAULT 'pending' NOT NULL,
 	"payment_status" text DEFAULT 'pending' NOT NULL,
-	"total_amount" integer NOT NULL,
+	"payment_method" text,
+	"items" jsonb NOT NULL,
+	"subtotal" integer NOT NULL,
+	"discount" integer DEFAULT 0 NOT NULL,
+	"taxable_amount" integer NOT NULL,
+	"cgst_amount" integer DEFAULT 0 NOT NULL,
+	"sgst_amount" integer DEFAULT 0 NOT NULL,
+	"igst_amount" integer DEFAULT 0 NOT NULL,
+	"round_off" integer DEFAULT 0 NOT NULL,
+	"grand_total" integer NOT NULL,
 	"notes" text,
-	"items" jsonb,
 	"created_at" timestamp DEFAULT now() NOT NULL,
-	"updated_at" timestamp DEFAULT now() NOT NULL
+	"updated_at" timestamp DEFAULT now() NOT NULL,
+	CONSTRAINT "order_invoice_number_unique" UNIQUE("invoice_number")
 );
 --> statement-breakpoint
 CREATE TABLE "order_item" (
-	"id" text PRIMARY KEY DEFAULT 'c5a97cdf-024d-411d-9682-beba69205374' NOT NULL,
+	"id" text PRIMARY KEY DEFAULT '0798bb28-c6c2-4477-817d-f2ae6bd08d2a' NOT NULL,
 	"order_id" text NOT NULL,
 	"menu_item_id" text NOT NULL,
+	"variant" text NOT NULL,
 	"quantity" integer DEFAULT 1 NOT NULL,
 	"unit_price" integer NOT NULL,
-	"total_price" integer NOT NULL,
 	"notes" text
 );
 --> statement-breakpoint
@@ -189,10 +200,11 @@ CREATE INDEX "menu_item_vegetarian_idx" ON "menu_item" USING btree ("is_vegetari
 CREATE INDEX "table_id_idx" ON "table" USING btree ("id");--> statement-breakpoint
 CREATE INDEX "table_organization_id_idx" ON "table" USING btree ("organization_id");--> statement-breakpoint
 CREATE INDEX "order_id_idx" ON "order" USING btree ("id");--> statement-breakpoint
+CREATE INDEX "order_invoice_idx" ON "order" USING btree ("invoice_number");--> statement-breakpoint
 CREATE INDEX "order_org_idx" ON "order" USING btree ("organization_id");--> statement-breakpoint
 CREATE INDEX "order_status_idx" ON "order" USING btree ("status");--> statement-breakpoint
-CREATE INDEX "order_customer_email_idx" ON "order" USING btree ("customer_email");--> statement-breakpoint
 CREATE INDEX "order_payment_status_idx" ON "order" USING btree ("payment_status");--> statement-breakpoint
 CREATE INDEX "order_created_at_idx" ON "order" USING btree ("created_at");--> statement-breakpoint
+CREATE INDEX "order_customer_email_idx" ON "order" USING btree ("customer_email");--> statement-breakpoint
 CREATE INDEX "order_item_order_idx" ON "order_item" USING btree ("order_id");--> statement-breakpoint
 CREATE INDEX "order_item_menu_item_idx" ON "order_item" USING btree ("menu_item_id");

@@ -1,6 +1,6 @@
 import { z } from "zod"
 import { OrderStatus, PaymentStatus } from "../../enums/index.js"
-import { MenuItemSchema } from "../menu/menu-item/base.js"
+import { CreateOrderItemSchema } from "./order-item/create.js"
 
 export const CreateOrderSchema = z.object({
   organizationId: z.string(),
@@ -10,8 +10,16 @@ export const CreateOrderSchema = z.object({
   tableNumber: z.string().min(1, "Table number is required"),
   status: OrderStatus.optional(),
   paymentStatus: PaymentStatus.optional(),
-  items: z.array(MenuItemSchema).nullable().optional(),
-  totalAmount: z.number().positive("Total amount must be positive"),
+  paymentMethod: z.string().nullable().optional(),
+  items: z.array(CreateOrderItemSchema).optional(),
+  subtotal: z.number().positive("Subtotal must be positive"),
+  discount: z.number().min(0).optional(),
+  taxableAmount: z.number().positive("Taxable amount must be positive"),
+  cgstAmount: z.number().min(0).optional(),
+  sgstAmount: z.number().min(0).optional(),
+  igstAmount: z.number().min(0).optional(),
+  roundOff: z.number().optional(),
+  grandTotal: z.number().positive("Grand total must be positive"),
   notes: z.string().nullable().optional(),
 })
 
@@ -20,5 +28,7 @@ export type CreateOrderDto = z.infer<typeof CreateOrderSchema>
 export const defaultCreateOrder: z.input<typeof CreateOrderSchema> = {
   organizationId: "",
   tableNumber: "",
-  totalAmount: 0,
+  subtotal: 0,
+  taxableAmount: 0,
+  grandTotal: 0,
 }

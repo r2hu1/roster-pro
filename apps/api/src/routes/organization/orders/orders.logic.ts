@@ -1,4 +1,4 @@
-import { and, eq } from "drizzle-orm"
+import { and, eq, desc, like } from "drizzle-orm"
 import { db } from "../../../core/db/client.js"
 import { order } from "../../../core/db/schemas/order.js"
 import { redisClient } from "../../../core/redis/client.js"
@@ -101,21 +101,67 @@ export const orderLogic = {
       }
     }
 
-    const [created] = await db
-      .insert(order)
-      .values({
-        organizationId,
-        customerName: body.customerName ?? null,
-        customerPhone: body.customerPhone ?? null,
-        customerEmail: body.customerEmail ?? null,
-        tableNumber: body.tableNumber,
-        status: body.status ?? "pending",
-        paymentStatus: body.paymentStatus ?? "pending",
-        totalAmount: body.totalAmount,
-        notes: body.notes ?? null,
-        items: body.items ?? null,
-      })
-      .returning()
+    const created = await db.transaction(async (tx) => {
+      const year = new Date().getFullYear()
+      const prefix = `INV-${year}-`
+
+      const [lastOrder] = await tx
+        .select({ invoiceNumber: order.invoiceNumber })
+        .from(order)
+        .where(
+          and(
+            eq(order.organizationId, organizationId),
+            like(order.invoiceNumber, `${prefix}%`)
+          )
+        )
+        .orderBy(desc(order.createdAt))
+        .limit(1)
+
+      let nextSequence = 1
+      if (lastOrder?.invoiceNumber) {
+        const lastSeq = Number.parseInt(lastOrder.invoiceNumber.split("-")[2], 10)
+        if (!Number.isNaN(lastSeq)) {
+          nextSequence = lastSeq + 1
+        }
+      }
+
+      const invoiceNumber = `${prefix}${nextSequence.toString().padStart(6, "0")}`
+
+      const [result] = await tx
+        .insert(order)
+        .values({
+          organizationId,
+          invoiceNumber,
+          customerName: body.customerName ?? null,
+          customerPhone: body.customerPhone ?? null,
+          customerEmail: body.customerEmail ?? null,
+          tableNumber: body.tableNumber,
+          status: body.status ?? "pending",
+          paymentStatus: body.paymentStatus ?? "pending",
+          paymentMethod: body.paymentMethod ?? null,
+          items: body.items ?? [],
+          subtotal: body.subtotal,
+          discount: body.discount ?? 0,
+          taxableAmount: body.taxableAmount,
+          cgstAmount: body.cgstAmount ?? 0,
+          sgstAmount: body.sgstAmount ?? 0,
+          igstAmount: body.igstAmount ?? 0,
+          roundOff: body.roundOff ?? 0,
+          grandTotal: body.grandTotal,
+          notes: body.notes ?? null,
+        })
+        .returning()
+
+      return result
+    })
+
+    if (!created) {
+      return {
+        status: "error",
+        code: HTTP_STATUS_CODES.BAD_REQUEST,
+        message: "Failed to create order",
+      }
+    }
 
     await redisClient.delPattern(`${ORDER_CACHE_PREFIX}*:${organizationId}`)
 
@@ -166,9 +212,18 @@ export const orderLogic = {
         tableNumber: body.tableNumber ?? existing.tableNumber,
         status: body.status ?? existing.status,
         paymentStatus: body.paymentStatus ?? existing.paymentStatus,
-        totalAmount: body.totalAmount ?? existing.totalAmount,
-        notes: body.notes !== undefined ? body.notes : existing.notes,
+        paymentMethod:
+          body.paymentMethod !== undefined ? body.paymentMethod : existing.paymentMethod,
         items: body.items !== undefined ? body.items : existing.items,
+        subtotal: body.subtotal ?? existing.subtotal,
+        discount: body.discount ?? existing.discount,
+        taxableAmount: body.taxableAmount ?? existing.taxableAmount,
+        cgstAmount: body.cgstAmount ?? existing.cgstAmount,
+        sgstAmount: body.sgstAmount ?? existing.sgstAmount,
+        igstAmount: body.igstAmount ?? existing.igstAmount,
+        roundOff: body.roundOff ?? existing.roundOff,
+        grandTotal: body.grandTotal ?? existing.grandTotal,
+        notes: body.notes !== undefined ? body.notes : existing.notes,
         updatedAt: new Date(),
       })
       .where(eq(order.id, body.id))

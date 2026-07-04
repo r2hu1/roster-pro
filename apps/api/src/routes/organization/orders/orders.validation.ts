@@ -6,3 +6,10 @@ export {
   type UpdateOrderDto,
   type DeleteOrderDto,
 } from "@workspace/shared/schemas/order/index"
+
+export {
+  CreateOrderItemSchema as createOrderItemSchema,
+  UpdateOrderItemSchema as updateOrderItemSchema,
+  type CreateOrderItemDto,
+  type UpdateOrderItemDto,
+} from "@workspace/shared/schemas/order/order-item/index"
