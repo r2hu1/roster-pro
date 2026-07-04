@@ -44,7 +44,7 @@ export const Footer = () => {
                   <li key={link}>
                     <a
                       href="#"
-                      className="text-sm hover:text-white transition-colors"
+                      className="text-sm hover:underline transition-colors"
                     >
                       {link}
                     </a>
@@ -58,10 +58,10 @@ export const Footer = () => {
         <div className="mt-16 pt-8 border-t flex flex-col items-center justify-between gap-4 md:flex-row">
           <div className="flex gap-4">
             <span className="text-xs">© 2026 Platform Inc.</span>
-            <a href="/terms" className="text-xs hover:text-white">
+            <a href="/terms" className="text-xs hover:underline">
               Terms & Condition
             </a>
-            <a href="/privacy-policy" className="text-xs hover:text-white">
+            <a href="/privacy-policy" className="text-xs hover:underline">
               Privacy Policy
             </a>
           </div>
