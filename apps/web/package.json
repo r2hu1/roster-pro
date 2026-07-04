@@ -14,13 +14,18 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@polar-sh/sdk": "^0.48.1",
     "@tabler/icons-react": "^3.44.0",
     "@workspace/shared": "workspace:*",
     "@workspace/ui": "workspace:*",
+    "axios": "^1.18.1",
+    "better-auth": "^1.6.23",
+    "envin": "^1.2.0",
     "next": "16.2.6",
     "next-themes": "^0.4.6",
     "react": "19.2.4",
-    "react-dom": "19.2.4"
+    "react-dom": "19.2.4",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
