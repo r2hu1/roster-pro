@@ -782,4 +782,6 @@ await uploadWithFile("/organization", { name: "My Restaurant", slug: "my-restaur
 | Update table status | `PATCH` | `/v1/organization/table/status` |
 | Table status SSE | `GET` | `/v1/organization/table/status/stream` |
 | Generate QR token | `POST` | `/v1/organization/table/token` |
+| Analytics | `GET` | `/v1/organization/analytics` |
+| Analytics SSE | `GET` | `/v1/organization/analytics/stream` |
 | Health check | `GET` | `/v1/status` |
