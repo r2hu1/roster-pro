@@ -28,12 +28,12 @@ export const Hero = () => {
 
           <div className="flex items-center gap-2 justify-center">
             <Button asChild size="lg" variant="secondary">
-              <Link href="#">
+              <Link href="https://cal.com/roster-pro/product-demo-possible-partnership">
                 <span className="btn-label">Schedule Meeting</span>
               </Link>
             </Button>
             <Button asChild size="lg">
-              <Link href="#">
+              <Link href="https://cal.com/roster-pro/product-demo-possible-partnership">
                 Get Started <ArrowUpRight />
               </Link>
             </Button>

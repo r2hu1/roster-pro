@@ -25,7 +25,7 @@ const stats = [
 
 export const Stats = () => {
   return (
-    <section className="flex flex-col py-10 justify-center px-6">
+    <section id="features" className="flex flex-col py-10 justify-center px-6">
       <div className="max-w-5xl mx-auto">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {stats.map((stat) => (

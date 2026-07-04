@@ -6,10 +6,10 @@ import { Logo } from "./logo"
 import { ArrowUpRight, Menu, X } from "lucide-react"
 
 const menuItems = [
-  { name: "Features", href: "#" },
-  { name: "Solution", href: "#" },
-  { name: "Pricing", href: "#" },
-  { name: "About", href: "#" },
+  { name: "Features", href: "#features" },
+  { name: "Solution", href: "#solution" },
+  { name: "Pricing", href: "#pricing" },
+  { name: "About", href: "#about" },
 ]
 
 export function Header() {
@@ -27,7 +27,7 @@ export function Header() {
               <Link
                 href="/"
                 aria-label="home"
-                className="flex items-center space-x-2"
+                className="flex items-center -ml-3.5"
               >
                 <Logo />
               </Link>
@@ -60,10 +60,10 @@ export function Header() {
 
               <div className="flex w-full flex-col space-y-3 sm:flex-row sm:gap-3 sm:space-y-0 md:w-fit">
                 <Button asChild variant="secondary">
-                  <Link href="#">Login</Link>
+                  <Link href="https://cal.com/roster-pro/product-demo-possible-partnership">Login</Link>
                 </Button>
                 <Button asChild>
-                  <Link href="#">
+                  <Link href="https://cal.com/roster-pro/product-demo-possible-partnership">
                     Get Started <ArrowUpRight />
                   </Link>
                 </Button>

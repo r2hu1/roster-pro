@@ -1,5 +1,6 @@
 import { Button } from "@workspace/ui/components/button"
 import { ArrowUpRightIcon } from "lucide-react"
+import Link from "next/link"
 
 const testimonials = [
   {
@@ -59,11 +60,15 @@ export const Testimonials = () => {
           </p>
         </div>
         <div className="flex md:flex-col-reverse items-center gap-2">
-          <Button size="lg" variant="secondary">
-            Schedule Meeting
+          <Button size="lg" asChild variant="secondary">
+            <Link href="https://cal.com/roster-pro/product-demo-possible-partnership">
+              Schedule Meeting
+            </Link>
           </Button>
-          <Button size="lg">
-            Get Started <ArrowUpRightIcon />
+          <Button size="lg" asChild>
+            <Link href="https://cal.com/roster-pro/product-demo-possible-partnership">
+              Get Started <ArrowUpRightIcon />
+            </Link>
           </Button>
         </div>
       </div>

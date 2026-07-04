@@ -15,6 +15,7 @@ import {
   ShieldCheckIcon,
   ZapIcon,
 } from "lucide-react"
+import Link from "next/link"
 
 const plusPoints = [
   {
@@ -72,11 +73,15 @@ export function Features() {
           </p>
         </div>
         <div className="flex md:flex-col-reverse items-center gap-2">
-          <Button size="lg" variant="secondary">
+          <Button size="lg" asChild variant="secondary">
+            <Link href="https://cal.com/roster-pro/product-demo-possible-partnership">
             Schedule Meeting
+            </Link>
           </Button>
-          <Button size="lg">
-            Get Started <ArrowUpRightIcon />
+          <Button size="lg" asChild>
+            <Link href="https://cal.com/roster-pro/product-demo-possible-partnership">
+              Get Started <ArrowUpRightIcon />
+            </Link>
           </Button>
         </div>
       </div>
