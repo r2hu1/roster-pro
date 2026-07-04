@@ -404,6 +404,7 @@ The API uses Server-Sent Events for realtime updates on orders and table status.
 | `GET /v1/organization/orders/stream` | `init`, `created`, `updated`, `deleted` | All orders realtime |
 | `GET /v1/organization/orders/:id/stream` | `init`, `created`, `updated`, `deleted` | Single order realtime |
 | `GET /v1/organization/table/status/stream` | `init`, `status` | Table status realtime |
+| `GET /v1/organization/analytics/stream` | `init`, `updated` | Analytics realtime |
 
 ### How SSE Works
 
@@ -531,6 +532,71 @@ SSE stream sends: event: "created"|"updated"|"deleted", data: {...}
   │
   ▼
 Client updates local state instantly (no polling)
+```
+
+### Example: Analytics Stream Hook
+
+```ts
+// apps/web/modules/analytics/hooks/use-analytics-stream.ts
+"use client"
+
+import { useEffect, useState } from "react"
+
+type AnalyticsData = {
+  summary: {
+    totalOrders: number
+    totalRevenue: number
+    averageOrderValue: number
+    averageOrdersPerTable: number
+    totalDiscount: number
+    totalTax: number
+    cancelledOrders: number
+    completedOrders: number
+    pendingOrders: number
+    averageItemsPerOrder: number
+    peakHour: number | null
+    busiestTable: string | null
+  }
+  revenue: {
+    daily: { date: string; orderCount: number; revenue: number }[]
+    hourly: { hour: number; orderCount: number; revenue: number }[]
+  }
+  orders: {
+    byStatus: { status: string; count: number }[]
+    byPaymentMethod: { method: string; count: number; total: number }[]
+    byPaymentStatus: { status: string; count: number }[]
+  }
+  topItems: { name: string; quantity: number; revenue: number }[]
+  tableStats: { tableNumber: string; orderCount: number; totalSpent: number }[]
+}
+
+export function useAnalyticsStream(from: string, to: string) {
+  const [analytics, setAnalytics] = useState<AnalyticsData | null>(null)
+  const [connected, setConnected] = useState(false)
+
+  useEffect(() => {
+    if (!from || !to) return
+
+    const es = new EventSource(
+      `/api/organization/analytics/stream?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`
+    )
+
+    es.addEventListener("init", (e) => {
+      setAnalytics(JSON.parse(e.data))
+      setConnected(true)
+    })
+
+    es.addEventListener("updated", (e) => {
+      setAnalytics(JSON.parse(e.data))
+    })
+
+    es.onerror = () => setConnected(false)
+
+    return () => es.close()
+  }, [from, to])
+
+  return { analytics, connected }
+}
 ```
 
 ---
