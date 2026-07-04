@@ -10,9 +10,7 @@ import {
 
 export const organizationRouter = new Hono<AppEnv>()
 
-organizationRouter.use(sessionMiddleware)
-
-organizationRouter.get("/", async (c) => {
+organizationRouter.get("/", sessionMiddleware, async (c) => {
   const headers = c.req.raw.headers
   const result = await organizationLogic.me(headers)
   return c.json(result)
@@ -20,6 +18,7 @@ organizationRouter.get("/", async (c) => {
 
 organizationRouter.post(
   "/",
+  sessionMiddleware,
   zvalidator(createOrganizationSchema),
   async (c) => {
     const headers = c.req.raw.headers
@@ -51,20 +50,25 @@ organizationRouter.post(
   }
 )
 
-organizationRouter.put("/", zvalidator(updateOrganizationSchema), async (c) => {
-  const headers = c.req.raw.headers
-  const body = c.req.valid("json")
+organizationRouter.put(
+  "/",
+  sessionMiddleware,
+  zvalidator(updateOrganizationSchema),
+  async (c) => {
+    const headers = c.req.raw.headers
+    const body = c.req.valid("json")
 
-  let file: File | undefined
-  const contentType = c.req.header("content-type")
-  if (contentType?.includes("multipart/form-data")) {
-    const parsed = await c.req.parseBody()
-    const uploaded = parsed.logo
-    if (uploaded instanceof File) {
-      file = uploaded
+    let file: File | undefined
+    const contentType = c.req.header("content-type")
+    if (contentType?.includes("multipart/form-data")) {
+      const parsed = await c.req.parseBody()
+      const uploaded = parsed.logo
+      if (uploaded instanceof File) {
+        file = uploaded
+      }
     }
-  }
 
-  const result = await organizationLogic.update(headers, body, file)
-  return c.json(result)
-})
+    const result = await organizationLogic.update(headers, body, file)
+    return c.json(result)
+  }
+)

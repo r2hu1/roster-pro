@@ -5,6 +5,7 @@ import {
   boolean,
   integer,
   index,
+  jsonb,
 } from "drizzle-orm/pg-core"
 import { organization } from "./auth.js"
 import { v4 as uuidv4 } from "uuid"
@@ -33,6 +34,11 @@ export const menu = pgTable(
   })
 )
 
+export type Price = {
+  half: number
+  full: number
+}
+
 export const menuItem = pgTable(
   "menu_item",
   {
@@ -50,7 +56,7 @@ export const menuItem = pgTable(
     name: text("name").notNull(),
     description: text("description"),
     ingredients: text("ingredients").array(),
-    price: integer("price").notNull(),
+    price: jsonb().$type<Price>().notNull(),
     image: text("image"),
     imageKey: text("image_key"),
     category: text("category"),

@@ -1,10 +1,18 @@
 import { and, eq } from "drizzle-orm"
 import { db } from "../../../core/db/client.js"
-import { tableSchema, type TableStatus } from "../../../core/db/schemas/table.js"
+import {
+  tableSchema,
+  type TableStatus,
+} from "../../../core/db/schemas/table.js"
 import { redisClient } from "../../../core/redis/client.js"
 import { HTTP_STATUS_CODES } from "../../../lib/utils.js"
-import type { CreateTableDto, UpdateTableDto, UpdateTableStatusDto } from "./table.validation.js"
+import type {
+  CreateTableDto,
+  UpdateTableDto,
+  UpdateTableStatusDto,
+} from "./table.validation.js"
 import { EventEmitter } from "node:events"
+import { cryptoUtil } from "../../../lib/crypto.js"
 
 const TABLE_CACHE_PREFIX = "table:"
 const CACHE_TTL = 300
@@ -23,7 +31,8 @@ export const tableLogic = {
     }
 
     const cacheKey = `${TABLE_CACHE_PREFIX}all:${organizationId}`
-    const cached = await redisClient.get<(typeof tableSchema.$inferSelect)[]>(cacheKey)
+    const cached =
+      await redisClient.get<(typeof tableSchema.$inferSelect)[]>(cacheKey)
     if (cached) {
       return { status: "success", code: HTTP_STATUS_CODES.OK, data: cached }
     }
@@ -48,7 +57,8 @@ export const tableLogic = {
     }
 
     const cacheKey = `${TABLE_CACHE_PREFIX}${id}`
-    const cached = await redisClient.get<typeof tableSchema.$inferSelect>(cacheKey)
+    const cached =
+      await redisClient.get<typeof tableSchema.$inferSelect>(cacheKey)
     if (cached) {
       return { status: "success", code: HTTP_STATUS_CODES.OK, data: cached }
     }
@@ -56,7 +66,12 @@ export const tableLogic = {
     const [found] = await db
       .select()
       .from(tableSchema)
-      .where(and(eq(tableSchema.id, id), eq(tableSchema.organizationId, organizationId)))
+      .where(
+        and(
+          eq(tableSchema.id, id),
+          eq(tableSchema.organizationId, organizationId)
+        )
+      )
 
     if (!found) {
       return {
@@ -107,7 +122,12 @@ export const tableLogic = {
     const [existing] = await db
       .select()
       .from(tableSchema)
-      .where(and(eq(tableSchema.id, body.id), eq(tableSchema.organizationId, organizationId)))
+      .where(
+        and(
+          eq(tableSchema.id, body.id),
+          eq(tableSchema.organizationId, organizationId)
+        )
+      )
 
     if (!existing) {
       return {
@@ -146,7 +166,12 @@ export const tableLogic = {
     const [existing] = await db
       .select()
       .from(tableSchema)
-      .where(and(eq(tableSchema.id, id), eq(tableSchema.organizationId, organizationId)))
+      .where(
+        and(
+          eq(tableSchema.id, id),
+          eq(tableSchema.organizationId, organizationId)
+        )
+      )
 
     if (!existing) {
       return {
@@ -176,7 +201,12 @@ export const tableLogic = {
     const [existing] = await db
       .select()
       .from(tableSchema)
-      .where(and(eq(tableSchema.id, body.id), eq(tableSchema.organizationId, organizationId)))
+      .where(
+        and(
+          eq(tableSchema.id, body.id),
+          eq(tableSchema.organizationId, organizationId)
+        )
+      )
 
     if (!existing) {
       return {
@@ -230,5 +260,28 @@ export const tableLogic = {
       .where(eq(tableSchema.organizationId, organizationId))
 
     return { status: "success", code: HTTP_STATUS_CODES.OK, data: tables }
+  },
+  generateQrToken: async (
+    tableId: string,
+    organizationId: string,
+    tableNumber: string
+  ) => {
+    const encryptedToken = cryptoUtil.encrypt({
+      tableId,
+      tableNumber,
+      organizationId,
+    })
+    if (!encryptedToken) {
+      return {
+        status: "error",
+        code: HTTP_STATUS_CODES.INTERNAL_SERVER_ERROR,
+        message: "Failed to generate QR token",
+      }
+    }
+    return {
+      status: "success",
+      code: HTTP_STATUS_CODES.OK,
+      data: encryptedToken,
+    }
   },
 }

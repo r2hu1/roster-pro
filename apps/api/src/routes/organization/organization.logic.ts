@@ -9,6 +9,7 @@ import type {
 } from "@workspace/shared/types/organization/dto"
 import { uploadFile } from "../../core/imagekit/upload.js"
 import { deleteFile } from "../../core/imagekit/delete.js"
+import { cryptoUtil } from "../../lib/crypto.js"
 
 export const organizationLogic = {
   create: async (

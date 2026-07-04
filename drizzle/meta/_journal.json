@@ -5,22 +5,8 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1783096022731,
-      "tag": "0000_famous_thaddeus_ross",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1783096182039,
-      "tag": "0001_striped_dragon_man",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1783104913172,
-      "tag": "0002_huge_paibok",
+      "when": 1783149928187,
+      "tag": "0000_optimal_redwing",
       "breakpoints": true
     }
   ]

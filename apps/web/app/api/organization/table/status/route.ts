@@ -1,9 +1,12 @@
 import { headers } from "next/headers"
 
 export async function GET() {
-  const res = await fetch(`${process.env.API_URL}/organization/table/status/stream`, {
-    headers: await headers(),
-  })
+  const res = await fetch(
+    `${process.env.API_URL}/organization/table/status/stream`,
+    {
+      headers: await headers(),
+    }
+  )
 
   return new Response(res.body, {
     headers: {

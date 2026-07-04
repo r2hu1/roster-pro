@@ -81,7 +81,7 @@ CREATE TABLE "verification" (
 );
 --> statement-breakpoint
 CREATE TABLE "menu" (
-	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"id" text PRIMARY KEY DEFAULT '664155fa-d600-4d09-845a-1ea8794d7da0' NOT NULL,
 	"organization_id" text NOT NULL,
 	"name" text NOT NULL,
 	"description" text,
@@ -91,13 +91,13 @@ CREATE TABLE "menu" (
 );
 --> statement-breakpoint
 CREATE TABLE "menu_item" (
-	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
-	"menu_id" uuid NOT NULL,
+	"id" text PRIMARY KEY DEFAULT '045eca23-5eab-483d-a065-83325869aba2' NOT NULL,
+	"menu_id" text NOT NULL,
 	"organization_id" text NOT NULL,
 	"name" text NOT NULL,
 	"description" text,
 	"ingredients" text[],
-	"price" integer NOT NULL,
+	"price" jsonb NOT NULL,
 	"image" text,
 	"image_key" text,
 	"category" text,
@@ -109,16 +109,18 @@ CREATE TABLE "menu_item" (
 );
 --> statement-breakpoint
 CREATE TABLE "table" (
-	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"id" text PRIMARY KEY DEFAULT 'a7d42570-2140-4558-be60-bbd8e81a1387' NOT NULL,
 	"number" integer NOT NULL,
 	"name" text,
 	"organization_id" text NOT NULL,
+	"status" text NOT NULL,
+	"qr_token" text,
 	"created_at" timestamp DEFAULT now() NOT NULL,
 	"updated_at" timestamp NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE "order" (
-	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"id" text PRIMARY KEY DEFAULT 'fd83c1b8-e8a0-4106-8e81-82395789c208' NOT NULL,
 	"organization_id" text NOT NULL,
 	"customer_name" text,
 	"customer_phone" text,
@@ -134,9 +136,9 @@ CREATE TABLE "order" (
 );
 --> statement-breakpoint
 CREATE TABLE "order_item" (
-	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
-	"order_id" uuid NOT NULL,
-	"menu_item_id" uuid NOT NULL,
+	"id" text PRIMARY KEY DEFAULT 'c5a97cdf-024d-411d-9682-beba69205374' NOT NULL,
+	"order_id" text NOT NULL,
+	"menu_item_id" text NOT NULL,
 	"quantity" integer DEFAULT 1 NOT NULL,
 	"unit_price" integer NOT NULL,
 	"total_price" integer NOT NULL,

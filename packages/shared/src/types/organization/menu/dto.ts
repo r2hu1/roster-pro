@@ -16,7 +16,7 @@ export interface CreateMenuItemDto {
   name: string;
   description?: string | null;
   ingredients?: string[] | null;
-  price: number;
+  price: Record<"half" | "full", number>;
   image?: string | null;
   imageKey?: string | null;
   category?: string | null;
@@ -32,7 +32,7 @@ export interface UpdateMenuItemDto {
   name?: string;
   description?: string | null;
   ingredients?: string[] | null;
-  price?: number;
+  price?: Record<"half" | "full", number>;
   image?: string | null;
   imageKey?: string | null;
   category?: string | null;

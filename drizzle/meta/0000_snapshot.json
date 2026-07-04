@@ -1,5 +1,5 @@
 {
-  "id": "9cc4f8be-00d9-4b2b-8527-babd02224369",
+  "id": "21c108c6-e9b2-4502-bb4d-fe11ae8b5b48",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -883,10 +883,10 @@
       "columns": {
         "id": {
           "name": "id",
-          "type": "uuid",
+          "type": "text",
           "primaryKey": true,
           "notNull": true,
-          "default": "gen_random_uuid()"
+          "default": "'664155fa-d600-4d09-845a-1ea8794d7da0'"
         },
         "organization_id": {
           "name": "organization_id",
@@ -1001,14 +1001,14 @@
       "columns": {
         "id": {
           "name": "id",
-          "type": "uuid",
+          "type": "text",
           "primaryKey": true,
           "notNull": true,
-          "default": "gen_random_uuid()"
+          "default": "'045eca23-5eab-483d-a065-83325869aba2'"
         },
         "menu_id": {
           "name": "menu_id",
-          "type": "uuid",
+          "type": "text",
           "primaryKey": false,
           "notNull": true
         },
@@ -1038,7 +1038,7 @@
         },
         "price": {
           "name": "price",
-          "type": "integer",
+          "type": "jsonb",
           "primaryKey": false,
           "notNull": true
         },
@@ -1212,10 +1212,10 @@
       "columns": {
         "id": {
           "name": "id",
-          "type": "uuid",
+          "type": "text",
           "primaryKey": true,
           "notNull": true,
-          "default": "gen_random_uuid()"
+          "default": "'a7d42570-2140-4558-be60-bbd8e81a1387'"
         },
         "number": {
           "name": "number",
@@ -1234,6 +1234,18 @@
           "type": "text",
           "primaryKey": false,
           "notNull": true
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "qr_token": {
+          "name": "qr_token",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
         },
         "created_at": {
           "name": "created_at",
@@ -1308,10 +1320,10 @@
       "columns": {
         "id": {
           "name": "id",
-          "type": "uuid",
+          "type": "text",
           "primaryKey": true,
           "notNull": true,
-          "default": "gen_random_uuid()"
+          "default": "'fd83c1b8-e8a0-4106-8e81-82395789c208'"
         },
         "organization_id": {
           "name": "organization_id",
@@ -1509,20 +1521,20 @@
       "columns": {
         "id": {
           "name": "id",
-          "type": "uuid",
+          "type": "text",
           "primaryKey": true,
           "notNull": true,
-          "default": "gen_random_uuid()"
+          "default": "'c5a97cdf-024d-411d-9682-beba69205374'"
         },
         "order_id": {
           "name": "order_id",
-          "type": "uuid",
+          "type": "text",
           "primaryKey": false,
           "notNull": true
         },
         "menu_item_id": {
           "name": "menu_item_id",
-          "type": "uuid",
+          "type": "text",
           "primaryKey": false,
           "notNull": true
         },

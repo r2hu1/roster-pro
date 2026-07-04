@@ -83,10 +83,10 @@ const data = {
 }
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const { open } = useSidebar();
+  const { open } = useSidebar()
   return (
     <Sidebar collapsible="icon" {...props}>
-      <SidebarRail/>
+      <SidebarRail />
       <SidebarHeader className={cn(open && "p-4 pb-0")}>
         <SidebarMenu className="flex flex-row justify-between items-center">
           <SidebarMenuItem>
