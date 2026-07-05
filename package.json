@@ -9,6 +9,7 @@
     "format": "turbo format",
     "typecheck": "turbo typecheck",
     "fix": "turbo fix",
+    "clean": "turbo run clean",
     "dev:web": "turbo run dev --filter=web",
     "dev:api": "turbo run dev --filter=api",
     "dev:marketing": "turbo run dev --filter=marketing",
