@@ -45,7 +45,7 @@ menuRouter.get("/:id", async (c) => {
   return c.json(result, result.code)
 })
 
-menuRouter.post("/", zvalidator(createMenuSchema), async (c) => {
+menuRouter.post("/", zvalidator("json", createMenuSchema), async (c) => {
   const organizationId = c.get("organizationId")
   if (!organizationId) {
     return c.json(
@@ -63,7 +63,7 @@ menuRouter.post("/", zvalidator(createMenuSchema), async (c) => {
   return c.json(result, result.code)
 })
 
-menuRouter.put("/", zvalidator(updateMenuSchema), async (c) => {
+menuRouter.put("/", zvalidator("json", updateMenuSchema), async (c) => {
   const organizationId = c.get("organizationId")
   if (!organizationId) {
     return c.json(

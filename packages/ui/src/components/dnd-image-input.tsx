@@ -1,20 +1,20 @@
-import { ImagePlus, X, Upload, Trash2 } from 'lucide-react';
-import { useCallback, useState } from 'react';
+import { ImagePlus, X, Upload, Trash2 } from "lucide-react"
+import { useCallback, useState } from "react"
 
-import { Button } from '@workspace/ui/components/button';
-import { useImageUpload } from '@workspace/ui/hooks/use-image-upload';
-import { Input } from '@workspace/ui/components/input';
+import { Button } from "@workspace/ui/components/button"
+import { useImageUpload } from "@workspace/ui/hooks/use-image-upload"
+import { Input } from "@workspace/ui/components/input"
 
-import { cn } from '@workspace/ui/lib/utils';
+import { cn } from "@workspace/ui/lib/utils"
 
 export function DnDImageInput({
   onChange,
   previewClassName,
   className,
 }: {
-    onChange?: (file: File | null) => void;
-  className?: string;
-  previewClassName?: string;
+  onChange?: (file: File | null) => void
+  className?: string
+  previewClassName?: string
 }) {
   const {
     previewUrl,
@@ -23,45 +23,45 @@ export function DnDImageInput({
     handleThumbnailClick,
     handleFileChange,
     handleRemove,
-  } = useImageUpload({ onChange });
+  } = useImageUpload({ onChange })
 
-  const [isDragging, setIsDragging] = useState(false);
+  const [isDragging, setIsDragging] = useState(false)
 
   const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    e.stopPropagation();
-  };
+    e.preventDefault()
+    e.stopPropagation()
+  }
 
   const handleDragEnter = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragging(true);
-  };
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDragging(true)
+  }
 
   const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragging(false);
-  };
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDragging(false)
+  }
 
   const handleDrop = useCallback(
     (e: React.DragEvent<HTMLDivElement>) => {
-      e.preventDefault();
-      e.stopPropagation();
-      setIsDragging(false);
+      e.preventDefault()
+      e.stopPropagation()
+      setIsDragging(false)
 
-      const file = e.dataTransfer.files?.[0];
-      if (file?.type.startsWith('image/')) {
+      const file = e.dataTransfer.files?.[0]
+      if (file?.type.startsWith("image/")) {
         const fakeEvent = {
           target: {
             files: [file],
           },
-        } as any;
-        handleFileChange(fakeEvent);
+        } as any
+        handleFileChange(fakeEvent)
       }
     },
-    [handleFileChange],
-  );
+    [handleFileChange]
+  )
 
   return (
     <div>
@@ -81,8 +81,8 @@ export function DnDImageInput({
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
           className={cn(
-            'border-muted-foreground/25 bg-muted/50 hover:bg-muted flex cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border border-dashed py-4 transition-colors',
-            isDragging && 'border-primary/50 bg-primary/5',
+            "border-muted-foreground/25 bg-muted/50 hover:bg-muted flex cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border border-dashed py-4 transition-colors",
+            isDragging && "border-primary/50 bg-primary/5",
             className
           )}
         >
@@ -98,7 +98,12 @@ export function DnDImageInput({
         </div>
       ) : (
         <div className="relative">
-          <div className={cn("group relative h-52 overflow-hidden rounded-lg border",previewClassName)}>
+          <div
+            className={cn(
+              "group relative h-52 overflow-hidden rounded-lg border",
+              previewClassName
+            )}
+          >
             <img
               src={previewUrl}
               alt="Preview"
@@ -138,5 +143,5 @@ export function DnDImageInput({
         </div>
       )}
     </div>
-  );
+  )
 }

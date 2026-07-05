@@ -60,7 +60,9 @@ export function Header() {
 
               <div className="flex w-full flex-col space-y-3 sm:flex-row sm:gap-3 sm:space-y-0 md:w-fit">
                 <Button asChild variant="secondary">
-                  <Link href="https://cal.com/roster-pro/product-demo-possible-partnership">Login</Link>
+                  <Link href="https://cal.com/roster-pro/product-demo-possible-partnership">
+                    Login
+                  </Link>
                 </Button>
                 <Button asChild>
                   <Link href="https://cal.com/roster-pro/product-demo-possible-partnership">

@@ -1,6 +1,7 @@
 import { zValidator } from "@hono/zod-validator"
 import { flattenError, type ZodSchema } from "zod"
 import { HTTP_STATUS_CODES } from "@workspace/shared/constants"
+import type { ValidationTargets } from "hono"
 
 export const parseFile = async (file: File): Promise<Buffer> => {
   if (!(file instanceof File)) {
@@ -10,8 +11,14 @@ export const parseFile = async (file: File): Promise<Buffer> => {
   return Buffer.from(await file.arrayBuffer())
 }
 
-export const zvalidator = <T extends ZodSchema>(schema: T) =>
-  zValidator("json", schema, (result, c) => {
+export const zvalidator = <
+  T extends ZodSchema,
+  Target extends keyof ValidationTargets = "json",
+>(
+  target: Target,
+  schema: T
+) =>
+  zValidator(target, schema, (result, c) => {
     if (!result.success) {
       return c.json(
         {

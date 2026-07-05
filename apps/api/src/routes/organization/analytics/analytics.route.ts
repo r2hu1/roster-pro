@@ -41,8 +41,7 @@ analyticsRouter.get("/", sessionMiddleware, async (c) => {
       {
         status: "error",
         code: HTTP_STATUS_CODES.BAD_REQUEST,
-        message:
-          parsed.error.issues[0]?.message ?? "Invalid query parameters",
+        message: parsed.error.issues[0]?.message ?? "Invalid query parameters",
       },
       HTTP_STATUS_CODES.BAD_REQUEST
     )
@@ -85,8 +84,7 @@ analyticsRouter.get("/stream", sessionMiddleware, async (c) => {
       {
         status: "error",
         code: HTTP_STATUS_CODES.BAD_REQUEST,
-        message:
-          parsed.error.issues[0]?.message ?? "Invalid query parameters",
+        message: parsed.error.issues[0]?.message ?? "Invalid query parameters",
       },
       HTTP_STATUS_CODES.BAD_REQUEST
     )
@@ -105,10 +103,7 @@ analyticsRouter.get("/stream", sessionMiddleware, async (c) => {
 
     const listener = async () => {
       try {
-        const freshData = await analyticsLogic.get(
-          organizationId,
-          parsed.data
-        )
+        const freshData = await analyticsLogic.get(organizationId, parsed.data)
         if (freshData.status === "success") {
           stream.writeSSE({
             event: "updated",

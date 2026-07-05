@@ -1,30 +1,54 @@
 import { authClient } from "@/lib/better-auth/client"
 import { headers } from "next/headers"
-import { redirect } from "next/navigation";
+import { redirect } from "next/navigation"
 
 export default async function Page() {
-  const { data, error } = await authClient.getSession({
-    fetchOptions: {
-      headers: await headers()
-    }
-  });
+  const requestHeaders = await headers()
 
-  if (!data?.session || error) {
-    return redirect("/login");
+  const { data: session, error: sessionError } = await authClient.getSession({
+    fetchOptions: {
+      headers: requestHeaders,
+    },
+  })
+
+  if (sessionError || !session?.session) {
+    redirect("/login")
   }
 
-  const getOrganization = await authClient.organization.list({
-    fetchOptions: {
-      headers: await headers()
-    }
-  });
-  if(getOrganization.data && !getOrganization.error) {
-    const organization = getOrganization.data[0];
-    if(!organization) {
-      return redirect("/onboarding");
-    }
-    return redirect(`/${organization.id}`);
+  const { data: organizations, error: organizationError } =
+    await authClient.organization.list({
+      fetchOptions: {
+        headers: requestHeaders,
+      },
+    })
+
+  if (organizationError) {
+    throw organizationError
   }
 
-  return null;
+  const organization = organizations?.[0]
+
+  if (!organization) {
+    redirect("/onboarding")
+  }
+
+  const { data: subscriptions, error: subscriptionError } =
+    await authClient.customer.subscriptions.list({
+      fetchOptions: {
+        headers: requestHeaders,
+      },
+      query: {
+        active: true,
+        referenceId: organization.id,
+      },
+    })
+
+  if (
+    subscriptionError ||
+    subscriptions?.result?.pagination?.totalCount === 0
+  ) {
+    redirect("/onboarding/subscription")
+  }
+
+  redirect(`/${organization.id}`)
 }

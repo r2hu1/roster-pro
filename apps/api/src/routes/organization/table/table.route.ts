@@ -51,7 +51,7 @@ tableRouter.get("/:id", async (c) => {
   return c.json(result, result.code)
 })
 
-tableRouter.post("/", zvalidator(createTableSchema), async (c) => {
+tableRouter.post("/", zvalidator("json", createTableSchema), async (c) => {
   const organizationId = c.get("organizationId")
   if (!organizationId) {
     return c.json(
@@ -69,7 +69,7 @@ tableRouter.post("/", zvalidator(createTableSchema), async (c) => {
   return c.json(result, result.code)
 })
 
-tableRouter.put("/", zvalidator(updateTableSchema), async (c) => {
+tableRouter.put("/", zvalidator("json", updateTableSchema), async (c) => {
   const organizationId = c.get("organizationId")
   if (!organizationId) {
     return c.json(
@@ -105,23 +105,27 @@ tableRouter.delete("/:id", async (c) => {
   return c.json(result, result.code as ContentfulStatusCode)
 })
 
-tableRouter.patch("/status", zvalidator(updateTableStatusSchema), async (c) => {
-  const organizationId = c.get("organizationId")
-  if (!organizationId) {
-    return c.json(
-      {
-        status: "error",
-        code: HTTP_STATUS_CODES.UNAUTHORIZED,
-        message: "Organization not found",
-      },
-      HTTP_STATUS_CODES.UNAUTHORIZED
-    )
-  }
+tableRouter.patch(
+  "/status",
+  zvalidator("json", updateTableStatusSchema),
+  async (c) => {
+    const organizationId = c.get("organizationId")
+    if (!organizationId) {
+      return c.json(
+        {
+          status: "error",
+          code: HTTP_STATUS_CODES.UNAUTHORIZED,
+          message: "Organization not found",
+        },
+        HTTP_STATUS_CODES.UNAUTHORIZED
+      )
+    }
 
-  const body = c.req.valid("json")
-  const result = await tableLogic.updateStatus(body, organizationId)
-  return c.json(result, result.code)
-})
+    const body = c.req.valid("json")
+    const result = await tableLogic.updateStatus(body, organizationId)
+    return c.json(result, result.code)
+  }
+)
 
 tableRouter.get("/status/stream", async (c) => {
   const organizationId = c.get("organizationId")

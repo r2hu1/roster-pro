@@ -31,7 +31,7 @@ export const organizationLogic = {
       }
     }
 
-    const { name, slug, metadata } = body
+    const { name, slug, metadata, phone } = body
 
     const newOrg = await auth.api.createOrganization({
       headers,
@@ -56,6 +56,7 @@ export const organizationLogic = {
       .set({
         logoKey,
         address: body.address ?? null,
+        phone: body.phone ?? null,
       })
       .where(eq(organization.id, newOrg.id))
 

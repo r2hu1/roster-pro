@@ -47,35 +47,39 @@ menuItemRouter.get("/:id", async (c) => {
   return c.json(result, result.code)
 })
 
-menuItemRouter.post("/", zvalidator(createMenuItemSchema), async (c) => {
-  const body = c.req.valid("json")
-  const organizationId = c.get("organizationId")
-  if (!organizationId) {
-    return c.json(
-      {
-        status: "error",
-        code: HTTP_STATUS_CODES.UNAUTHORIZED,
-        message: "Organization not found",
-      },
-      HTTP_STATUS_CODES.UNAUTHORIZED
-    )
-  }
-
-  let file: File | undefined
-  const contentType = c.req.header("content-type")
-  if (contentType?.includes("multipart/form-data")) {
-    const parsed = await c.req.parseBody()
-    const uploaded = parsed.image
-    if (uploaded instanceof File) {
-      file = uploaded
+menuItemRouter.post(
+  "/",
+  zvalidator("json", createMenuItemSchema),
+  async (c) => {
+    const body = c.req.valid("json")
+    const organizationId = c.get("organizationId")
+    if (!organizationId) {
+      return c.json(
+        {
+          status: "error",
+          code: HTTP_STATUS_CODES.UNAUTHORIZED,
+          message: "Organization not found",
+        },
+        HTTP_STATUS_CODES.UNAUTHORIZED
+      )
     }
+
+    let file: File | undefined
+    const contentType = c.req.header("content-type")
+    if (contentType?.includes("multipart/form-data")) {
+      const parsed = await c.req.parseBody()
+      const uploaded = parsed.image
+      if (uploaded instanceof File) {
+        file = uploaded
+      }
+    }
+
+    const result = await menuItemLogic.createItem(organizationId, body, file)
+    return c.json(result, result.code)
   }
+)
 
-  const result = await menuItemLogic.createItem(organizationId, body, file)
-  return c.json(result, result.code)
-})
-
-menuItemRouter.put("/", zvalidator(updateMenuItemSchema), async (c) => {
+menuItemRouter.put("/", zvalidator("json", updateMenuItemSchema), async (c) => {
   const organizationId = c.get("organizationId")
   if (!organizationId) {
     return c.json(

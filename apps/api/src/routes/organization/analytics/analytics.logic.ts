@@ -160,9 +160,7 @@ export const analyticsLogic = {
         0
       )
       const averageItemsPerOrder =
-        totalOrders > 0
-          ? Math.round((totalItems / totalOrders) * 10) / 10
-          : 0
+        totalOrders > 0 ? Math.round((totalItems / totalOrders) * 10) / 10 : 0
 
       const completedOrders = orders.filter(
         (o) => o.status === "completed"
@@ -288,9 +286,7 @@ export const analyticsLogic = {
 
       const numTables = totalTables[0]?.count ?? 1
       const averageOrdersPerTable =
-        numTables > 0
-          ? Math.round((totalOrders / numTables) * 10) / 10
-          : 0
+        numTables > 0 ? Math.round((totalOrders / numTables) * 10) / 10 : 0
 
       const tableStats: TableStat[] = Array.from(tableMap.entries())
         .map(([tableNumber, data]) => ({ tableNumber, ...data }))

@@ -75,7 +75,7 @@ export function Features() {
         <div className="flex md:flex-col-reverse items-center gap-2">
           <Button size="lg" asChild variant="secondary">
             <Link href="https://cal.com/roster-pro/product-demo-possible-partnership">
-            Schedule Meeting
+              Schedule Meeting
             </Link>
           </Button>
           <Button size="lg" asChild>

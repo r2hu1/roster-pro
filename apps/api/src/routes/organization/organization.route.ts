@@ -19,10 +19,10 @@ organizationRouter.get("/", sessionMiddleware, async (c) => {
 organizationRouter.post(
   "/",
   sessionMiddleware,
-  zvalidator(createOrganizationSchema),
+  zvalidator("form", createOrganizationSchema),
   async (c) => {
     const headers = c.req.raw.headers
-    const body = c.req.valid("json")
+    const body = c.req.valid("form")
 
     let file: File | undefined
     const contentType = c.req.header("content-type")
@@ -53,7 +53,7 @@ organizationRouter.post(
 organizationRouter.put(
   "/",
   sessionMiddleware,
-  zvalidator(updateOrganizationSchema),
+  zvalidator("json", updateOrganizationSchema),
   async (c) => {
     const headers = c.req.raw.headers
     const body = c.req.valid("json")

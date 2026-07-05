@@ -91,7 +91,7 @@ orderRouter.get("/:id", async (c) => {
   return c.json(result)
 })
 
-orderRouter.post("/", zvalidator(createOrderSchema), async (c) => {
+orderRouter.post("/", zvalidator("json", createOrderSchema), async (c) => {
   const body = c.req.valid("json")
   const result = await orderLogic.create(body)
   return c.json(result)
@@ -100,7 +100,7 @@ orderRouter.post("/", zvalidator(createOrderSchema), async (c) => {
 orderRouter.put(
   "/",
   sessionMiddleware,
-  zvalidator(updateOrderSchema),
+  zvalidator("json", updateOrderSchema),
   async (c) => {
     const organizationId = c.get("organizationId")
     if (!organizationId) {

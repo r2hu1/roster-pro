@@ -1,42 +1,42 @@
-import { useRef, useState, useCallback } from 'react';
+import { useRef, useState, useCallback } from "react"
 
 interface UseImageUploadProps {
-  onChange?: (file: File | null) => void;
+  onChange?: (file: File | null) => void
 }
 
 export function useImageUpload({ onChange }: UseImageUploadProps = {}) {
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
-  const [file, setFile] = useState<File | null>(null);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [file, setFile] = useState<File | null>(null)
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
 
   const handleThumbnailClick = () => {
-    fileInputRef.current?.click();
-  };
+    fileInputRef.current?.click()
+  }
 
   const handleFileChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
-      const f = e.target.files?.[0] ?? null;
+      const f = e.target.files?.[0] ?? null
 
-      if (!f) return;
+      if (!f) return
 
-      if (!f.type.startsWith('image/')) return;
+      if (!f.type.startsWith("image/")) return
 
-      setFile(f);
-      setPreviewUrl(URL.createObjectURL(f));
-      onChange?.(f);
+      setFile(f)
+      setPreviewUrl(URL.createObjectURL(f))
+      onChange?.(f)
     },
-    [onChange],
-  );
+    [onChange]
+  )
 
   const handleRemove = useCallback(() => {
-    setFile(null);
-    setPreviewUrl(null);
+    setFile(null)
+    setPreviewUrl(null)
     if (fileInputRef.current) {
-      fileInputRef.current.value = '';
+      fileInputRef.current.value = ""
     }
-    onChange?.(null);
-  }, [onChange]);
+    onChange?.(null)
+  }, [onChange])
 
   return {
     file,
@@ -46,5 +46,5 @@ export function useImageUpload({ onChange }: UseImageUploadProps = {}) {
     handleThumbnailClick,
     handleFileChange,
     handleRemove,
-  };
+  }
 }
