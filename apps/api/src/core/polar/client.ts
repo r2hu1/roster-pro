@@ -5,4 +5,5 @@ export const APP_ENV = process.env.APP_ENV! as "production" | "sandbox"
 export const polarClient = new Polar({
   accessToken: process.env.POLAR_ACCESS_TOKEN,
   server: APP_ENV,
+  debugLogger: console
 })

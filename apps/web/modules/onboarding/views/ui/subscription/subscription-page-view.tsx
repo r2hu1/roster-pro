@@ -14,8 +14,8 @@ export default function SubscriptionPageView() {
         slug: "pro",
         referenceId: org.data[0]?.id,
         redirect: true,
-        successUrl: window.location.host + "/onboarding/success",
-        returnUrl: window.location.host + "/",
+        successUrl: process.env.NEXT_PUBLIC_APP_URL + "/onboarding/success",
+        returnUrl: process.env.NEXT_PUBLIC_APP_URL + "/",
         allowDiscountCodes: true,
       })
     } catch (error) {
@@ -26,7 +26,9 @@ export default function SubscriptionPageView() {
   }
   return (
     <div>
-      <Button size="lg" onClick={handleSubscribe}>Subscribe</Button>
+      <Button size="lg" onClick={handleSubscribe}>
+        Subscribe
+      </Button>
     </div>
   )
 }

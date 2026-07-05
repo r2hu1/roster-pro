@@ -2,11 +2,11 @@
   "name": "roster-pro",
   "version": "0.0.1",
   "devDependencies": {
-    "@biomejs/biome": "^2.5.1",
+    "@biomejs/biome": "^2.5.2",
     "@workspace/eslint-config": "workspace:*",
     "@workspace/typescript-config": "workspace:*",
     "turbo": "^2.10.3",
-    "typescript": "^5"
+    "typescript": "^6.0.3"
   },
   "engines": {
     "node": ">=20"
