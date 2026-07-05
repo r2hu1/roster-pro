@@ -3,7 +3,7 @@ import { Geist, Geist_Mono, Instrument_Sans } from "next/font/google"
 import "@workspace/ui/globals.css"
 import { cn } from "@workspace/ui/lib/utils"
 import { TooltipProvider } from "@workspace/ui/components/tooltip"
-import { Toaster } from "@workspace/ui/components/sonner"
+import { Toaster } from "sonner"
 
 const instrumentSans = Instrument_Sans({
   subsets: ["latin"],

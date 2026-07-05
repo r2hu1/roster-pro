@@ -9,8 +9,12 @@ import { cn } from '@workspace/ui/lib/utils';
 
 export function DnDImageInput({
   onChange,
+  previewClassName,
+  className,
 }: {
-  onChange?: (file: File | null) => void;
+    onChange?: (file: File | null) => void;
+  className?: string;
+  previewClassName?: string;
 }) {
   const {
     previewUrl,
@@ -79,6 +83,7 @@ export function DnDImageInput({
           className={cn(
             'border-muted-foreground/25 bg-muted/50 hover:bg-muted flex cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border border-dashed py-4 transition-colors',
             isDragging && 'border-primary/50 bg-primary/5',
+            className
           )}
         >
           <div className="bg-background rounded-full p-3 shadow-sm">
@@ -93,7 +98,7 @@ export function DnDImageInput({
         </div>
       ) : (
         <div className="relative">
-          <div className="group relative h-52 overflow-hidden rounded-lg border">
+          <div className={cn("group relative h-52 overflow-hidden rounded-lg border",previewClassName)}>
             <img
               src={previewUrl}
               alt="Preview"

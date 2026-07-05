@@ -1,21 +1,13 @@
-"use client";
-import { authClient } from "@/lib/better-auth/client";
-import { IconBrandGoogleFilled } from "@tabler/icons-react";
-import { Button } from "@workspace/ui/components/button";
+import LoginPageView from "@/modules/onboarding/views/ui/auth/auth-page-view";
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Authentication",
+  description: "Login to your account",
+};
 
 export default function LoginPage() {
-  const handleLogin = async () => {
-    await authClient.signIn.social({
-      provider: "google",
-      callbackURL: `${window.location.origin}/`,
-    });
-  };
   return (
-    <div>
-      <Button onClick={handleLogin} size="lg">
-<IconBrandGoogleFilled/>
-        Continue with Google
-      </Button>
-    </div>
+   <LoginPageView />
   )
 }
