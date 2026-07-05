@@ -1,10 +1,7 @@
-import {
-  SidebarInset,
-  SidebarProvider,
-  SidebarRail,
-} from "@workspace/ui/components/sidebar"
+import { SidebarInset, SidebarProvider } from "@workspace/ui/components/sidebar"
 import { AppSidebar } from "../../modules/sidebar/views/ui/sidebar"
 import { SessionProvider } from "@/modules/providers/session-provider"
+import { ReactQueryProvider } from "@/modules/providers/query-client"
 
 export default function RootLayout({
   children,
@@ -12,11 +9,13 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <SessionProvider>
-      <SidebarProvider>
-        <AppSidebar />
-        <SidebarInset>{children}</SidebarInset>
-      </SidebarProvider>
-    </SessionProvider>
+    <ReactQueryProvider>
+      <SessionProvider>
+        <SidebarProvider>
+          <AppSidebar />
+          <SidebarInset>{children}</SidebarInset>
+        </SidebarProvider>
+      </SessionProvider>
+    </ReactQueryProvider>
   )
 }

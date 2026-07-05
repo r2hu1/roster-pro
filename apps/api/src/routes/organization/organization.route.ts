@@ -11,8 +11,8 @@ import {
 export const organizationRouter = new Hono<AppEnv>()
 
 organizationRouter.get("/", sessionMiddleware, async (c) => {
-  const headers = c.req.raw.headers
-  const result = await organizationLogic.me(headers)
+  const orgId = c.get("organizationId")!
+  const result = await organizationLogic.me(orgId)
   return c.json(result, result.code)
 })
 

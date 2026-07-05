@@ -66,32 +66,21 @@ export const organizationLogic = {
       code: HTTP_STATUS_CODES.CREATED,
     }
   },
-  me: async (headers: HeadersInit) => {
-    let organization = await auth.api.getFullOrganization({
-      headers,
-    })
-    if (!organization) {
-      const organizations = await auth.api.listOrganizations({
-        headers,
-      })
-      const firstOrganization = organizations?.[0]
-      if (!firstOrganization) {
-        return {
-          status: "error",
-          message: "No organization found",
-          code: HTTP_STATUS_CODES.NOT_FOUND,
-        }
+  me: async (organizationId: string) => {
+    const [org] = await db
+      .select()
+      .from(organization)
+      .where(eq(organization.id, organizationId))
+    if (!org) {
+      return {
+        status: "error",
+        code: HTTP_STATUS_CODES.NOT_FOUND,
+        message: "Organization not found",
       }
-      organization = await auth.api.getFullOrganization({
-        headers,
-        query: {
-          organizationId: firstOrganization.id,
-        },
-      })
     }
     return {
       status: "success",
-      data: organization,
+      data: org,
       code: HTTP_STATUS_CODES.OK,
     }
   },

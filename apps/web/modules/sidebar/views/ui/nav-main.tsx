@@ -33,38 +33,14 @@ export function NavMain({
     icon?: Icon
   }[]
 }) {
-  const { open } = useSidebar()
   return (
-    <SidebarGroup className={cn(open && "p-4")}>
+    <SidebarGroup className={"p-2"}>
       <SidebarGroupContent className="flex flex-col gap-4">
-        <SidebarMenu className="hidden">
-          <SidebarMenuButton
-            tooltip="Quick Create"
-            className="min-w-8 px-3 text-base h-10 bg-primary text-primary-foreground duration-200 ease-linear hover:bg-primary/90 hover:text-primary-foreground active:bg-primary/90 active:text-primary-foreground"
-          >
-            <IconReceiptRupee className="size-4" />
-            <span>New Order</span>
-          </SidebarMenuButton>
-        </SidebarMenu>
-        <SidebarMenu>
-          {open ? (
-            <InputGroup className="bg-background! border-border">
-              <InputGroupInput placeholder="Search anything..." />
-              <InputGroupAddon align="inline-end">
-                <IconSearch className="size-4" />
-              </InputGroupAddon>
-            </InputGroup>
-          ) : (
-            <Button variant="outline" size="icon-lg">
-              <IconSearch />
-            </Button>
-          )}
-        </SidebarMenu>
-        <SidebarMenu className="space-y-2">
+        <SidebarMenu className="space-y-2 mt-4">
           {items.map((item) => (
             <SidebarMenuItem key={item.title}>
               <SidebarMenuButton
-                className="h-10 px-3 border bg-background"
+                className="h-11 text-[14.5px] px-3 bg-background shadow-sm"
                 tooltip={item.title}
               >
                 {item.icon && <item.icon />}

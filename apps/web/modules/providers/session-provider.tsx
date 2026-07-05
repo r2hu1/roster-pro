@@ -3,13 +3,15 @@
 import { authClient } from "@/lib/better-auth/client"
 import Transform from "@workspace/ui/components/transform"
 import type { Session, User } from "better-auth"
-import type { Organization } from "better-auth/client"
 import { createContext, useContext } from "react"
+import { useQuery } from "@tanstack/react-query"
+import api from "@/lib/axios"
+import type { OrganizationResponse } from "@workspace/shared/schemas/organization/response"
 
 interface SessionContextProps {
   session: Session | null
   user: User | null
-  organization: Organization | null
+  organization: OrganizationResponse | null
   isLoading: boolean
 }
 
@@ -19,8 +21,13 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
   const { data: sessionData, isPending: sessionIsPending } =
     authClient.useSession()
 
-  const { data: organizations, isPending: organizationsIsPending } =
-    authClient.useListOrganizations()
+  const { data: organizations, isPending: organizationsIsPending } = useQuery({
+    queryKey: ["organizations"],
+    queryFn: async () => {
+      const { data } = await api.get("/organization")
+      return data.data
+    },
+  })
 
   const isLoading = sessionIsPending || organizationsIsPending
 
@@ -29,7 +36,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
       value={{
         session: sessionData?.session ?? null,
         user: sessionData?.user ?? null,
-        organization: organizations?.[0] ?? null,
+        organization: organizations ?? null,
         isLoading,
       }}
     >

@@ -2,14 +2,24 @@
 
 import * as React from "react"
 import {
+  IconArmchair,
+  IconChargingPile,
+  IconChartArea,
   IconChartBar,
+  IconChefHat,
   IconDashboard,
   IconFolder,
   IconHelp,
   IconInnerShadowTop,
   IconListDetails,
+  IconReceipt2,
+  IconReceiptRupee,
+  IconReceiptRupeeFilled,
   IconSearch,
   IconSettings,
+  IconStack,
+  IconStackBack,
+  IconStackMiddle,
   IconUsers,
 } from "@tabler/icons-react"
 
@@ -29,6 +39,15 @@ import {
   useSidebar,
 } from "@workspace/ui/components/sidebar"
 import { cn } from "@workspace/ui/lib/utils"
+import { useSession } from "@/modules/providers/session-provider"
+import { Organization } from "better-auth/client"
+import { OrganizationResponse } from "@workspace/shared/schemas/organization/response"
+import { Logo } from "@/components/logo"
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+} from "@workspace/ui/components/input-group"
 
 const data = {
   user: {
@@ -38,29 +57,29 @@ const data = {
   },
   navMain: [
     {
-      title: "Analytics",
-      url: "/analytics",
-      icon: IconDashboard,
-    },
-    {
       title: "Orders",
       url: "/orders",
-      icon: IconListDetails,
-    },
-    {
-      title: "Menus",
-      url: "/menus",
-      icon: IconChartBar,
+      icon: IconStack,
     },
     {
       title: "Tables",
       url: "/tables",
-      icon: IconFolder,
+      icon: IconArmchair,
     },
     {
-      title: "Team",
+      title: "Menus",
+      url: "/menus",
+      icon: IconChefHat,
+    },
+    {
+      title: "Analytics",
+      url: "/analytics",
+      icon: IconChartArea,
+    },
+    {
+      title: "Receipts",
       url: "#",
-      icon: IconUsers,
+      icon: IconReceiptRupee,
     },
   ],
   navSecondary: [
@@ -83,31 +102,45 @@ const data = {
 }
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const { open } = useSidebar()
+  const { organization } = useSession()
+
   return (
-    <Sidebar collapsible="icon" {...props}>
+    <Sidebar variant="inset" collapsible="offcanvas" {...props}>
       <SidebarRail />
-      <SidebarHeader className={cn(open && "p-4 pb-0")}>
-        <SidebarMenu className="flex flex-row justify-between items-center">
+      <SidebarHeader>
+        <SidebarMenu className="bg-background shadow-sm rounded-lg pb-2 pt-1 space-y-1">
           <SidebarMenuItem>
             <SidebarMenuButton
               asChild
               className="data-[slot=sidebar-menu-button]:p-1.5!"
             >
-              <a href="#">
-                <IconInnerShadowTop className="size-5!" />
-                <span className="text-base font-semibold">Acme Inc.</span>
-              </a>
+              <Logo className="h-13 w-auto" />
             </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem className="px-2 hidden">
+            <SidebarMenuButton
+              tooltip="Quick Create"
+              className="min-w-8 px-3 text-base h-10 bg-foreground text-background duration-200 ease-linear hover:bg-foreground/90 hover:text-background active:bg-primary/90 active:text-primary-foreground"
+            >
+              <IconReceiptRupee className="size-4" />
+              <span>Create Order</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem className="px-2">
+            <InputGroup className="h-10 px-1 text-[14.5px] rounded-md">
+              <InputGroupInput placeholder="Search anything..." />
+              <InputGroupAddon align="inline-end">
+                <IconSearch className="size-4" />
+              </InputGroupAddon>
+            </InputGroup>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
-      <SidebarContent>
+      <SidebarContent className="-mt-2">
         <NavMain items={data.navMain} />
-        <NavSecondary items={data.navSecondary} className="mt-auto" />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={data.user} />
+        <NavUser org={organization as OrganizationResponse} />
       </SidebarFooter>
     </Sidebar>
   )
