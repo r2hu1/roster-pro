@@ -34,10 +34,10 @@ All request/response types are shared via `@workspace/shared` — the single sou
 
 ## Base URL & Headers
 
-| Environment | Base URL |
-|-------------|----------|
-| Local | `http://localhost:3000/v1` |
-| Production | `{BETTER_AUTH_URL}/v1` |
+| Environment | Base URL                   |
+| ----------- | -------------------------- |
+| Local       | `http://localhost:3000/v1` |
+| Production  | `{BETTER_AUTH_URL}/v1`     |
 
 ### Required Headers
 
@@ -64,10 +64,10 @@ The API uses [Better Auth](https://www.better-auth.com/) with Google OAuth and c
 
 ### Auth Endpoints (proxied)
 
-| Method | Path | Description |
-|--------|------|-------------|
-| `GET` | `/v1/auth/*` | Better Auth handlers (session, sign-in, etc.) |
-| `POST` | `/v1/auth/*` | Better Auth handlers |
+| Method | Path         | Description                                   |
+| ------ | ------------ | --------------------------------------------- |
+| `GET`  | `/v1/auth/*` | Better Auth handlers (session, sign-in, etc.) |
+| `POST` | `/v1/auth/*` | Better Auth handlers                          |
 
 The frontend proxies these through Next.js API routes:
 
@@ -86,8 +86,8 @@ The frontend proxies these through Next.js API routes:
 ### Getting Current User
 
 ```ts
-const res = await fetch("/api/user/me", { credentials: "include" })
-const { data: user } = await res.json()
+const res = await fetch("/api/user/me", { credentials: "include" });
+const { data: user } = await res.json();
 // user = { id, name, email, image, organizationId, ... }
 ```
 
@@ -102,7 +102,7 @@ fetch("/api/organization", {
   headers: {
     "X-API-KEY": process.env.NEXT_PUBLIC_API_KEY,
   },
-})
+});
 ```
 
 The API returns `401` with `"Invalid API key"` if missing or incorrect.
@@ -155,78 +155,78 @@ All endpoints return responses in this shape:
 
 ### User
 
-| Method | Path | Auth | Description |
-|--------|------|------|-------------|
-| `GET` | `/v1/user/me` | Session | Get current user |
-| `GET` | `/v1/user/organization` | Session | Get user's organization |
+| Method | Path                    | Auth    | Description             |
+| ------ | ----------------------- | ------- | ----------------------- |
+| `GET`  | `/v1/user/me`           | Session | Get current user        |
+| `GET`  | `/v1/user/organization` | Session | Get user's organization |
 
 ### Organization
 
-| Method | Path | Auth | Description |
-|--------|------|------|-------------|
-| `GET` | `/v1/organization` | Session | Get current organization |
-| `POST` | `/v1/organization` | Session | Create organization (multipart: logo file) |
-| `PUT` | `/v1/organization` | Session | Update organization (multipart: optional logo) |
+| Method | Path               | Auth    | Description                                    |
+| ------ | ------------------ | ------- | ---------------------------------------------- |
+| `GET`  | `/v1/organization` | Session | Get current organization                       |
+| `POST` | `/v1/organization` | Session | Create organization (multipart: logo file)     |
+| `PUT`  | `/v1/organization` | Session | Update organization (multipart: optional logo) |
 
 ### Menu
 
-| Method | Path | Auth | Description |
-|--------|------|------|-------------|
-| `GET` | `/v1/organization/menu` | Session | List all menus |
-| `GET` | `/v1/organization/menu/:id` | Session | Get menu by ID |
-| `POST` | `/v1/organization/menu` | Session | Create menu |
-| `PUT` | `/v1/organization/menu` | Session | Update menu |
-| `DELETE` | `/v1/organization/menu/:id` | Session | Delete menu |
+| Method   | Path                        | Auth    | Description    |
+| -------- | --------------------------- | ------- | -------------- |
+| `GET`    | `/v1/organization/menu`     | Session | List all menus |
+| `GET`    | `/v1/organization/menu/:id` | Session | Get menu by ID |
+| `POST`   | `/v1/organization/menu`     | Session | Create menu    |
+| `PUT`    | `/v1/organization/menu`     | Session | Update menu    |
+| `DELETE` | `/v1/organization/menu/:id` | Session | Delete menu    |
 
 ### Menu Item
 
-| Method | Path | Auth | Description |
-|--------|------|------|-------------|
-| `GET` | `/v1/organization/menu/item/:menuId` | Session | List items for a menu |
-| `GET` | `/v1/organization/menu/item/:id` | Session | Get menu item by ID |
-| `POST` | `/v1/organization/menu/item` | Session | Create menu item (multipart: image) |
-| `PUT` | `/v1/organization/menu/item` | Session | Update menu item (multipart: optional image) |
-| `DELETE` | `/v1/organization/menu/item/:id` | Session | Delete menu item |
+| Method   | Path                                 | Auth    | Description                                  |
+| -------- | ------------------------------------ | ------- | -------------------------------------------- |
+| `GET`    | `/v1/organization/menu/item/:menuId` | Session | List items for a menu                        |
+| `GET`    | `/v1/organization/menu/item/:id`     | Session | Get menu item by ID                          |
+| `POST`   | `/v1/organization/menu/item`         | Session | Create menu item (multipart: image)          |
+| `PUT`    | `/v1/organization/menu/item`         | Session | Update menu item (multipart: optional image) |
+| `DELETE` | `/v1/organization/menu/item/:id`     | Session | Delete menu item                             |
 
 ### Orders
 
-| Method | Path | Auth | Description |
-|--------|------|------|-------------|
-| `GET` | `/v1/organization/orders` | Session | List all orders |
-| `GET` | `/v1/organization/orders/:id` | Query: `organizationId` | Get order by ID |
-| `POST` | `/v1/organization/orders` | None | Create order (public) |
-| `PUT` | `/v1/organization/orders` | Session | Update order |
-| `DELETE` | `/v1/organization/orders/:id` | Session | Delete order |
-| `GET` | `/v1/organization/orders/stream` | Session | SSE: all orders realtime |
-| `GET` | `/v1/organization/orders/:id/stream` | Query: `organizationId` | SSE: single order realtime |
+| Method   | Path                                 | Auth                    | Description                |
+| -------- | ------------------------------------ | ----------------------- | -------------------------- |
+| `GET`    | `/v1/organization/orders`            | Session                 | List all orders            |
+| `GET`    | `/v1/organization/orders/:id`        | Query: `organizationId` | Get order by ID            |
+| `POST`   | `/v1/organization/orders`            | None                    | Create order (public)      |
+| `PUT`    | `/v1/organization/orders`            | Session                 | Update order               |
+| `DELETE` | `/v1/organization/orders/:id`        | Session                 | Delete order               |
+| `GET`    | `/v1/organization/orders/stream`     | Session                 | SSE: all orders realtime   |
+| `GET`    | `/v1/organization/orders/:id/stream` | Query: `organizationId` | SSE: single order realtime |
 
 ### Tables
 
-| Method | Path | Auth | Description |
-|--------|------|------|-------------|
-| `GET` | `/v1/organization/table` | Session | List all tables |
-| `GET` | `/v1/organization/table/:id` | Session | Get table by ID |
-| `POST` | `/v1/organization/table` | Session | Create table |
-| `PUT` | `/v1/organization/table` | Session | Update table |
-| `DELETE` | `/v1/organization/table/:id` | Session | Delete table |
-| `PATCH` | `/v1/organization/table/status` | Session | Update table status |
-| `GET` | `/v1/organization/table/status/stream` | Session | SSE: table status realtime |
-| `POST` | `/v1/organization/table/token` | Session | Generate QR token for table |
+| Method   | Path                                   | Auth    | Description                 |
+| -------- | -------------------------------------- | ------- | --------------------------- |
+| `GET`    | `/v1/organization/table`               | Session | List all tables             |
+| `GET`    | `/v1/organization/table/:id`           | Session | Get table by ID             |
+| `POST`   | `/v1/organization/table`               | Session | Create table                |
+| `PUT`    | `/v1/organization/table`               | Session | Update table                |
+| `DELETE` | `/v1/organization/table/:id`           | Session | Delete table                |
+| `PATCH`  | `/v1/organization/table/status`        | Session | Update table status         |
+| `GET`    | `/v1/organization/table/status/stream` | Session | SSE: table status realtime  |
+| `POST`   | `/v1/organization/table/token`         | Session | Generate QR token for table |
 
 ### Analytics
 
-| Method | Path | Auth | Description |
-|--------|------|------|-------------|
-| `GET` | `/v1/organization/analytics` | Session | Get analytics for date range |
-| `GET` | `/v1/organization/analytics/stream` | Session | SSE: analytics realtime |
+| Method | Path                                | Auth    | Description                  |
+| ------ | ----------------------------------- | ------- | ---------------------------- |
+| `GET`  | `/v1/organization/analytics`        | Session | Get analytics for date range |
+| `GET`  | `/v1/organization/analytics/stream` | Session | SSE: analytics realtime      |
 
 Both endpoints require `from` and `to` query parameters (any valid date string, e.g. `2024-01-15` or `2024-01-15T10:30:00Z`). `from` must be before `to`.
 
 ### Status
 
-| Method | Path | Auth | Description |
-|--------|------|------|-------------|
-| `GET` | `/v1/status` | API Key | Health check |
+| Method | Path         | Auth    | Description  |
+| ------ | ------------ | ------- | ------------ |
+| `GET`  | `/v1/status` | API Key | Health check |
 
 ---
 
@@ -304,21 +304,21 @@ Create a typed fetch helper:
 
 ```ts
 // apps/web/lib/api.ts
-import type { HTTP_STATUS_CODES } from "@workspace/shared/constants"
+import type { HTTP_STATUS_CODES } from "@workspace/shared/constants";
 
-const BASE_URL = "/api"
+const BASE_URL = "/api";
 
 type ApiResponse<T> = {
-  status: "success" | "error"
-  code: number
-  data?: T
-  message?: string
-  errors?: Record<string, string[]>
-}
+  status: "success" | "error";
+  code: number;
+  data?: T;
+  message?: string;
+  errors?: Record<string, string[]>;
+};
 
 export async function api<T>(
   path: string,
-  options?: RequestInit
+  options?: RequestInit,
 ): Promise<ApiResponse<T>> {
   const res = await fetch(`${BASE_URL}${path}`, {
     credentials: "include",
@@ -327,68 +327,68 @@ export async function api<T>(
       ...options?.headers,
     },
     ...options,
-  })
+  });
 
-  return res.json()
+  return res.json();
 }
 
 export function apiGet<T>(path: string) {
-  return api<T>(path)
+  return api<T>(path);
 }
 
 export function apiPost<T>(path: string, body: unknown) {
   return api<T>(path, {
     method: "POST",
     body: JSON.stringify(body),
-  })
+  });
 }
 
 export function apiPut<T>(path: string, body: unknown) {
   return api<T>(path, {
     method: "PUT",
     body: JSON.stringify(body),
-  })
+  });
 }
 
 export function apiDelete<T>(path: string) {
-  return api<T>(path, { method: "DELETE" })
+  return api<T>(path, { method: "DELETE" });
 }
 
 export function apiPatch<T>(path: string, body: unknown) {
   return api<T>(path, {
     method: "PATCH",
     body: JSON.stringify(body),
-  })
+  });
 }
 ```
 
 ### 4. Usage Examples
 
 ```ts
-import { apiGet, apiPost, apiPut, apiDelete } from "@/lib/api"
-import type { MenuResponse } from "@workspace/shared/schemas/menu/index"
-import type { CreateMenuDto } from "@workspace/shared/schemas/menu/index"
+import { apiGet, apiPost, apiPut, apiDelete } from "@/lib/api";
+import type { MenuResponse } from "@workspace/shared/schemas/menu/index";
+import type { CreateMenuDto } from "@workspace/shared/schemas/menu/index";
 
 // GET - List menus
-const menus = await apiGet<MenuResponse[]>("/organization/menu")
+const menus = await apiGet<MenuResponse[]>("/organization/menu");
 
 // GET - Single menu
-const menu = await apiGet<MenuResponse>("/organization/menu/clxxxxx")
+const menu = await apiGet<MenuResponse>("/organization/menu/clxxxxx");
 
 // POST - Create menu
 const newMenu = await apiPost<MenuResponse>("/organization/menu", {
   name: "Lunch Menu",
   description: "Available 11am - 2pm",
-} satisfies CreateMenuDto)
+} satisfies CreateMenuDto);
 
 // PUT - Update menu
 const updated = await apiPut<MenuResponse>("/organization/menu", {
   id: "clxxxxx",
   name: "Dinner Menu",
-})
+});
 
 // DELETE - Delete menu
-await apiDelete(`/organization/menu/clxxxxx`)
+await apiDelete(`/organization/menu/clxxxxx`);
 ```
 
 ---
@@ -399,12 +399,12 @@ The API uses Server-Sent Events for realtime updates on orders and table status.
 
 ### SSE Endpoints
 
-| Endpoint | Events | Description |
-|----------|--------|-------------|
-| `GET /v1/organization/orders/stream` | `init`, `created`, `updated`, `deleted` | All orders realtime |
-| `GET /v1/organization/orders/:id/stream` | `init`, `created`, `updated`, `deleted` | Single order realtime |
-| `GET /v1/organization/table/status/stream` | `init`, `status` | Table status realtime |
-| `GET /v1/organization/analytics/stream` | `init`, `updated` | Analytics realtime |
+| Endpoint                                   | Events                                  | Description           |
+| ------------------------------------------ | --------------------------------------- | --------------------- |
+| `GET /v1/organization/orders/stream`       | `init`, `created`, `updated`, `deleted` | All orders realtime   |
+| `GET /v1/organization/orders/:id/stream`   | `init`, `created`, `updated`, `deleted` | Single order realtime |
+| `GET /v1/organization/table/status/stream` | `init`, `status`                        | Table status realtime |
+| `GET /v1/organization/analytics/stream`    | `init`, `updated`                       | Analytics realtime    |
 
 ### How SSE Works
 
@@ -417,51 +417,49 @@ The API uses Server-Sent Events for realtime updates on orders and table status.
 
 ```ts
 // apps/web/modules/orders/hooks/use-orders-stream.ts
-"use client"
+"use client";
 
-import { useEffect, useState, useCallback } from "react"
-import type { OrderResponse } from "@workspace/shared/schemas/order/index"
+import { useEffect, useState, useCallback } from "react";
+import type { OrderResponse } from "@workspace/shared/schemas/order/index";
 
 type OrderEvent =
   | { type: "created"; data: OrderResponse }
   | { type: "updated"; data: OrderResponse }
-  | { type: "deleted"; data: { id: string } }
+  | { type: "deleted"; data: { id: string } };
 
 export function useOrdersStream() {
-  const [orders, setOrders] = useState<OrderResponse[]>([])
-  const [connected, setConnected] = useState(false)
+  const [orders, setOrders] = useState<OrderResponse[]>([]);
+  const [connected, setConnected] = useState(false);
 
   useEffect(() => {
-    const es = new EventSource("/api/organization/orders/stream")
+    const es = new EventSource("/api/organization/orders/stream");
 
     es.addEventListener("init", (e) => {
-      setOrders(JSON.parse(e.data))
-      setConnected(true)
-    })
+      setOrders(JSON.parse(e.data));
+      setConnected(true);
+    });
 
     es.addEventListener("created", (e) => {
-      const newOrder: OrderResponse = JSON.parse(e.data)
-      setOrders((prev) => [newOrder, ...prev])
-    })
+      const newOrder: OrderResponse = JSON.parse(e.data);
+      setOrders((prev) => [newOrder, ...prev]);
+    });
 
     es.addEventListener("updated", (e) => {
-      const updated: OrderResponse = JSON.parse(e.data)
-      setOrders((prev) =>
-        prev.map((o) => (o.id === updated.id ? updated : o))
-      )
-    })
+      const updated: OrderResponse = JSON.parse(e.data);
+      setOrders((prev) => prev.map((o) => (o.id === updated.id ? updated : o)));
+    });
 
     es.addEventListener("deleted", (e) => {
-      const { id } = JSON.parse(e.data) as { id: string }
-      setOrders((prev) => prev.filter((o) => o.id !== id))
-    })
+      const { id } = JSON.parse(e.data) as { id: string };
+      setOrders((prev) => prev.filter((o) => o.id !== id));
+    });
 
-    es.onerror = () => setConnected(false)
+    es.onerror = () => setConnected(false);
 
-    return () => es.close()
-  }, [])
+    return () => es.close();
+  }, []);
 
-  return { orders, connected }
+  return { orders, connected };
 }
 ```
 
@@ -469,34 +467,32 @@ export function useOrdersStream() {
 
 ```ts
 // apps/web/modules/table/hooks/use-table-status-stream.ts
-"use client"
+"use client";
 
-import { useEffect, useState, useCallback } from "react"
-import type { TableStatusResponse } from "@workspace/shared/schemas/table/index"
+import { useEffect, useState, useCallback } from "react";
+import type { TableStatusResponse } from "@workspace/shared/schemas/table/index";
 
 export function useTableStatusStream() {
-  const [tables, setTables] = useState<TableStatusResponse[]>([])
-  const [connected, setConnected] = useState(false)
+  const [tables, setTables] = useState<TableStatusResponse[]>([]);
+  const [connected, setConnected] = useState(false);
 
   useEffect(() => {
-    const es = new EventSource("/api/organization/table/status/stream")
+    const es = new EventSource("/api/organization/table/status/stream");
 
     es.addEventListener("init", (e) => {
-      setTables(JSON.parse(e.data))
-      setConnected(true)
-    })
+      setTables(JSON.parse(e.data));
+      setConnected(true);
+    });
 
     es.addEventListener("status", (e) => {
-      const updated: TableStatusResponse = JSON.parse(e.data)
-      setTables((prev) =>
-        prev.map((t) => (t.id === updated.id ? updated : t))
-      )
-    })
+      const updated: TableStatusResponse = JSON.parse(e.data);
+      setTables((prev) => prev.map((t) => (t.id === updated.id ? updated : t)));
+    });
 
-    es.onerror = () => setConnected(false)
+    es.onerror = () => setConnected(false);
 
-    return () => es.close()
-  }, [])
+    return () => es.close();
+  }, []);
 
   const updateStatus = useCallback(
     async (tableId: string, status: "available" | "occupied") => {
@@ -504,12 +500,12 @@ export function useTableStatusStream() {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id: tableId, status }),
-      })
+      });
     },
-    []
-  )
+    [],
+  );
 
-  return { tables, connected, updateStatus }
+  return { tables, connected, updateStatus };
 }
 ```
 
@@ -538,64 +534,64 @@ Client updates local state instantly (no polling)
 
 ```ts
 // apps/web/modules/analytics/hooks/use-analytics-stream.ts
-"use client"
+"use client";
 
-import { useEffect, useState } from "react"
+import { useEffect, useState } from "react";
 
 type AnalyticsData = {
   summary: {
-    totalOrders: number
-    totalRevenue: number
-    averageOrderValue: number
-    averageOrdersPerTable: number
-    totalDiscount: number
-    totalTax: number
-    cancelledOrders: number
-    completedOrders: number
-    pendingOrders: number
-    averageItemsPerOrder: number
-    peakHour: number | null
-    busiestTable: string | null
-  }
+    totalOrders: number;
+    totalRevenue: number;
+    averageOrderValue: number;
+    averageOrdersPerTable: number;
+    totalDiscount: number;
+    totalTax: number;
+    cancelledOrders: number;
+    completedOrders: number;
+    pendingOrders: number;
+    averageItemsPerOrder: number;
+    peakHour: number | null;
+    busiestTable: string | null;
+  };
   revenue: {
-    daily: { date: string; orderCount: number; revenue: number }[]
-    hourly: { hour: number; orderCount: number; revenue: number }[]
-  }
+    daily: { date: string; orderCount: number; revenue: number }[];
+    hourly: { hour: number; orderCount: number; revenue: number }[];
+  };
   orders: {
-    byStatus: { status: string; count: number }[]
-    byPaymentMethod: { method: string; count: number; total: number }[]
-    byPaymentStatus: { status: string; count: number }[]
-  }
-  topItems: { name: string; quantity: number; revenue: number }[]
-  tableStats: { tableNumber: string; orderCount: number; totalSpent: number }[]
-}
+    byStatus: { status: string; count: number }[];
+    byPaymentMethod: { method: string; count: number; total: number }[];
+    byPaymentStatus: { status: string; count: number }[];
+  };
+  topItems: { name: string; quantity: number; revenue: number }[];
+  tableStats: { tableNumber: string; orderCount: number; totalSpent: number }[];
+};
 
 export function useAnalyticsStream(from: string, to: string) {
-  const [analytics, setAnalytics] = useState<AnalyticsData | null>(null)
-  const [connected, setConnected] = useState(false)
+  const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
+  const [connected, setConnected] = useState(false);
 
   useEffect(() => {
-    if (!from || !to) return
+    if (!from || !to) return;
 
     const es = new EventSource(
-      `/api/organization/analytics/stream?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`
-    )
+      `/api/organization/analytics/stream?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`,
+    );
 
     es.addEventListener("init", (e) => {
-      setAnalytics(JSON.parse(e.data))
-      setConnected(true)
-    })
+      setAnalytics(JSON.parse(e.data));
+      setConnected(true);
+    });
 
     es.addEventListener("updated", (e) => {
-      setAnalytics(JSON.parse(e.data))
-    })
+      setAnalytics(JSON.parse(e.data));
+    });
 
-    es.onerror = () => setConnected(false)
+    es.onerror = () => setConnected(false);
 
-    return () => es.close()
-  }, [from, to])
+    return () => es.close();
+  }, [from, to]);
 
-  return { analytics, connected }
+  return { analytics, connected };
 }
 ```
 
@@ -609,56 +605,68 @@ All types are imported from `@workspace/shared`. **Never manually define interfa
 
 ```ts
 // Schemas (for validation)
-import { CreateMenuSchema, UpdateMenuSchema } from "@workspace/shared/schemas/menu/index"
+import {
+  CreateMenuSchema,
+  UpdateMenuSchema,
+} from "@workspace/shared/schemas/menu/index";
 
 // DTOs (for request bodies)
-import type { CreateMenuDto, UpdateMenuDto } from "@workspace/shared/schemas/menu/index"
+import type {
+  CreateMenuDto,
+  UpdateMenuDto,
+} from "@workspace/shared/schemas/menu/index";
 
 // Responses (for typed API responses)
-import type { MenuResponse, MenuListResponse } from "@workspace/shared/schemas/menu/index"
+import type {
+  MenuResponse,
+  MenuListResponse,
+} from "@workspace/shared/schemas/menu/index";
 
 // Enums
-import { TableStatus, OrderStatus } from "@workspace/shared/enums/index"
+import { TableStatus, OrderStatus } from "@workspace/shared/enums/index";
 
 // Constants
-import { HTTP_STATUS_CODES } from "@workspace/shared/constants/index"
+import { HTTP_STATUS_CODES } from "@workspace/shared/constants/index";
 ```
 
 ### Forms with React Hook Form
 
 ```tsx
-import { useForm } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { CreateMenuSchema, type CreateMenuDto } from "@workspace/shared/schemas/menu/index"
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import {
+  CreateMenuSchema,
+  type CreateMenuDto,
+} from "@workspace/shared/schemas/menu/index";
 
 function CreateMenuForm() {
   const { register, handleSubmit } = useForm<CreateMenuDto>({
     resolver: zodResolver(CreateMenuSchema),
     defaultValues: { name: "" },
-  })
+  });
 
   const onSubmit = async (data: CreateMenuDto) => {
     const res = await fetch("/api/organization/menu", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
-    })
+    });
     // data is fully typed and validated
-  }
+  };
 }
 ```
 
 ### Available Schema Modules
 
-| Module | Imports |
-|--------|---------|
-| `@workspace/shared/schemas/organization/index` | `CreateOrganizationSchema`, `UpdateOrganizationSchema`, `OrganizationResponse`, etc. |
-| `@workspace/shared/schemas/menu/index` | `CreateMenuSchema`, `UpdateMenuSchema`, `MenuResponse`, etc. |
-| `@workspace/shared/schemas/menu/menu-item/index` | `CreateMenuItemSchema`, `UpdateMenuItemSchema`, `MenuItemResponse`, etc. |
-| `@workspace/shared/schemas/order/index` | `CreateOrderSchema`, `UpdateOrderSchema`, `OrderResponse`, etc. |
-| `@workspace/shared/schemas/table/index` | `CreateTableSchema`, `UpdateTableSchema`, `TableResponse`, `TableStatusResponse`, etc. |
-| `@workspace/shared/enums/index` | `OrderStatus`, `PaymentStatus`, `TableStatus`, `Role` |
-| `@workspace/shared/constants/index` | `HTTP_STATUS_CODES`, `PAGINATION`, `LIMITS`, `REGEX` |
+| Module                                           | Imports                                                                                |
+| ------------------------------------------------ | -------------------------------------------------------------------------------------- |
+| `@workspace/shared/schemas/organization/index`   | `CreateOrganizationSchema`, `UpdateOrganizationSchema`, `OrganizationResponse`, etc.   |
+| `@workspace/shared/schemas/menu/index`           | `CreateMenuSchema`, `UpdateMenuSchema`, `MenuResponse`, etc.                           |
+| `@workspace/shared/schemas/menu/menu-item/index` | `CreateMenuItemSchema`, `UpdateMenuItemSchema`, `MenuItemResponse`, etc.               |
+| `@workspace/shared/schemas/order/index`          | `CreateOrderSchema`, `UpdateOrderSchema`, `OrderResponse`, etc.                        |
+| `@workspace/shared/schemas/table/index`          | `CreateTableSchema`, `UpdateTableSchema`, `TableResponse`, `TableStatusResponse`, etc. |
+| `@workspace/shared/enums/index`                  | `OrderStatus`, `PaymentStatus`, `TableStatus`, `Role`                                  |
+| `@workspace/shared/constants/index`              | `HTTP_STATUS_CODES`, `PAGINATION`, `LIMITS`, `REGEX`                                   |
 
 ---
 
@@ -671,27 +679,27 @@ async function apiCall<T>(path: string, options?: RequestInit): Promise<T> {
   const res = await fetch(`/api${path}`, {
     credentials: "include",
     ...options,
-  })
+  });
 
-  const json = await res.json()
+  const json = await res.json();
 
   if (json.status === "error") {
     switch (json.code) {
       case 400:
         // Validation error — json.errors contains field-level messages
-        throw new Error(`Validation failed: ${JSON.stringify(json.errors)}`)
+        throw new Error(`Validation failed: ${JSON.stringify(json.errors)}`);
       case 401:
         // Unauthorized — redirect to login
-        window.location.href = "/login"
-        throw new Error("Unauthorized")
+        window.location.href = "/login-or-signup";
+        throw new Error("Unauthorized");
       case 404:
-        throw new Error(json.message ?? "Not found")
+        throw new Error(json.message ?? "Not found");
       default:
-        throw new Error(json.message ?? "Unknown error")
+        throw new Error(json.message ?? "Unknown error");
     }
   }
 
-  return json.data as T
+  return json.data as T;
 }
 ```
 
@@ -716,72 +724,80 @@ async function apiCall<T>(path: string, options?: RequestInit): Promise<T> {
 Some endpoints accept `multipart/form-data` for file uploads (organization logo, menu item image).
 
 ```ts
-async function uploadWithFile(path: string, data: Record<string, unknown>, file: File) {
-  const formData = new FormData()
+async function uploadWithFile(
+  path: string,
+  data: Record<string, unknown>,
+  file: File,
+) {
+  const formData = new FormData();
 
   // Add JSON fields
   for (const [key, value] of Object.entries(data)) {
-    formData.append(key, String(value))
+    formData.append(key, String(value));
   }
 
   // Add file
-  formData.append("logo", file) // or "image" for menu items
+  formData.append("logo", file); // or "image" for menu items
 
   const res = await fetch(`/api${path}`, {
     method: "POST",
     credentials: "include",
     body: formData, // Don't set Content-Type — browser sets it with boundary
-  })
+  });
 
-  return res.json()
+  return res.json();
 }
 
 // Usage
-const logoFile = input.files[0]
-await uploadWithFile("/organization", { name: "My Restaurant", slug: "my-restaurant" }, logoFile)
+const logoFile = input.files[0];
+await uploadWithFile(
+  "/organization",
+  { name: "My Restaurant", slug: "my-restaurant" },
+  logoFile,
+);
 ```
 
 ---
 
 ## Quick Reference
 
-| What | Import from |
-|------|-------------|
+| What                 | Import from                                 |
+| -------------------- | ------------------------------------------- |
 | Create schema + type | `@workspace/shared/schemas/{feature}/index` |
-| Response type | `@workspace/shared/schemas/{feature}/index` |
-| Enum | `@workspace/shared/enums/index` |
-| Constant | `@workspace/shared/constants/index` |
-| All exports | `@workspace/shared` |
+| Response type        | `@workspace/shared/schemas/{feature}/index` |
+| Enum                 | `@workspace/shared/enums/index`             |
+| Constant             | `@workspace/shared/constants/index`         |
+| All exports          | `@workspace/shared`                         |
 
-| Endpoint | Method | Path |
-|----------|--------|------|
-| Current user | `GET` | `/v1/user/me` |
-| User org | `GET` | `/v1/user/organization` |
-| Get org | `GET` | `/v1/organization` |
-| Create org | `POST` | `/v1/organization` |
-| Update org | `PUT` | `/v1/organization` |
-| List menus | `GET` | `/v1/organization/menu` |
-| Create menu | `POST` | `/v1/organization/menu` |
-| Update menu | `PUT` | `/v1/organization/menu` |
-| Delete menu | `DELETE` | `/v1/organization/menu/:id` |
-| List menu items | `GET` | `/v1/organization/menu/item/:menuId` |
-| Create menu item | `POST` | `/v1/organization/menu/item` |
-| Update menu item | `PUT` | `/v1/organization/menu/item` |
-| Delete menu item | `DELETE` | `/v1/organization/menu/item/:id` |
-| List orders | `GET` | `/v1/organization/orders` |
-| Get order | `GET` | `/v1/organization/orders/:id` |
-| Create order | `POST` | `/v1/organization/orders` |
-| Update order | `PUT` | `/v1/organization/orders` |
-| Delete order | `DELETE` | `/v1/organization/orders/:id` |
-| Orders SSE | `GET` | `/v1/organization/orders/stream` |
-| Single order SSE | `GET` | `/v1/organization/orders/:id/stream` |
-| List tables | `GET` | `/v1/organization/table` |
-| Create table | `POST` | `/v1/organization/table` |
-| Update table | `PUT` | `/v1/organization/table` |
-| Delete table | `DELETE` | `/v1/organization/table/:id` |
-| Update table status | `PATCH` | `/v1/organization/table/status` |
-| Table status SSE | `GET` | `/v1/organization/table/status/stream` |
-| Generate QR token | `POST` | `/v1/organization/table/token` |
-| Analytics | `GET` | `/v1/organization/analytics` |
-| Analytics SSE | `GET` | `/v1/organization/analytics/stream` |
-| Health check | `GET` | `/v1/status` |
+| Endpoint            | Method   | Path                                   |
+| ------------------- | -------- | -------------------------------------- |
+| Current user        | `GET`    | `/v1/user/me`                          |
+| User org            | `GET`    | `/v1/user/organization`                |
+| Get org             | `GET`    | `/v1/organization`                     |
+| Create org          | `POST`   | `/v1/organization`                     |
+| Update org          | `PUT`    | `/v1/organization`                     |
+| List menus          | `GET`    | `/v1/organization/menu`                |
+| Create menu         | `POST`   | `/v1/organization/menu`                |
+| Update menu         | `PUT`    | `/v1/organization/menu`                |
+| Delete menu         | `DELETE` | `/v1/organization/menu/:id`            |
+| List menu items     | `GET`    | `/v1/organization/menu/item/:menuId`   |
+| Create menu item    | `POST`   | `/v1/organization/menu/item`           |
+| Update menu item    | `PUT`    | `/v1/organization/menu/item`           |
+| Delete menu item    | `DELETE` | `/v1/organization/menu/item/:id`       |
+| List orders         | `GET`    | `/v1/organization/orders`              |
+| Get order           | `GET`    | `/v1/organization/orders/:id`          |
+| Create order        | `POST`   | `/v1/organization/orders`              |
+| Update order        | `PUT`    | `/v1/organization/orders`              |
+| Delete order        | `DELETE` | `/v1/organization/orders/:id`          |
+| Orders SSE          | `GET`    | `/v1/organization/orders/stream`       |
+| Single order SSE    | `GET`    | `/v1/organization/orders/:id/stream`   |
+| List tables         | `GET`    | `/v1/organization/table`               |
+| Create table        | `POST`   | `/v1/organization/table`               |
+| Update table        | `PUT`    | `/v1/organization/table`               |
+| Delete table        | `DELETE` | `/v1/organization/table/:id`           |
+| Update table status | `PATCH`  | `/v1/organization/table/status`        |
+| Table status SSE    | `GET`    | `/v1/organization/table/status/stream` |
+| Generate QR token   | `POST`   | `/v1/organization/table/token`         |
+| Analytics           | `GET`    | `/v1/organization/analytics`           |
+| Analytics SSE       | `GET`    | `/v1/organization/analytics/stream`    |
+| Health check        | `GET`    | `/v1/status`                           |

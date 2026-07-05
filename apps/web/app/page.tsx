@@ -12,7 +12,7 @@ export default async function Page() {
   })
 
   if (sessionError || !session?.session) {
-    redirect("/login")
+    redirect("/login-or-signup")
   }
 
   const { data: organizations, error: organizationError } =
