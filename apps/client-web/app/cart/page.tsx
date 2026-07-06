@@ -16,6 +16,7 @@ import {
     DrawerTrigger,
 } from "@workspace/ui/components/drawer";
 import { Button } from "@workspace/ui/components/button";
+import InvoiceDrawer from "@/components/Cart/InvoiceDrawer";
 
 export default function Page() {
     const { tableNumber }: Pick<CreateOrderDto, "tableNumber"> = { tableNumber: "1" };
@@ -31,7 +32,11 @@ export default function Page() {
     }
 
     function handleRemove(id: string) {
-        setCartItem((prev) => prev.filter((item) => item.id !== id));
+        setCartItem((prev) => {
+            const item = prev.filter((item) => item.id !== id)
+            sessionStorage.setItem("cart", JSON.stringify(item));
+            return item
+        });
     }
 
     function placeOrder(){
@@ -41,10 +46,10 @@ export default function Page() {
     const total = cartItem.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0);
 
     return (
-        <div className="p-2">
+        <div className="">
             <Top tableNumber={tableNumber} />
             {cartItem.length > 0 ? (
-                <div className="mt-15 flex w-full flex-col gap-3">
+                <div className="mt-15 pt-20 px-2 max-h-[87vh] overflow-auto flex w-full flex-col gap-3">
                     {cartItem.map((item) => (
                         <ItemCard key={item.id} item={item} onQuantityChange={handleQuantityChange} onRemove={handleRemove} />
                     ))}
@@ -59,24 +64,9 @@ export default function Page() {
                     <p className="text-sm text-muted-foreground">Add items from the menu to see them here.</p>
                 </div>
             )}
-            <div className="fixed bottom-0 w-full flex items-center justify-center">
+            <div className="fixed bg-white bottom-0 p-2 w-full flex items-center justify-center">
                 <div className="w-full">
-                    <Drawer>
-                        <DrawerTrigger className="w-full pr-5 pb-2">
-                            <Button className="w-full py-5 px-auto">Place an Order</Button>
-                        </DrawerTrigger>
-                        <DrawerContent>
-                            <DrawerHeader>
-                                <DrawerTitle>Are you absolutely sure?</DrawerTitle>
-                                <DrawerDescription>This action cannot be undone.</DrawerDescription>
-                            </DrawerHeader>
-                            <div className="p-4">{/* Content here */}</div>
-                            <DrawerFooter>
-                                <Button onClick={placeOrder}>Submit</Button>
-                                <DrawerClose>Cancel</DrawerClose>
-                            </DrawerFooter>
-                        </DrawerContent>
-                    </Drawer>
+                    <InvoiceDrawer cartItem={cartItem} tableNumber={tableNumber} onPlaceOrder={placeOrder}/>
                 </div>
             </div>
         </div>

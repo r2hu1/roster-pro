@@ -7,7 +7,7 @@ import Link from "next/link";
 
 export default function Top({ tableNumber }: Pick<CreateOrderDto,"tableNumber">) {
     return (
-        <div className="flex justify-between items-center">
+        <div className="fixed p-2 bg-white z-40  w-full top-0 flex justify-between items-center">
             <Link href="/"  className="ml-5">
                 <ArrowLeft />
             </Link>
