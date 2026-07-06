@@ -19,6 +19,7 @@ import { useQueryClient } from "@tanstack/react-query"
 import { Loader } from "@workspace/ui/components/loader"
 import api from "@/lib/axios"
 import { CreateMenuSchema } from "@workspace/shared/schemas/menu/create"
+import { Switch } from "@workspace/ui/components/switch"
 
 export default function CreateMenuModal({
   children,
@@ -29,6 +30,7 @@ export default function CreateMenuModal({
   const [pending, setPending] = useState(false)
   const [name, setName] = useState("")
   const [description, setDescription] = useState("")
+  const [isActive, setIsActive] = useState(true)
 
   const qc = useQueryClient()
 
@@ -41,7 +43,7 @@ export default function CreateMenuModal({
     const parsed = CreateMenuSchema.safeParse({
       name: name.trim(),
       description: description.trim() || null,
-      isActive: false,
+      isActive: isActive,
     })
 
     if (!parsed.success) {
@@ -124,12 +126,23 @@ export default function CreateMenuModal({
             value={description}
             onChange={(e) => setDescription(e.target.value)}
           />
+          <div className="flex items-center justify-between">
+            <div className="grid gap-0.5">
+              <Label>Active</Label>
+              <p className="text-foreground/80 text-xs">Is this menu active?</p>
+            </div>
+            <Switch
+              className="h-5 w-10"
+              thumbClassName="h-4 w-4"
+              checked={isActive}
+              onCheckedChange={setIsActive}
+            />
+          </div>
         </form>
 
         <ResponsiveModalFooter>
           <Button
             variant="secondary"
-            size="lg"
             disabled={pending}
             onClick={() => {
               setOpen(false)
@@ -139,7 +152,6 @@ export default function CreateMenuModal({
             Cancel
           </Button>
           <Button
-            size="lg"
             disabled={pending || !name.trim()}
             onClick={handleCreate}
           >
