@@ -2,6 +2,7 @@ import React from "react"
 import NextImage from "next/image"
 import { Button } from "@workspace/ui/components/button"
 import { ShoppingCart } from "lucide-react"
+import CartBut from "./CartBut"
 
 export default function Header({
   data,
@@ -24,9 +25,7 @@ export default function Header({
         </div>
       </div>
       <div>
-        <Button className="rounded-full h-10 w-10">
-          <ShoppingCart />
-        </Button>
+        <CartBut/>
       </div>
     </div>
   )

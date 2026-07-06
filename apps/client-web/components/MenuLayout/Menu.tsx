@@ -30,18 +30,15 @@ export default function Menu({ MenuItems }: { MenuItems: MenuItem[] }) {
                         <div className="mx-auto w-full max-w-lg  rounded-2xl bg-card ">
                             {/* Image */}
                             {item.image ? (
-                                <div className="relative aspect-[16/9]  w-full overflow-hidden rounded-t-2xl">
-                                    <Badge variant={item.isAvailable ? "default" : "destructive"} className="absolute right-85 top-3 gap-1">
+                                <div className="relative aspect-[16/9] w-full overflow-hidden rounded-t-2xl">
+                                    <Badge variant={item.isAvailable ? "default" : "destructive"} className="absolute left-3 top-3 z-10 gap-1">
                                         {item.isAvailable ? <CircleCheck className="size-3.5" /> : <CircleX className="size-3.5" />}
                                         {item.isAvailable ? "Available" : "Unavailable"}
                                     </Badge>
+
+                                    <DrawerClose className="absolute right-3 top-3 z-10">X</DrawerClose>
+
                                     <img src={item.image} alt={item.name} className="h-full w-full object-cover" />
-                                    <DrawerClose className="absolute z-10">
-                                        <Badge className="absolute bg-muted  text-muted-foreground  text-xl rounded-full  h-7 w-7 -top-58 -right-106 gap-1">
-                                            X
-                                        </Badge>
-                                    </DrawerClose>
-                                    
                                 </div>
                             ) : null}
 

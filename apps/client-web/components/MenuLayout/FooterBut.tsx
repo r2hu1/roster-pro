@@ -2,6 +2,7 @@
 
 import FormatPrice from "@/util/FormatPrice";
 import { MenuItem } from "@workspace/shared";
+import { DrawerClose } from "@workspace/ui/components/drawer";
 import { Minus, Plus, ShoppingCart } from "lucide-react";
 import React, { useState } from "react";
 
@@ -12,6 +13,7 @@ export default function FooterBut({ item }: { item: MenuItem }) {
 
     const unitPrice = isHalf ? item.price.half : item.price.full;
     const totalPrice = unitPrice * quantity;
+    console.log(item);
 
     function handleQuantityChange(delta: number) {
         setQuantity((prev) => Math.max(1, prev + delta));
@@ -19,7 +21,18 @@ export default function FooterBut({ item }: { item: MenuItem }) {
 
     function handleAddToCart() {
         try {
-            const cart = JSON.parse(localStorage.getItem("cart") || "[]");
+            const cart = JSON.parse(sessionStorage.getItem("cart") || "[]");
+
+            if (cart.length > 0) {
+                const existingItem = cart.find((cartItem: any) => cartItem.id === item.id);
+                if (existingItem) {
+                    console.log("Item already exists in cart:", existingItem);
+                    existingItem.quantity += quantity;
+                    sessionStorage.setItem("cart", JSON.stringify(cart));
+                    window.dispatchEvent(new Event("cartUpdated")); // to auto update the cart item count
+                    return;
+                }
+            }
             cart.push({
                 id: item.id,
                 name: item.name,
@@ -28,7 +41,9 @@ export default function FooterBut({ item }: { item: MenuItem }) {
                 quantity,
                 note: note.trim() || undefined,
             });
-            localStorage.setItem("cart", JSON.stringify(cart));
+            sessionStorage.setItem("cart", JSON.stringify(cart));
+            window.dispatchEvent(new Event("cartUpdated")); // to auto update the cart item count
+            console.log("Item added to cart:", cart);
         } catch (error) {
             console.error("Failed to update cart", error);
         }
@@ -103,14 +118,14 @@ export default function FooterBut({ item }: { item: MenuItem }) {
 
             {/* Actions */}
             <div className="flex items-center gap-3 pt-1">
-                <button
+                <DrawerClose
                     type="button"
                     onClick={handleAddToCart}
                     className="flex flex-1 items-center justify-center gap-1.5 rounded-full border border-border bg-background px-4 py-2.5 text-sm font-semibold text-foreground transition-colors hover:bg-muted"
                 >
                     <ShoppingCart className="h-4 w-4" />
                     Add to cart
-                </button>
+                </DrawerClose>
                 <button
                     type="button"
                     className="flex-1 rounded-full bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
