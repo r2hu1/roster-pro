@@ -13,7 +13,7 @@ export default async function RootLayout({
       <SessionProvider>
         <SidebarProvider>
           <AppSidebar />
-          <SidebarInset>{children}</SidebarInset>
+          <SidebarInset className="p-6">{children}</SidebarInset>
         </SidebarProvider>
       </SessionProvider>
     </ReactQueryProvider>
