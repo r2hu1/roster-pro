@@ -43,7 +43,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
       {children}
 
       {isLoading && (
-        <div className="absolute bg-background z-100 flex inset-0 items-center justify-center">
+        <div className="fixed bg-background z-100 flex inset-0 items-center justify-center">
           <div className="grid place-items-center space-y-3 text-center">
             <Transform className="size-10! bg-foreground!" />
             <h1 className="text-foreground/80 w-[150px] text-sm">
