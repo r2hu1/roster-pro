@@ -4,7 +4,7 @@ import { order } from "../../../core/db/schemas/order.js"
 import { tableSchema } from "../../../core/db/schemas/table.js"
 import { HTTP_STATUS_CODES } from "../../../lib/utils.js"
 import { EventEmitter } from "node:events"
-import type { AnalyticsQueryDto } from "./analytics.validation.js"
+import type { AnalyticsQueryDto, AnalyticsResponse, HourlyData, DailyData, TopItem, TableStat, StatusBreakdown, PaymentBreakdown } from "@workspace/shared/schemas/analytics/index"
 
 export const analyticsEmitter = new EventEmitter()
 analyticsEmitter.setMaxListeners(100)
@@ -15,69 +15,6 @@ type AnalyticsUpdatedEvent = {
 }
 
 export type AnalyticsEvent = AnalyticsUpdatedEvent
-
-export type HourlyData = {
-  hour: number
-  orderCount: number
-  revenue: number
-}
-
-export type DailyData = {
-  date: string
-  orderCount: number
-  revenue: number
-}
-
-export type TopItem = {
-  name: string
-  quantity: number
-  revenue: number
-}
-
-export type TableStat = {
-  tableNumber: string
-  orderCount: number
-  totalSpent: number
-}
-
-export type StatusBreakdown = {
-  status: string
-  count: number
-}
-
-export type PaymentBreakdown = {
-  method: string
-  count: number
-  total: number
-}
-
-export type AnalyticsResponse = {
-  summary: {
-    totalOrders: number
-    totalRevenue: number
-    averageOrderValue: number
-    averageOrdersPerTable: number
-    totalDiscount: number
-    totalTax: number
-    cancelledOrders: number
-    completedOrders: number
-    pendingOrders: number
-    averageItemsPerOrder: number
-    peakHour: number | null
-    busiestTable: string | null
-  }
-  revenue: {
-    daily: DailyData[]
-    hourly: HourlyData[]
-  }
-  orders: {
-    byStatus: StatusBreakdown[]
-    byPaymentMethod: PaymentBreakdown[]
-    byPaymentStatus: StatusBreakdown[]
-  }
-  topItems: TopItem[]
-  tableStats: TableStat[]
-}
 
 function emptyAnalytics(): AnalyticsResponse {
   return {
