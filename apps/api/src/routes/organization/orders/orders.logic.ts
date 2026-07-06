@@ -368,6 +368,7 @@ export const orderLogic = {
         items: existingOrder.items.map((item) => ({
           id: item.menuItemId,
           name: item.name,
+          logo: item.logo,
           quantity: item.quantity,
           unitPrice: item.unitPrice,
           total: item.quantity * item.unitPrice,
