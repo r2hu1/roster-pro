@@ -153,7 +153,7 @@ export default function CreateMenuItemModal({
           }}
         >
           <Label>Item Image</Label>
-          <DnDImageInput onChange={(file) => setImage(file)} />
+          <DnDImageInput previewClassName="size-30!" onChange={(file) => setImage(file)} />
 
           <Label htmlFor="name">Name</Label>
           <Input

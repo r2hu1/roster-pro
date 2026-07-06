@@ -40,6 +40,11 @@ interface ResponsiveProps extends BaseProps {
   asChild?: boolean
 }
 
+interface ResponsiveContentProps extends ResponsiveProps {
+  onPointerDownOutside?: (event: unknown) => void
+  onInteractOutside?: (event: unknown) => void
+}
+
 const ResponsiveContext = React.createContext<{
   isDesktop: boolean
 } | null>(null)
@@ -98,7 +103,7 @@ const ResponsiveModalContent = ({
   className,
   children,
   ...props
-}: ResponsiveProps) => {
+}: ResponsiveContentProps) => {
   const { isDesktop } = useResponsiveContext()
   const ContentComponent = isDesktop ? DialogContent : DrawerContent
 

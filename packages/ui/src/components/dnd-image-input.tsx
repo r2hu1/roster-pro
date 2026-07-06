@@ -3,7 +3,6 @@ import { useCallback, useState } from "react"
 
 import { Button } from "@workspace/ui/components/button"
 import { useImageUpload } from "@workspace/ui/hooks/use-image-upload"
-import { Input } from "@workspace/ui/components/input"
 
 import { cn } from "@workspace/ui/lib/utils"
 
@@ -11,10 +10,12 @@ export function DnDImageInput({
   onChange,
   previewClassName,
   className,
+  defaultPreview,
 }: {
   onChange?: (file: File | null) => void
   className?: string
   previewClassName?: string
+  defaultPreview?: string | null
 }) {
   const {
     previewUrl,
@@ -23,7 +24,7 @@ export function DnDImageInput({
     handleThumbnailClick,
     handleFileChange,
     handleRemove,
-  } = useImageUpload({ onChange })
+  } = useImageUpload({ onChange, defaultPreview })
 
   const [isDragging, setIsDragging] = useState(false)
 
@@ -65,7 +66,7 @@ export function DnDImageInput({
 
   return (
     <div>
-      <Input
+      <input
         type="file"
         accept="image/*"
         className="hidden"
@@ -111,7 +112,8 @@ export function DnDImageInput({
             />
             <div className="absolute inset-0 bg-black/40 opacity-0 transition-opacity group-hover:opacity-100" />
             <div className="absolute inset-0 flex items-center justify-center gap-2 opacity-0 transition-opacity group-hover:opacity-100">
-              <Button
+                <Button
+                  type="button"
                 size="sm"
                 variant="secondary"
                 onClick={handleThumbnailClick}
@@ -119,7 +121,8 @@ export function DnDImageInput({
               >
                 <Upload className="h-4 w-4" />
               </Button>
-              <Button
+                <Button
+                  type="button"
                 size="sm"
                 variant="destructive"
                 onClick={handleRemove}
@@ -132,7 +135,8 @@ export function DnDImageInput({
           {fileName && (
             <div className="text-muted-foreground mt-2 flex w-fit max-w-xs items-center gap-2 text-sm">
               <span className="truncate">{fileName}</span>
-              <button
+                <button
+                  type="button"
                 onClick={handleRemove}
                 className="hover:bg-muted ml-auto rounded-full p-1"
               >

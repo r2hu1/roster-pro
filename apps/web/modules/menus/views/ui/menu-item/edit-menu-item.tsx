@@ -2,14 +2,14 @@
 
 import { useState } from "react"
 import {
-  ResponsiveModal,
-  ResponsiveModalTrigger,
-  ResponsiveModalContent,
-  ResponsiveModalHeader,
-  ResponsiveModalTitle,
-  ResponsiveModalDescription,
-  ResponsiveModalFooter,
-} from "@workspace/ui/components/responsive-modal"
+  Sheet,
+  SheetTrigger,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+  SheetFooter,
+} from "@workspace/ui/components/sheet"
 import { Button } from "@workspace/ui/components/button"
 import { Input } from "@workspace/ui/components/input"
 import { Label } from "@workspace/ui/components/label"
@@ -30,8 +30,9 @@ import { IconCoinRupee } from "@tabler/icons-react"
 import { UpdateMenuItemSchema } from "@workspace/shared/schemas/menu/menu-item/update"
 
 export default function EditMenuItem({
+  open,
+  onOpenChange,
   itemId,
-  children,
   prevName,
   prevPrice,
   prevImage,
@@ -40,8 +41,9 @@ export default function EditMenuItem({
   prevIngredients,
   prevDescription,
 }: {
+  open: boolean
+  onOpenChange: (open: boolean) => void
   itemId: string
-  children: React.ReactNode
   prevName: string
   prevPrice: { half: number; full: number }
   prevImage?: string | null
@@ -50,7 +52,6 @@ export default function EditMenuItem({
   prevIngredients: string[]
   prevDescription: string
 }) {
-  const [open, setOpen] = useState(false)
   const [pending, setPending] = useState(false)
   const [name, setName] = useState(prevName)
   const [halfPrice, setHalfPrice] = useState(String(prevPrice.half))
@@ -118,7 +119,7 @@ export default function EditMenuItem({
       const res = await api.put("/organization/menu/item", formData)
 
       if (res.data?.status === "success") {
-        setOpen(false)
+        onOpenChange(false)
         toast.success("Menu item updated!")
         qc.invalidateQueries({ queryKey: ["menu-items", params.menuId] })
       } else {
@@ -141,150 +142,146 @@ export default function EditMenuItem({
   }
 
   return (
-    <ResponsiveModal
+    <Sheet
       open={open}
-      onOpenChange={(v) => {
-        setOpen(v)
-        if (!v) reset()
-      }}
+      onOpenChange={onOpenChange}
     >
-      <ResponsiveModalTrigger asChild className="w-full">
-        {children}
-      </ResponsiveModalTrigger>
-
-      <ResponsiveModalContent>
-        <ResponsiveModalHeader>
-          <ResponsiveModalTitle>Editing {prevName}</ResponsiveModalTitle>
-          <ResponsiveModalDescription>
+      <SheetContent
+      >
+        <SheetHeader>
+          <SheetTitle>Editing {prevName}</SheetTitle>
+          <SheetDescription>
             Click save to update the menu item.
-          </ResponsiveModalDescription>
-        </ResponsiveModalHeader>
+          </SheetDescription>
+        </SheetHeader>
 
         <form
-          className="no-scrollbar overflow-x-hidden grid max-h-[50vh] gap-3 overflow-y-auto px-4 md:px-0.5"
+          className="flex flex-col gap-3 overflow-y-auto px-6 py-4"
           onSubmit={(e) => {
             e.preventDefault()
             handleEdit()
           }}
         >
-          <div className="grid gap-3">
-            <Label>Item Image</Label>
-            <DnDImageInput
-              onChange={(file) => setImage(file)}
-              previewClassName="size-30"
-            />
+          <Label>Item Image</Label>
+          <DnDImageInput
+            onChange={(file) => setImage(file)}
+            defaultPreview={prevImage}
+            previewClassName="size-30!"
+          />
 
-            <div className="grid w-full gap-2">
-              <Label htmlFor="name">Name</Label>
-              <Input
-                id="name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                required
-              />
-
-              <Label>Price</Label>
-              <div className="grid grid-cols-2 gap-2">
-                <InputGroup>
-                  <InputGroupInput
-                    type="number"
-                    step="any"
-                    min="0"
-                    placeholder="Half"
-                    value={halfPrice}
-                    onChange={(e) => setHalfPrice(e.target.value)}
-                    required
-                  />
-                  <InputGroupAddon>
-                    <IconCoinRupee className="size-3.5" />
-                  </InputGroupAddon>
-                </InputGroup>
-                <InputGroup>
-                  <InputGroupInput
-                    type="number"
-                    step="any"
-                    min="0"
-                    placeholder="Full"
-                    value={fullPrice}
-                    onChange={(e) => setFullPrice(e.target.value)}
-                    required
-                  />
-                  <InputGroupAddon>
-                    <IconCoinRupee className="size-3.5" />
-                  </InputGroupAddon>
-                </InputGroup>
-              </div>
-            </div>
-
-            <Label htmlFor="description">Description</Label>
-            <Textarea
-              id="description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-            />
-
-            <Label htmlFor="ingredients">
-              Ingredients{" "}
-              <span className="text-foreground/80 text-xs">
-                Separated by commas
-              </span>
-            </Label>
-            <Textarea
-              id="ingredients"
-              value={ingredientsText}
-              onChange={(e) => setIngredientsText(e.target.value)}
+          <div className="grid w-full gap-2">
+            <Label htmlFor="name">Name</Label>
+            <Input
+              placeholder="Name of the item..."
+              id="name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
               required
             />
 
-            <div className="mt-2 flex items-center justify-between">
-              <div className="grid gap-0.5">
-                <Label>Is Available</Label>
-                <p className="text-foreground/80 text-xs">
-                  Is this dish available?
-                </p>
-              </div>
-              <Switch
-                className="h-5 w-10"
-                thumbClassName="h-4 w-4"
-                checked={isAvailable}
-                onCheckedChange={setIsAvailable}
-              />
-            </div>
-
-            <div className="mt-2 flex items-center justify-between">
-              <div className="grid gap-0.5">
-                <Label>Is Vegetarian</Label>
-                <p className="text-foreground/80 text-xs">
-                  Is this dish vegetarian?
-                </p>
-              </div>
-              <Switch
-                className="h-5 w-10"
-                thumbClassName="h-4 w-4"
-                checked={isVegetarian}
-                onCheckedChange={setIsVegetarian}
-              />
+            <Label>Price</Label>
+            <div className="grid grid-cols-2 gap-2">
+              <InputGroup>
+                <InputGroupInput
+                  type="number"
+                  step="any"
+                  min="0"
+                  placeholder="Half"
+                  value={halfPrice}
+                  onChange={(e) => setHalfPrice(e.target.value)}
+                  required
+                />
+                <InputGroupAddon>
+                  <IconCoinRupee className="size-3.5" />
+                </InputGroupAddon>
+              </InputGroup>
+              <InputGroup>
+                <InputGroupInput
+                  type="number"
+                  step="any"
+                  min="0"
+                  placeholder="Full"
+                  value={fullPrice}
+                  onChange={(e) => setFullPrice(e.target.value)}
+                  required
+                />
+                <InputGroupAddon>
+                  <IconCoinRupee className="size-3.5" />
+                </InputGroupAddon>
+              </InputGroup>
             </div>
           </div>
-        </form>
 
-        <ResponsiveModalFooter>
+          <Label htmlFor="description">Description</Label>
+          <Textarea
+            placeholder="Description about the item..."
+            id="description"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+          />
+
+          <Label htmlFor="ingredients">
+            Ingredients{" "}
+            <span className="text-foreground/80 text-xs">
+              Separated by commas
+            </span>
+          </Label>
+          <Textarea
+            id="ingredients"
+            placeholder="Onions, Garlic, ..."
+            value={ingredientsText}
+            onChange={(e) => setIngredientsText(e.target.value)}
+            required
+          />
+
+          <div className="mt-2 flex items-center justify-between">
+            <div className="grid gap-0.5">
+              <Label>Is Available</Label>
+              <p className="text-foreground/80 text-xs">
+                Is this dish available?
+              </p>
+            </div>
+            <Switch
+              className="h-5 w-10"
+              thumbClassName="h-4 w-4"
+              checked={isAvailable}
+              onCheckedChange={setIsAvailable}
+            />
+          </div>
+
+          <div className="mt-2 flex items-center justify-between">
+            <div className="grid gap-0.5">
+              <Label>Is Vegetarian</Label>
+              <p className="text-foreground/80 text-xs">
+                Is this dish vegetarian?
+              </p>
+            </div>
+            <Switch
+              className="h-5 w-10"
+              thumbClassName="h-4 w-4"
+              checked={isVegetarian}
+              onCheckedChange={setIsVegetarian}
+            />
+          </div>
+        </form>
+        <SheetFooter>
           <Button
+            type="button"
             variant="secondary"
             disabled={pending}
             onClick={() => {
-              setOpen(false)
+              onOpenChange(false)
               reset()
             }}
           >
             Cancel
           </Button>
-          <Button disabled={pending} onClick={handleEdit}>
+          <Button type="button" disabled={pending} onClick={handleEdit}>
             Save
             {pending && <Loader />}
           </Button>
-        </ResponsiveModalFooter>
-      </ResponsiveModalContent>
-    </ResponsiveModal>
+        </SheetFooter>
+      </SheetContent>
+    </Sheet>
   )
 }

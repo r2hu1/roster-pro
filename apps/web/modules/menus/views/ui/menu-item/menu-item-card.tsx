@@ -22,8 +22,11 @@ import {
 import EditMenuItem from "./edit-menu-item"
 import DeleteItem from "./delete-menu-item"
 import MenuItemInfo from "./menu-item-info"
+import { useState } from "react"
 
 export default function ItemCard({ item }: { item: MenuItemResponse }) {
+  const [editOpen, setEditOpen] = useState(false);
+
   return (
     <div className="bg-card group flex items-center justify-between gap-3 rounded-md border p-2 pr-3 transition-colors duration-200 hover:shadow-sm">
       <div className="flex min-w-0 flex-1 items-center gap-3">
@@ -42,7 +45,6 @@ export default function ItemCard({ item }: { item: MenuItemResponse }) {
         <MenuItemInfo item={item}>
           <div className="grid min-w-0 cursor-pointer gap-1 text-left">
             <div className="flex items-center gap-1.5">
-              {/* Authentic veg / non-veg symbol */}
               <span
                 className={
                   "flex size-3 shrink-0 items-center justify-center rounded-[3px] border " +
@@ -95,21 +97,14 @@ export default function ItemCard({ item }: { item: MenuItemResponse }) {
             <DropdownMenuLabel className="text-foreground/70 px-1 py-1 text-xs font-normal">
               Actions
             </DropdownMenuLabel>
-            <EditMenuItem
-              itemId={item.id}
-              prevAvailable={item.isAvailable}
-              prevImage={item.image}
-              prevName={item.name}
-              prevPrice={item.price}
-              prevVegetarian={item.isVegetarian}
-              prevIngredients={item.ingredients ?? []}
-              prevDescription={item.description ?? ""}
-            >
-              <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+            <DropdownMenuItem
+              onSelect={(e) => {
+                             e.preventDefault()
+                             setEditOpen(true)
+                           }}>
                 Edit
                 <IconPencil className="ml-auto size-3.5" />
               </DropdownMenuItem>
-            </EditMenuItem>
             <DeleteItem itemId={item.id}>
               <DropdownMenuItem
                 onSelect={(e) => e.preventDefault()}
@@ -122,6 +117,19 @@ export default function ItemCard({ item }: { item: MenuItemResponse }) {
           </DropdownMenuGroup>
         </DropdownMenuContent>
       </DropdownMenu>
+
+      <EditMenuItem
+              open={editOpen}
+              onOpenChange={setEditOpen}
+              itemId={item.id}
+              prevAvailable={item.isAvailable}
+              prevImage={item.image}
+              prevName={item.name}
+              prevPrice={item.price}
+              prevVegetarian={item.isVegetarian}
+              prevIngredients={item.ingredients ?? []}
+              prevDescription={item.description ?? ""}
+            />
     </div>
   )
 }
