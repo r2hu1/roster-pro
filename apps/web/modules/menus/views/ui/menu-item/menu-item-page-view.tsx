@@ -163,11 +163,11 @@ export default function MenuItemsPageView() {
           ) : itemsQuery.data.filter((item) =>
               item.name.toLowerCase().includes(searchTerm.toLowerCase())
             ).length > 0 ? (
-                  itemsQuery.data
-                    .filter((item) =>
-                        item.name.toLowerCase().includes(searchTerm.toLowerCase())
-                      )
-                      .map((item) => <ItemCard key={item.id} item={item} />)
+            itemsQuery.data
+              .filter((item) =>
+                item.name.toLowerCase().includes(searchTerm.toLowerCase())
+              )
+              .map((item) => <ItemCard key={item.id} item={item} />)
           ) : (
             <EmptyData
               icon={<IconToolsKitchen2Off />}

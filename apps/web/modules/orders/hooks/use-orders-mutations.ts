@@ -5,11 +5,7 @@ import type {
   CreateOrderDto,
   UpdateOrderDto,
 } from "@workspace/shared/schemas/order/index"
-import {
-  createOrder,
-  updateOrder,
-  deleteOrder,
-} from "../api/orders"
+import { createOrder, updateOrder, deleteOrder } from "../api/orders"
 
 export function useCreateOrder() {
   const queryClient = useQueryClient()

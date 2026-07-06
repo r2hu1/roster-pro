@@ -13,7 +13,9 @@ export default async function RootLayout({
       <SessionProvider>
         <SidebarProvider>
           <AppSidebar />
-          <SidebarInset className="p-6">{children}</SidebarInset>
+          <SidebarInset className="p-6">
+            <main className="max-w-6xl w-full mx-auto!">{children}</main>
+          </SidebarInset>
         </SidebarProvider>
       </SessionProvider>
     </ReactQueryProvider>

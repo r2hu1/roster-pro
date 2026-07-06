@@ -2,14 +2,13 @@ import { AnalyticsQuerySchema } from "@workspace/shared/schemas/analytics/index"
 import type { AnalyticsQueryDto } from "@workspace/shared/schemas/analytics/index"
 export type { AnalyticsQueryDto }
 
-export const analyticsQuerySchema = AnalyticsQuerySchema
-  .refine(
-    (data) => {
-      const from = new Date(data.from)
-      return !Number.isNaN(from.getTime())
-    },
-    { message: "Invalid 'from' date", path: ["from"] }
-  )
+export const analyticsQuerySchema = AnalyticsQuerySchema.refine(
+  (data) => {
+    const from = new Date(data.from)
+    return !Number.isNaN(from.getTime())
+  },
+  { message: "Invalid 'from' date", path: ["from"] }
+)
   .refine(
     (data) => {
       const to = new Date(data.to)

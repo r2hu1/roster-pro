@@ -142,12 +142,8 @@ export default function EditMenuItem({
   }
 
   return (
-    <Sheet
-      open={open}
-      onOpenChange={onOpenChange}
-    >
-      <SheetContent
-      >
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent>
         <SheetHeader>
           <SheetTitle>Editing {prevName}</SheetTitle>
           <SheetDescription>

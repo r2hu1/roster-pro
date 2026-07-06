@@ -86,7 +86,10 @@ export function AnalyticsPageView() {
   const fromStr = toDateString(from)
   const toStr = toDateString(to)
 
-  const { data, isPending, isError, error, isFetching } = useAnalytics(fromStr, toStr)
+  const { data, isPending, isError, error, isFetching } = useAnalytics(
+    fromStr,
+    toStr
+  )
 
   const handleSelect = (range: { from?: Date; to?: Date } | undefined) => {
     if (!range?.from) return

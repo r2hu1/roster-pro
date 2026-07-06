@@ -103,7 +103,7 @@ export default function MenuItemInfo({
             </p>
           )}
           <Badge variant="outline">
-          {item.isAvailable ? "Available" : "Unavailable"}
+            {item.isAvailable ? "Available" : "Unavailable"}
           </Badge>
         </SheetFooter>
       </SheetContent>

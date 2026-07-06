@@ -1,3 +1,4 @@
+import OrdersPageView from "@/modules/orders/views/ui/orders-page-view"
 import type { Metadata } from "next"
 export const metadata: Metadata = {
   title: "Orders",
@@ -5,5 +6,5 @@ export const metadata: Metadata = {
 }
 
 export default function Page() {
-  return <div></div>
+  return <OrdersPageView />
 }

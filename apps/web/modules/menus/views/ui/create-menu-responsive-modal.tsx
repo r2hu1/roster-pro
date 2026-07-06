@@ -151,10 +151,7 @@ export default function CreateMenuModal({
           >
             Cancel
           </Button>
-          <Button
-            disabled={pending || !name.trim()}
-            onClick={handleCreate}
-          >
+          <Button disabled={pending || !name.trim()} onClick={handleCreate}>
             Continue
             {pending && <Loader />}
           </Button>

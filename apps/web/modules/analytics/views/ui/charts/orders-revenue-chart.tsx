@@ -56,15 +56,35 @@ export function OrdersRevenueChart({
             <AreaChart data={data}>
               <defs>
                 <linearGradient id="fillOrders" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="var(--chart-1)" stopOpacity={0.8} />
-                  <stop offset="95%" stopColor="var(--chart-1)" stopOpacity={0.1} />
+                  <stop
+                    offset="5%"
+                    stopColor="var(--chart-1)"
+                    stopOpacity={0.8}
+                  />
+                  <stop
+                    offset="95%"
+                    stopColor="var(--chart-1)"
+                    stopOpacity={0.1}
+                  />
                 </linearGradient>
                 <linearGradient id="fillRevenue" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="var(--chart-2)" stopOpacity={0.8} />
-                  <stop offset="95%" stopColor="var(--chart-2)" stopOpacity={0.1} />
+                  <stop
+                    offset="5%"
+                    stopColor="var(--chart-2)"
+                    stopOpacity={0.8}
+                  />
+                  <stop
+                    offset="95%"
+                    stopColor="var(--chart-2)"
+                    stopOpacity={0.1}
+                  />
                 </linearGradient>
               </defs>
-              <CartesianGrid vertical={false} stroke="var(--border)" opacity={0.5} />
+              <CartesianGrid
+                vertical={false}
+                stroke="var(--border)"
+                opacity={0.5}
+              />
               <XAxis
                 dataKey="date"
                 tickLine={false}

@@ -14,18 +14,14 @@ import {
   DropdownMenuItem,
 } from "@workspace/ui/components/dropdown-menu"
 import type { MenuItemResponse } from "@workspace/shared/schemas/menu/menu-item/response"
-import {
-  IconDotsVertical,
-  IconPencil,
-  IconTrash,
-} from "@tabler/icons-react"
+import { IconDotsVertical, IconPencil, IconTrash } from "@tabler/icons-react"
 import EditMenuItem from "./edit-menu-item"
 import DeleteItem from "./delete-menu-item"
 import MenuItemInfo from "./menu-item-info"
 import { useState } from "react"
 
 export default function ItemCard({ item }: { item: MenuItemResponse }) {
-  const [editOpen, setEditOpen] = useState(false);
+  const [editOpen, setEditOpen] = useState(false)
 
   return (
     <div className="bg-card group flex items-center justify-between gap-3 rounded-md border p-2 pr-3 transition-colors duration-200 hover:shadow-sm">
@@ -48,9 +44,7 @@ export default function ItemCard({ item }: { item: MenuItemResponse }) {
               <span
                 className={
                   "flex size-3 shrink-0 items-center justify-center rounded-[3px] border " +
-                  (item.isVegetarian
-                    ? "border-green-600"
-                    : "border-red-600")
+                  (item.isVegetarian ? "border-green-600" : "border-red-600")
                 }
               >
                 <span
@@ -88,7 +82,11 @@ export default function ItemCard({ item }: { item: MenuItemResponse }) {
 
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button size="icon-sm" variant="secondary" className="bg-card shrink-0">
+          <Button
+            size="icon-sm"
+            variant="secondary"
+            className="bg-card shrink-0"
+          >
             <IconDotsVertical className="size-4" />
           </Button>
         </DropdownMenuTrigger>
@@ -99,12 +97,13 @@ export default function ItemCard({ item }: { item: MenuItemResponse }) {
             </DropdownMenuLabel>
             <DropdownMenuItem
               onSelect={(e) => {
-                             e.preventDefault()
-                             setEditOpen(true)
-                           }}>
-                Edit
-                <IconPencil className="ml-auto size-3.5" />
-              </DropdownMenuItem>
+                e.preventDefault()
+                setEditOpen(true)
+              }}
+            >
+              Edit
+              <IconPencil className="ml-auto size-3.5" />
+            </DropdownMenuItem>
             <DeleteItem itemId={item.id}>
               <DropdownMenuItem
                 onSelect={(e) => e.preventDefault()}
@@ -119,17 +118,17 @@ export default function ItemCard({ item }: { item: MenuItemResponse }) {
       </DropdownMenu>
 
       <EditMenuItem
-              open={editOpen}
-              onOpenChange={setEditOpen}
-              itemId={item.id}
-              prevAvailable={item.isAvailable}
-              prevImage={item.image}
-              prevName={item.name}
-              prevPrice={item.price}
-              prevVegetarian={item.isVegetarian}
-              prevIngredients={item.ingredients ?? []}
-              prevDescription={item.description ?? ""}
-            />
+        open={editOpen}
+        onOpenChange={setEditOpen}
+        itemId={item.id}
+        prevAvailable={item.isAvailable}
+        prevImage={item.image}
+        prevName={item.name}
+        prevPrice={item.price}
+        prevVegetarian={item.isVegetarian}
+        prevIngredients={item.ingredients ?? []}
+        prevDescription={item.description ?? ""}
+      />
     </div>
   )
 }

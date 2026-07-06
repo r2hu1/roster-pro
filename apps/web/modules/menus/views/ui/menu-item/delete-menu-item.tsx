@@ -86,7 +86,11 @@ export default function DeleteItem({
           >
             Cancel
           </Button>
-          <Button disabled={pending} variant="destructive" onClick={handleDelete}>
+          <Button
+            disabled={pending}
+            variant="destructive"
+            onClick={handleDelete}
+          >
             Continue
             {pending && <Loader />}
           </Button>

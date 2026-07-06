@@ -16,7 +16,9 @@ export function TopItemsList({ items }: { items: TopItem[] }) {
           <CardTitle>Top Items</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-muted-foreground">No items ordered in this period</p>
+          <p className="text-muted-foreground">
+            No items ordered in this period
+          </p>
         </CardContent>
       </Card>
     )

@@ -49,7 +49,11 @@ export function PeakHourBusiestTableChart({
         <div className="h-[250px] w-full">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={chartData}>
-              <CartesianGrid vertical={false} stroke="var(--border)" opacity={0.5} />
+              <CartesianGrid
+                vertical={false}
+                stroke="var(--border)"
+                opacity={0.5}
+              />
               <XAxis
                 dataKey="hour"
                 tickLine={false}

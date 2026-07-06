@@ -153,7 +153,10 @@ export default function CreateMenuItemModal({
           }}
         >
           <Label>Item Image</Label>
-          <DnDImageInput previewClassName="size-30!" onChange={(file) => setImage(file)} />
+          <DnDImageInput
+            previewClassName="size-30!"
+            onChange={(file) => setImage(file)}
+          />
 
           <Label htmlFor="name">Name</Label>
           <Input
@@ -260,10 +263,7 @@ export default function CreateMenuItemModal({
           >
             Cancel
           </Button>
-          <Button
-            disabled={pending || !name.trim()}
-            onClick={handleCreate}
-          >
+          <Button disabled={pending || !name.trim()} onClick={handleCreate}>
             Continue
             {pending && <Loader />}
           </Button>
