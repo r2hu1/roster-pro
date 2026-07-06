@@ -18,18 +18,20 @@ import api from "@/lib/axios"
 
 export default function DeleteMenu({
   menuId,
+  orgId,
   children,
 }: {
   menuId: string
+  orgId: string | undefined
   children: React.ReactNode
 }) {
   const [open, setOpen] = useState(false)
   const [pending, setPending] = useState(false)
   const qc = useQueryClient()
-  const router = useRouter()
+  const router = useRouter();
 
   async function handleDelete() {
-    setPending(true)
+    setPending(true);
 
     try {
       const res = await api.delete(`/organization/menu/${menuId}`)
@@ -38,7 +40,7 @@ export default function DeleteMenu({
         setOpen(false)
         toast.success("Menu deleted!")
         qc.invalidateQueries({ queryKey: ["menus"] })
-        router.push("/")
+        router.push(`/${orgId}/menus`)
       } else {
         throw new Error(res.data?.message || "Failed to delete menu")
       }

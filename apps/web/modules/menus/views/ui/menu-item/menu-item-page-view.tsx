@@ -62,7 +62,7 @@ export default function MenuItemsPageView() {
   })
 
   return (
-    <section className="space-y-6">
+    <section className="space-y-3">
       <PageHeader
         title={
           menuQuery.data?.name ? `Menu / ${menuQuery.data.name}` : "Menu Item"
@@ -108,7 +108,7 @@ export default function MenuItemsPageView() {
                       </DropdownMenuItem>
                     </EditMenu>
 
-                    <DeleteMenu menuId={params.menuId}>
+                    <DeleteMenu orgId={org?.id} menuId={params.menuId}>
                       <DropdownMenuItem
                         variant="destructive"
                         onSelect={(e) => e.preventDefault()}
@@ -125,7 +125,7 @@ export default function MenuItemsPageView() {
         }
       />
 
-      <main className="grid gap-10">
+      <main className="grid gap-4">
         <InputGroup className="h-10">
           <InputGroupButton className="size-9.5!">
             <Link href={`/${org?.id}/menus/`}>
@@ -165,7 +165,27 @@ export default function MenuItemsPageView() {
               .filter((item) =>
                 item.name.toLowerCase().includes(searchTerm.toLowerCase())
               )
-              .map((item) => <ItemCard key={item.id} item={item} />)
+              .length > 0 ? (
+              itemsQuery.data
+                .filter((item) =>
+                  item.name.toLowerCase().includes(searchTerm.toLowerCase())
+                )
+                .map((item) => <ItemCard key={item.id} item={item} />)
+            ) : (
+              <EmptyData
+                icon={<IconToolsKitchen2Off />}
+                title={`No items found for "${searchTerm}"`}
+                description={`Want to create "${searchTerm}"? Click the button below to add it to your menu.`}
+                action={
+                  <CreateMenuItemModal>
+                    <Button>
+                      <IconCirclePlus />
+                      <span>Create Item</span>
+                    </Button>
+                  </CreateMenuItemModal>
+                }
+              />
+            )
           )}
         </div>
       </main>
