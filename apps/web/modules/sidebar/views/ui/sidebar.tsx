@@ -3,28 +3,17 @@
 import * as React from "react"
 import {
   IconArmchair,
-  IconChargingPile,
   IconChartArea,
-  IconChartBar,
   IconChefHat,
-  IconDashboard,
-  IconFolder,
   IconHelp,
-  IconInnerShadowTop,
-  IconListDetails,
-  IconReceipt2,
   IconReceiptRupee,
-  IconReceiptRupeeFilled,
   IconSearch,
   IconSettings,
   IconStack,
-  IconStackBack,
-  IconStackMiddle,
-  IconUsers,
+  IconTruckDelivery,
 } from "@tabler/icons-react"
 
 import { NavMain } from "./nav-main"
-import { NavSecondary } from "./nav-secondary"
 import { NavUser } from "./nav-user"
 import {
   Sidebar,
@@ -35,12 +24,8 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarRail,
-  SidebarTrigger,
-  useSidebar,
 } from "@workspace/ui/components/sidebar"
-import { cn } from "@workspace/ui/lib/utils"
 import { useSession } from "@/modules/providers/session-provider"
-import { Organization } from "better-auth/client"
 import { OrganizationResponse } from "@workspace/shared/schemas/organization/response"
 import { Logo } from "@/components/logo"
 import {
@@ -58,8 +43,8 @@ const data = {
   navMain: [
     {
       title: "Orders",
-      url: "/orders",
-      icon: IconStack,
+      url: "/",
+      icon: IconTruckDelivery,
     },
     {
       title: "Tables",
@@ -78,7 +63,7 @@ const data = {
     },
     {
       title: "Receipts",
-      url: "#",
+      url: "/receipts",
       icon: IconReceiptRupee,
     },
   ],
@@ -102,20 +87,15 @@ const data = {
 }
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const { organization } = useSession()
+  const { organization } = useSession();
 
   return (
     <Sidebar variant="inset" collapsible="offcanvas" {...props}>
       <SidebarRail />
       <SidebarHeader>
-        <SidebarMenu className="bg-background shadow-sm rounded-lg pb-2 pt-1 space-y-1">
-          <SidebarMenuItem>
-            <SidebarMenuButton
-              asChild
-              className="data-[slot=sidebar-menu-button]:p-1.5!"
-            >
-              <Logo className="h-13 w-auto" />
-            </SidebarMenuButton>
+        <SidebarMenu className="space-y-4">
+          <SidebarMenuItem className="-ml-2">
+              <Logo className="h-10 w-auto" />
           </SidebarMenuItem>
           <SidebarMenuItem className="px-2 hidden">
             <SidebarMenuButton
@@ -126,8 +106,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               <span>Create Order</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
-          <SidebarMenuItem className="px-2">
-            <InputGroup className="h-10 px-1 text-[14.5px] rounded-md">
+          <SidebarMenuItem>
+            <InputGroup className="h-10 px-1 bg-background shadow-sm text-[14.5px] rounded-md">
               <InputGroupInput placeholder="Search anything..." />
               <InputGroupAddon align="inline-end">
                 <IconSearch className="size-4" />
@@ -136,8 +116,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
-      <SidebarContent className="-mt-2">
-        <NavMain items={data.navMain} />
+      <SidebarContent>
+        <NavMain items={data.navMain} orgId={organization?.id} />
       </SidebarContent>
       <SidebarFooter>
         <NavUser org={organization as OrganizationResponse} />
