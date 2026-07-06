@@ -1,7 +1,7 @@
-import Header from "@/components/Top/Header"
+import Header from "@/components/Menu/Top/Header"
 import { restaurantData } from "@/dummy/Restaurant"
-import SearchBar from "@/components/Search/SearchBar"
-import Menu from "@/components/MenuLayout/Menu"
+import SearchBar from "@/components/Menu/Search/SearchBar"
+import Menu from "@/components/Menu/MenuLayout/Menu"
 import { menuItems } from "@/dummy/menu"
 
 export default function Page() {

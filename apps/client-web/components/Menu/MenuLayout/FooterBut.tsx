@@ -13,7 +13,7 @@ export default function FooterBut({ item }: { item: MenuItem }) {
 
     const unitPrice = isHalf ? item.price.half : item.price.full;
     const totalPrice = unitPrice * quantity;
-    console.log(item);
+    // console.log(item);
 
     function handleQuantityChange(delta: number) {
         setQuantity((prev) => Math.max(1, prev + delta));
@@ -28,6 +28,7 @@ export default function FooterBut({ item }: { item: MenuItem }) {
                 if (existingItem) {
                     // console.log("Item already exists in cart:", existingItem);
                     existingItem.quantity += quantity;
+                    existingItem.note = note.trim() || undefined;
                     sessionStorage.setItem("cart", JSON.stringify(cart));
                     window.dispatchEvent(new Event("cartUpdated")); // to auto update the cart item count
                     return;
@@ -39,6 +40,10 @@ export default function FooterBut({ item }: { item: MenuItem }) {
                 size: isHalf ? "half" : "full",
                 unitPrice,
                 quantity,
+                image: item.image,
+                category: item.category,
+                isVegetarian: item.isVegetarian,
+                preparationTime: item.preparationTime,
                 note: note.trim() || undefined,
             });
             sessionStorage.setItem("cart", JSON.stringify(cart));
@@ -110,7 +115,7 @@ export default function FooterBut({ item }: { item: MenuItem }) {
                 <textarea
                     value={note}
                     onChange={(e) => setNote(e.target.value)}
-                    placeholder="Extra sauce, no onions..."
+                    placeholder="Add Extra sauce, extra cheese, etc..."
                     rows={2}
                     className="w-full resize-none rounded-xl border border-border bg-muted px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground transition-colors focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
                 />
