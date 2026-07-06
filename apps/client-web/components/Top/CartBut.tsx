@@ -13,7 +13,7 @@ export default function CartBut() {
     useEffect(() => {
         const updateCount = () => {
             const cart = JSON.parse(sessionStorage.getItem("cart") || "[]");
-            console.log(cart.length);
+            // console.log(cart.length);
             const itemsCount = cart.reduce((total: any, item: any) => total + item.quantity, 0);
             setCount(itemsCount);
         };

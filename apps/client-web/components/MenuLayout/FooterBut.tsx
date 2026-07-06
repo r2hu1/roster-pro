@@ -26,7 +26,7 @@ export default function FooterBut({ item }: { item: MenuItem }) {
             if (cart.length > 0) {
                 const existingItem = cart.find((cartItem: any) => cartItem.id === item.id);
                 if (existingItem) {
-                    console.log("Item already exists in cart:", existingItem);
+                    // console.log("Item already exists in cart:", existingItem);
                     existingItem.quantity += quantity;
                     sessionStorage.setItem("cart", JSON.stringify(cart));
                     window.dispatchEvent(new Event("cartUpdated")); // to auto update the cart item count
@@ -43,7 +43,7 @@ export default function FooterBut({ item }: { item: MenuItem }) {
             });
             sessionStorage.setItem("cart", JSON.stringify(cart));
             window.dispatchEvent(new Event("cartUpdated")); // to auto update the cart item count
-            console.log("Item added to cart:", cart);
+            // console.log("Item added to cart:", cart);
         } catch (error) {
             console.error("Failed to update cart", error);
         }
