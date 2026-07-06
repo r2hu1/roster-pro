@@ -251,7 +251,6 @@ export default function CreateMenuItemModal({
 
         <ResponsiveModalFooter>
           <Button
-            size="lg"
             variant="secondary"
             disabled={pending}
             onClick={() => {
@@ -262,7 +261,6 @@ export default function CreateMenuItemModal({
             Cancel
           </Button>
           <Button
-            size="lg"
             disabled={pending || !name.trim()}
             onClick={handleCreate}
           >
