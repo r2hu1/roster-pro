@@ -1,14 +1,18 @@
 import type { MenuItemResponse } from "@workspace/shared/schemas/menu/menu-item/response"
 import { Badge } from "@workspace/ui/components/badge"
 import {
-  ResponsiveModal,
-  ResponsiveModalBody,
-  ResponsiveModalContent,
-  ResponsiveModalHeader,
-  ResponsiveModalTitle,
-  ResponsiveModalTrigger,
-} from "@workspace/ui/components/responsive-modal"
-import { IconCoinRupee } from "@tabler/icons-react"
+  Sheet,
+  SheetTrigger,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetFooter,
+} from "@workspace/ui/components/sheet"
+import Image from "next/image"
+import EditMenuItem from "./edit-menu-item"
+import { DropdownMenuItem } from "@workspace/ui/components/dropdown-menu"
+import DeleteItem from "./delete-menu-item"
+import { Button } from "@workspace/ui/components/button"
 
 export default function MenuItemInfo({
   item,
@@ -18,64 +22,91 @@ export default function MenuItemInfo({
   children: React.ReactNode
 }) {
   return (
-    <ResponsiveModal>
-      <ResponsiveModalTrigger asChild>{children}</ResponsiveModalTrigger>
-      <ResponsiveModalContent>
-        <ResponsiveModalHeader>
-          <ResponsiveModalTitle className="flex items-center gap-1.5">
+    <Sheet>
+      <SheetTrigger>{children}</SheetTrigger>
+      <SheetContent>
+        <SheetHeader>
+          <SheetTitle className="flex items-center gap-1.5">
             <span className="text-muted-foreground">Viewing</span>
             {item.name}
-          </ResponsiveModalTitle>
-        </ResponsiveModalHeader>
-        <ResponsiveModalBody>
-          <div className="space-y-4 pb-10 sm:pb-0">
-            {item.image ? (
-              <img
-                src={item.image}
-                alt={item.name}
-                className="h-[250px] w-full rounded-md object-cover"
-              />
-            ) : (
-              <div className="bg-muted flex h-[250px] w-full items-center justify-center rounded-md">
-                <span className="text-muted-foreground text-sm">No image</span>
+          </SheetTitle>
+        </SheetHeader>
+        <div className="space-y-4 p-6 pt-0">
+          {item.image ? (
+            <Image
+              height={10}
+              width={10}
+              src={item.image}
+              alt={item.name}
+              className="h-[250px] w-full rounded-md object-cover"
+            />
+          ) : (
+            <div className="bg-muted flex h-[250px] w-full items-center justify-center rounded-md">
+              <span className="text-muted-foreground text-sm">No image</span>
+            </div>
+          )}
+
+          <div className="space-y-3">
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex min-w-0 items-center gap-2">
+                <span
+                  className={
+                    "flex size-3.5 shrink-0 items-center justify-center rounded-[3px] border " +
+                    (item.isVegetarian ? "border-green-600" : "border-red-600")
+                  }
+                >
+                  <span
+                    className={
+                      "size-1.5 rounded-full " +
+                      (item.isVegetarian ? "bg-green-600" : "bg-red-600")
+                    }
+                  />
+                </span>
+                <h1 className="truncate text-lg font-medium">{item.name}</h1>
+              </div>
+
+              <div className="bg-primary/10 text-primary flex shrink-0 items-center gap-2 rounded-full px-3 py-1.5 text-xs font-medium">
+                <span>₹{item.price.half}</span>
+                <span className="bg-primary/25 h-3 w-px" />
+                <span>₹{item.price.full}</span>
+              </div>
+            </div>
+
+            {item.ingredients && item.ingredients.length > 0 && (
+              <div className="flex flex-wrap gap-2 pt-1">
+                {item.ingredients.map((ingredient, i) => (
+                  <Badge key={i} variant="secondary">
+                    {ingredient}
+                  </Badge>
+                ))}
               </div>
             )}
-            <div className="space-y-2">
-              <h1 className="flex items-center justify-between text-lg font-medium">
-                {item.name}
-                <Badge className="flex items-center gap-1">
-                  <IconCoinRupee className="size-3.5" />
-                  {item.price.half}/{item.price.full}
-                </Badge>
-              </h1>
-              {item.ingredients && item.ingredients.length > 0 && (
-                <div className="flex flex-wrap gap-2">
-                  {item.ingredients.map((ingredient, i) => (
-                    <Badge key={i} variant="secondary">
-                      {ingredient}
-                    </Badge>
-                  ))}
-                </div>
-              )}
-              {!item.description ? (
-                <p className="text-muted-foreground text-sm">
-                  No description added.
-                </p>
-              ) : (
-                <p className="text-foreground/80 text-sm">{item.description}</p>
-              )}
-            </div>
-            {item.updatedAt && (
-              <p className="text-muted-foreground text-sm">
-                Last Updated On:{" "}
-                <span className="text-foreground">
-                  {new Date(item.updatedAt).toDateString()}
-                </span>
+
+            {!item.description ? (
+              <p className="text-muted-foreground mt-4! text-sm">
+                No description added.
+              </p>
+            ) : (
+              <p className="text-foreground/80 mt-4 text-sm">
+                {item.description}
               </p>
             )}
           </div>
-        </ResponsiveModalBody>
-      </ResponsiveModalContent>
-    </ResponsiveModal>
+        </div>
+        <SheetFooter className="flex items-center justify-between flex-row">
+          {item.updatedAt && (
+            <p className="text-muted-foreground text-[13px]">
+              Last Updated On:{" "}
+              <span className="text-foreground">
+                {new Date(item.updatedAt).toDateString()}
+              </span>
+            </p>
+          )}
+          <Badge variant="outline">
+          {item.isAvailable ? "Available" : "Unavailable"}
+          </Badge>
+        </SheetFooter>
+      </SheetContent>
+    </Sheet>
   )
 }

@@ -1,11 +1,9 @@
 "use client"
-
 import {
   Avatar,
   AvatarImage,
   AvatarFallback,
 } from "@workspace/ui/components/avatar"
-import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import {
   DropdownMenu,
@@ -17,7 +15,6 @@ import {
 } from "@workspace/ui/components/dropdown-menu"
 import type { MenuItemResponse } from "@workspace/shared/schemas/menu/menu-item/response"
 import {
-  IconCoinRupee,
   IconDotsVertical,
   IconPencil,
   IconTrash,
@@ -28,49 +25,76 @@ import MenuItemInfo from "./menu-item-info"
 
 export default function ItemCard({ item }: { item: MenuItemResponse }) {
   return (
-    <div className="bg-card flex items-center justify-between rounded-md border p-2 pr-3">
-      <div className="flex gap-3">
+    <div className="bg-card group flex items-center justify-between gap-3 rounded-md border p-2 pr-3 transition-colors duration-200 hover:shadow-sm">
+      <div className="flex min-w-0 flex-1 items-center gap-3">
         <MenuItemInfo item={item}>
-          <Avatar className="size-12 cursor-pointer rounded-md object-cover hover:opacity-85">
-            <AvatarImage src={item.image ?? undefined} />
+          <Avatar className="ring-border/60 size-12 cursor-pointer rounded-md object-cover ring-1 transition-opacity hover:opacity-85">
+            <AvatarImage
+              className="rounded-md!"
+              src={item.image ?? undefined}
+            />
             <AvatarFallback className="rounded-md">
               {item.name.charAt(0)}
             </AvatarFallback>
           </Avatar>
         </MenuItemInfo>
-        <MenuItemInfo item={item}>
-          <div className="grid max-w-[200px] text-left cursor-pointer gap-1 truncate sm:max-w-full">
-            <h1 className="truncate text-sm font-medium">{item.name}</h1>
 
-            <div className="no-scrollbar flex flex-nowrap items-center gap-2 overflow-x-scroll sm:overflow-hidden">
-              <Badge className="flex items-center gap-1">
-                <IconCoinRupee className="size-3" />
-                {item.price.half}/{item.price.full}
-              </Badge>
-              <Badge variant="outline">
-                {item.isVegetarian ? "Vegetarian" : "Non-Vegetarian"}
-              </Badge>
-              <Badge variant="outline">
-                {item.isAvailable ? "Available" : "Not-Available"}
-              </Badge>
+        <MenuItemInfo item={item}>
+          <div className="grid min-w-0 cursor-pointer gap-1 text-left">
+            <div className="flex items-center gap-1.5">
+              {/* Authentic veg / non-veg symbol */}
+              <span
+                className={
+                  "flex size-3 shrink-0 items-center justify-center rounded-[3px] border " +
+                  (item.isVegetarian
+                    ? "border-green-600"
+                    : "border-red-600")
+                }
+              >
+                <span
+                  className={
+                    "size-1.5 rounded-full " +
+                    (item.isVegetarian ? "bg-green-600" : "bg-red-600")
+                  }
+                />
+              </span>
+              <h1 className="truncate text-sm font-medium">{item.name}</h1>
+            </div>
+
+            <div className="flex flex-nowrap items-center gap-2">
+              <span
+                className={
+                  "text-xs " +
+                  (item.isAvailable
+                    ? "text-muted-foreground"
+                    : "text-muted-foreground/60 line-through decoration-muted-foreground/40")
+                }
+              >
+                {item.isAvailable ? "Available" : "Unavailable"}
+              </span>
             </div>
           </div>
         </MenuItemInfo>
       </div>
 
+      {/* Price pill */}
+      <div className="bg-primary/10 text-primary flex shrink-0 items-center gap-2 rounded-full px-3 py-1.5 text-xs font-medium">
+        <span>₹{item.price.half}</span>
+        <span className="bg-primary/25 h-3 w-px" />
+        <span>₹{item.price.full}</span>
+      </div>
+
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button size="icon-sm" variant="outline" className="bg-card">
+          <Button size="icon-sm" variant="secondary" className="bg-card shrink-0">
             <IconDotsVertical className="size-4" />
           </Button>
         </DropdownMenuTrigger>
-
         <DropdownMenuContent align="end">
           <DropdownMenuGroup>
             <DropdownMenuLabel className="text-foreground/70 px-1 py-1 text-xs font-normal">
               Actions
             </DropdownMenuLabel>
-
             <EditMenuItem
               itemId={item.id}
               prevAvailable={item.isAvailable}
@@ -86,7 +110,6 @@ export default function ItemCard({ item }: { item: MenuItemResponse }) {
                 <IconPencil className="ml-auto size-3.5" />
               </DropdownMenuItem>
             </EditMenuItem>
-
             <DeleteItem itemId={item.id}>
               <DropdownMenuItem
                 onSelect={(e) => e.preventDefault()}

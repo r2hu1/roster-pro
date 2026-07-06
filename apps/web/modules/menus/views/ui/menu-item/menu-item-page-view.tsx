@@ -160,32 +160,28 @@ export default function MenuItemsPageView() {
                 </CreateMenuItemModal>
               }
             />
+          ) : itemsQuery.data.filter((item) =>
+              item.name.toLowerCase().includes(searchTerm.toLowerCase())
+            ).length > 0 ? (
+                  itemsQuery.data
+                    .filter((item) =>
+                        item.name.toLowerCase().includes(searchTerm.toLowerCase())
+                      )
+                      .map((item) => <ItemCard key={item.id} item={item} />)
           ) : (
-            itemsQuery.data
-              .filter((item) =>
-                item.name.toLowerCase().includes(searchTerm.toLowerCase())
-              )
-              .length > 0 ? (
-              itemsQuery.data
-                .filter((item) =>
-                  item.name.toLowerCase().includes(searchTerm.toLowerCase())
-                )
-                .map((item) => <ItemCard key={item.id} item={item} />)
-            ) : (
-              <EmptyData
-                icon={<IconToolsKitchen2Off />}
-                title={`No items found for "${searchTerm}"`}
-                description={`Want to create "${searchTerm}"? Click the button below to add it to your menu.`}
-                action={
-                  <CreateMenuItemModal>
-                    <Button>
-                      <IconCirclePlus />
-                      <span>Create Item</span>
-                    </Button>
-                  </CreateMenuItemModal>
-                }
-              />
-            )
+            <EmptyData
+              icon={<IconToolsKitchen2Off />}
+              title={`No items found for "${searchTerm}"`}
+              description={`Want to create "${searchTerm}"? Click the button below to add it to your menu.`}
+              action={
+                <CreateMenuItemModal>
+                  <Button>
+                    <IconCirclePlus />
+                    <span>Create Item</span>
+                  </Button>
+                </CreateMenuItemModal>
+              }
+            />
           )}
         </div>
       </main>

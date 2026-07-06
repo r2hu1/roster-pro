@@ -83,11 +83,10 @@ export default function DeleteItem({
             variant="secondary"
             disabled={pending}
             onClick={() => setOpen(false)}
-            size="lg"
           >
             Cancel
           </Button>
-          <Button size="lg" disabled={pending} onClick={handleDelete}>
+          <Button disabled={pending} variant="destructive" onClick={handleDelete}>
             Continue
             {pending && <Loader />}
           </Button>

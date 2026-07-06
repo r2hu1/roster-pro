@@ -161,7 +161,7 @@ export default function EditMenuItem({
         </ResponsiveModalHeader>
 
         <form
-          className="no-scrollbar grid max-h-[50vh] gap-3 overflow-y-auto px-4 md:px-0"
+          className="no-scrollbar overflow-x-hidden grid max-h-[50vh] gap-3 overflow-y-auto px-4 md:px-0.5"
           onSubmit={(e) => {
             e.preventDefault()
             handleEdit()
@@ -276,11 +276,10 @@ export default function EditMenuItem({
               setOpen(false)
               reset()
             }}
-            size="lg"
           >
             Cancel
           </Button>
-          <Button size="lg" disabled={pending} onClick={handleEdit}>
+          <Button disabled={pending} onClick={handleEdit}>
             Save
             {pending && <Loader />}
           </Button>

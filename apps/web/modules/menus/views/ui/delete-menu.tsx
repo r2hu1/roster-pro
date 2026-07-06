@@ -28,10 +28,10 @@ export default function DeleteMenu({
   const [open, setOpen] = useState(false)
   const [pending, setPending] = useState(false)
   const qc = useQueryClient()
-  const router = useRouter();
+  const router = useRouter()
 
   async function handleDelete() {
-    setPending(true);
+    setPending(true)
 
     try {
       const res = await api.delete(`/organization/menu/${menuId}`)
