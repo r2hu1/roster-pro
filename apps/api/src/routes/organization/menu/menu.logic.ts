@@ -8,6 +8,7 @@ import { menu, menuItem } from "../../../core/db/schemas/menu.js"
 import { deleteFile } from "../../../core/imagekit/delete.js"
 import { redisClient } from "../../../core/redis/client.js"
 import { HTTP_STATUS_CODES } from "../../../lib/utils.js"
+import { v4 as uuidv4 } from "uuid"
 
 const MENU_CACHE_PREFIX = "menu:"
 const MENU_ITEMS_CACHE_PREFIX = "menu_items:"
@@ -84,6 +85,7 @@ export const menuLogic = {
     const [created] = await db
       .insert(menu)
       .values({
+        id: uuidv4(),
         organizationId,
         name: body.name,
         description: body.description ?? null,

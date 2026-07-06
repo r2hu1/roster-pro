@@ -6,6 +6,7 @@ import { IconCirclePlus, IconToolsKitchen2Off } from "@tabler/icons-react";
 import { useQuery } from "@tanstack/react-query";
 import { MenuResponse } from "@workspace/shared/schemas/menu/response";
 import { Button } from "@workspace/ui/components/button";
+import CreateMenuModal from "./create-menu-responsive-modal";
 
 export default function MenusPageView() {
   const { data: menus, isPending: menusLoading, error: menusError } = useQuery({
@@ -21,9 +22,11 @@ export default function MenusPageView() {
         title="No menu added yet."
         description="Start by creating your first menu, click the button below to get started."
         action={
-          <Button size="lg">
-            Create Menu <IconCirclePlus />
-          </Button>
+          <CreateMenuModal>
+            <Button size="lg">
+              Create Menu <IconCirclePlus />
+            </Button>
+          </CreateMenuModal>
         }
         icon={<IconToolsKitchen2Off/>}
       />

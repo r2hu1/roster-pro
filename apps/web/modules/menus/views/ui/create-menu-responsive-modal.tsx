@@ -17,9 +17,8 @@ import { Textarea } from '@workspace/ui/components/textarea';
 import { toast } from 'sonner';
 import { useQueryClient } from '@tanstack/react-query';
 import { Loader } from '@workspace/ui/components/loader';
-import { DnDImageInput } from '@workspace/ui/components/dnd-image-input';
-import { useSession } from '@/modules/providers/session-provider';
 import api from '@/lib/axios';
+import { CreateMenuSchema } from '@workspace/shared/schemas/menu/create';
 
 export default function CreateMenuModal({
   children,
@@ -30,52 +29,61 @@ export default function CreateMenuModal({
   const [pending, setPending] = useState(false);
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
-  const [image, setImage] = useState<File | null>(null);
-  const {organization:org} = useSession();
 
   const qc = useQueryClient();
 
+  function reset() {
+    setName('');
+    setDescription('');
+  }
+
   async function handleCreate() {
-    if (!name.trim()) {
-      toast.error('Menu name is required');
+    const parsed = CreateMenuSchema.safeParse({
+      name: name.trim(),
+      description: description.trim() || null,
+      isActive: false,
+    });
+
+    if (!parsed.success) {
+      toast.error(parsed.error.issues[0]?.message || 'Invalid input');
       return;
     }
 
     setPending(true);
 
     try {
-      const formData = new FormData();
-      formData.append('name', name);
-      formData.append('description', description);
-      formData.append('isActive', 'false');
-      formData.append('organizationId', org?.id ?? '');
-
-      if (image) formData.append('image', image);
-
-      const res = await api.post('/organization/menu', formData);
-
-      if (res.data) {
-        setOpen(false);
-        setName('');
-        setDescription('');
-        setImage(null);
-        toast.success('Added new menu in your restaurant!');
-        qc.invalidateQueries({
-          queryKey: ['all-menus', org?.id],
-        });
-      }
-    } catch (error: any) {
-      toast.error(error.response.data.error || 'Failed to save changes', {
-        description:
-          error.response.data.message || 'If persists contact support',
+      const res = await api.post('/organization/menu', parsed.data, {
+        headers: { 'Content-Type': 'application/json' },
       });
+
+      if (res.data?.status === 'success') {
+        setOpen(false);
+        reset();
+        toast.success('Menu added to your restaurant!');
+        qc.invalidateQueries({ queryKey: ['menus'] });
+      } else {
+        throw new Error(res.data?.message || 'Failed to create menu');
+      }
+    } catch (error) {
+      const axiosError = error as { response?: { data?: { message?: string; error?: string } }; message?: string };
+      const message = axiosError?.response?.data?.message
+        || axiosError?.response?.data?.error
+        || axiosError?.message
+        || 'Failed to create menu';
+      toast.error(message);
     } finally {
       setPending(false);
     }
   }
 
   return (
-    <ResponsiveModal open={open} onOpenChange={setOpen}>
+    <ResponsiveModal
+      open={open}
+      onOpenChange={(v) => {
+        setOpen(v);
+        if (!v) reset();
+      }}
+    >
       <ResponsiveModalTrigger>{children}</ResponsiveModalTrigger>
 
       <ResponsiveModalContent>
@@ -93,8 +101,6 @@ export default function CreateMenuModal({
             handleCreate();
           }}
         >
-          <DnDImageInput onChange={(e) => setImage(e)} />
-
           <Label htmlFor="name">Name</Label>
           <Input
             id="name"
@@ -119,12 +125,18 @@ export default function CreateMenuModal({
         <ResponsiveModalFooter>
           <Button
             variant="secondary"
+            size="lg"
             disabled={pending}
-            onClick={() => setOpen(false)}
+            onClick={() => {
+              setOpen(false);
+              reset();
+            }}
           >
             Cancel
           </Button>
-          <Button disabled={pending || !name.trim()} onClick={handleCreate}>
+          <Button
+size="lg"
+            disabled={pending || !name.trim()} onClick={handleCreate}>
             Continue
             {pending && <Loader />}
           </Button>
