@@ -39,7 +39,7 @@ export default function ItemCard({ item }: { item: MenuItemResponse }) {
           </Avatar>
         </MenuItemInfo>
         <MenuItemInfo item={item}>
-          <div className="grid max-w-[200px] cursor-pointer gap-1 truncate sm:max-w-full">
+          <div className="grid max-w-[200px] text-left cursor-pointer gap-1 truncate sm:max-w-full">
             <h1 className="truncate text-sm font-medium">{item.name}</h1>
 
             <div className="no-scrollbar flex flex-nowrap items-center gap-2 overflow-x-scroll sm:overflow-hidden">

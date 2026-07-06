@@ -180,6 +180,6 @@ export const menuLogic = {
     await redisClient.delPattern(`${MENU_CACHE_PREFIX}all:${organizationId}`)
     await redisClient.delPattern(`${MENU_ITEMS_CACHE_PREFIX}*:${id}`)
 
-    return { status: "success", code: HTTP_STATUS_CODES.NO_CONTENT }
+    return { status: "success", code: HTTP_STATUS_CODES.OK }
   },
 }

@@ -3,7 +3,6 @@
 import { useState } from "react"
 import {
   ResponsiveModal,
-  ResponsiveModalTrigger,
   ResponsiveModalContent,
   ResponsiveModalHeader,
   ResponsiveModalTitle,
@@ -100,9 +99,17 @@ export default function EditMenu({
         if (!v) reset()
       }}
     >
-      <ResponsiveModalTrigger asChild className="w-full">
+      <span
+        className="contents cursor-pointer"
+        onClick={() => setOpen(true)}
+        role="button"
+        tabIndex={0}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") setOpen(true)
+        }}
+      >
         {children}
-      </ResponsiveModalTrigger>
+      </span>
 
       <ResponsiveModalContent>
         <ResponsiveModalHeader>

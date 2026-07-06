@@ -20,7 +20,9 @@ export type OrderItemJson = Omit<CreateOrderItemDto, "id" | "orderId">
 export const order = pgTable(
   "order",
   {
-    id: text("id").primaryKey().default(uuidv4()),
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => uuidv4()),
 
     organizationId: text("organization_id")
       .notNull()
@@ -68,7 +70,9 @@ export const order = pgTable(
 export const orderItem = pgTable(
   "order_item",
   {
-    id: text("id").primaryKey().default(uuidv4()),
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => uuidv4()),
     orderId: text("order_id")
       .notNull()
       .references(() => order.id, {
