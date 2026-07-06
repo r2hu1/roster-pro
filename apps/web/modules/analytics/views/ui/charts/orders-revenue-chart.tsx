@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { Area, AreaChart, CartesianGrid, XAxis } from "recharts"
+import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts"
 
 import {
   Card,
@@ -101,6 +101,24 @@ export function OrdersRevenueChart({
                 })
               }}
             />
+            <YAxis
+              yAxisId="left"
+              orientation="left"
+              tickLine={false}
+              axisLine={false}
+              tickMargin={8}
+              tickFormatter={(value) => value.toLocaleString()}
+            />
+            <YAxis
+              yAxisId="right"
+              orientation="right"
+              tickLine={false}
+              axisLine={false}
+              tickMargin={8}
+              tickFormatter={(value) =>
+                `₹${value.toLocaleString()}`
+              }
+            />
             <ChartTooltip
               cursor={false}
               content={
@@ -120,14 +138,14 @@ export function OrdersRevenueChart({
               type="natural"
               fill="url(#fillOrders)"
               stroke="var(--color-orders)"
-              stackId="a"
+              yAxisId="left"
             />
             <Area
               dataKey="revenue"
               type="natural"
               fill="url(#fillRevenue)"
               stroke="var(--color-revenue)"
-              stackId="a"
+              yAxisId="right"
             />
             <ChartLegend content={<ChartLegendContent />} />
           </AreaChart>
