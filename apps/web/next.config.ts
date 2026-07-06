@@ -5,8 +5,15 @@ const API_URL = process.env.API_URL ?? "http://localhost:3000"
 const nextConfig: NextConfig = {
   transpilePackages: ["@workspace/ui"],
   images: {
-    domains: ["ik.imagekit.io"],
     unoptimized: true,
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "ik.imagekit.io",
+        port: "",
+        pathname: "/",
+      },
+    ]
   },
   async rewrites() {
     return [
