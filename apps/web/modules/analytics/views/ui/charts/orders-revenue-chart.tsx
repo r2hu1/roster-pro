@@ -1,7 +1,15 @@
 "use client"
 
-import * as React from "react"
-import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts"
+import {
+  Area,
+  AreaChart,
+  CartesianGrid,
+  Legend,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts"
 
 import {
   Card,
@@ -10,26 +18,14 @@ import {
   CardHeader,
   CardTitle,
 } from "@workspace/ui/components/card"
-import {
-  ChartContainer,
-  ChartLegend,
-  ChartLegendContent,
-  ChartTooltip,
-  ChartTooltipContent,
-  type ChartConfig,
-} from "@workspace/ui/components/chart"
 import type { DailyData } from "@workspace/shared/schemas/analytics/index"
 
-const chartConfig = {
-  orders: {
-    label: "Orders",
-    color: "var(--chart-1)",
-  },
-  revenue: {
-    label: "Revenue",
-    color: "var(--chart-2)",
-  },
-} satisfies ChartConfig
+function formatDate(value: string) {
+  return new Date(value).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+  })
+}
 
 export function OrdersRevenueChart({
   chartData,
@@ -55,101 +51,128 @@ export function OrdersRevenueChart({
         </div>
       </CardHeader>
       <CardContent className="px-2 pt-4 sm:px-6 sm:pt-6">
-        <ChartContainer
-          config={chartConfig}
-          className="aspect-auto h-[250px] w-full"
-        >
-          <AreaChart data={data}>
-            <defs>
-              <linearGradient id="fillOrders" x1="0" y1="0" x2="0" y2="1">
-                <stop
-                  offset="5%"
-                  stopColor="var(--color-orders)"
-                  stopOpacity={0.8}
-                />
-                <stop
-                  offset="95%"
-                  stopColor="var(--color-orders)"
-                  stopOpacity={0.1}
-                />
-              </linearGradient>
-              <linearGradient id="fillRevenue" x1="0" y1="0" x2="0" y2="1">
-                <stop
-                  offset="5%"
-                  stopColor="var(--color-revenue)"
-                  stopOpacity={0.8}
-                />
-                <stop
-                  offset="95%"
-                  stopColor="var(--color-revenue)"
-                  stopOpacity={0.1}
-                />
-              </linearGradient>
-            </defs>
-            <CartesianGrid vertical={false} />
-            <XAxis
-              dataKey="date"
-              tickLine={false}
-              axisLine={false}
-              tickMargin={8}
-              minTickGap={32}
-              tickFormatter={(value) => {
-                const date = new Date(value)
-                return date.toLocaleDateString("en-US", {
-                  month: "short",
-                  day: "numeric",
-                })
-              }}
-            />
-            <YAxis
-              yAxisId="left"
-              orientation="left"
-              tickLine={false}
-              axisLine={false}
-              tickMargin={8}
-              tickFormatter={(value) => value.toLocaleString()}
-            />
-            <YAxis
-              yAxisId="right"
-              orientation="right"
-              tickLine={false}
-              axisLine={false}
-              tickMargin={8}
-              tickFormatter={(value) =>
-                `₹${value.toLocaleString()}`
-              }
-            />
-            <ChartTooltip
-              cursor={false}
-              content={
-                <ChartTooltipContent
-                  labelFormatter={(value) => {
-                    return new Date(value).toLocaleDateString("en-US", {
-                      month: "short",
-                      day: "numeric",
-                    })
-                  }}
-                  indicator="dot"
-                />
-              }
-            />
-            <Area
-              dataKey="orders"
-              type="natural"
-              fill="url(#fillOrders)"
-              stroke="var(--color-orders)"
-              yAxisId="left"
-            />
-            <Area
-              dataKey="revenue"
-              type="natural"
-              fill="url(#fillRevenue)"
-              stroke="var(--color-revenue)"
-              yAxisId="right"
-            />
-            <ChartLegend content={<ChartLegendContent />} />
-          </AreaChart>
-        </ChartContainer>
+        <div className="h-[250px] w-full">
+          <ResponsiveContainer width="100%" height="100%">
+            <AreaChart data={data}>
+              <defs>
+                <linearGradient id="fillOrders" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="var(--chart-1)" stopOpacity={0.8} />
+                  <stop offset="95%" stopColor="var(--chart-1)" stopOpacity={0.1} />
+                </linearGradient>
+                <linearGradient id="fillRevenue" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="var(--chart-2)" stopOpacity={0.8} />
+                  <stop offset="95%" stopColor="var(--chart-2)" stopOpacity={0.1} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid vertical={false} stroke="var(--border)" opacity={0.5} />
+              <XAxis
+                dataKey="date"
+                tickLine={false}
+                axisLine={false}
+                tickMargin={8}
+                minTickGap={32}
+                tickFormatter={formatDate}
+                stroke="var(--muted-foreground)"
+                fontSize={12}
+              />
+              <YAxis
+                yAxisId="left"
+                orientation="left"
+                tickLine={false}
+                axisLine={false}
+                tickMargin={8}
+                tickFormatter={(v: number) => v.toLocaleString()}
+                stroke="var(--muted-foreground)"
+                fontSize={12}
+              />
+              <YAxis
+                yAxisId="right"
+                orientation="right"
+                tickLine={false}
+                axisLine={false}
+                tickMargin={8}
+                tickFormatter={(v: number) => `\u20B9${v.toLocaleString()}`}
+                stroke="var(--muted-foreground)"
+                fontSize={12}
+              />
+              <Tooltip
+                cursor={false}
+                content={({ active, payload, label }) => {
+                  if (!active || !payload?.length) return null
+                  return (
+                    <div className="rounded-lg border border-border/50 bg-background px-3 py-2 text-xs shadow-xl">
+                      <p className="mb-1.5 font-medium">
+                        {formatDate(label as string)}
+                      </p>
+                      <div className="space-y-1">
+                        {payload.map((entry) => (
+                          <div
+                            key={entry.dataKey as string}
+                            className="flex items-center gap-2"
+                          >
+                            <span
+                              className="size-2 shrink-0 rounded-[2px]"
+                              style={{ backgroundColor: entry.color }}
+                            />
+                            <span className="text-muted-foreground">
+                              {entry.name}
+                            </span>
+                            <span className="font-mono tabular-nums text-foreground">
+                              {entry.dataKey === "revenue"
+                                ? `\u20B9${Number(entry.value).toLocaleString()}`
+                                : Number(entry.value).toLocaleString()}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )
+                }}
+              />
+              <Area
+                dataKey="orders"
+                type="natural"
+                fill="url(#fillOrders)"
+                stroke="var(--chart-1)"
+                strokeWidth={2}
+                yAxisId="left"
+                name="Orders"
+              />
+              <Area
+                dataKey="revenue"
+                type="natural"
+                fill="url(#fillRevenue)"
+                stroke="var(--chart-2)"
+                strokeWidth={2}
+                yAxisId="right"
+                name="Revenue"
+              />
+              <Legend
+                content={({ payload }) => {
+                  if (!payload?.length) return null
+                  return (
+                    <div className="flex items-center justify-center gap-4 pt-3">
+                      {payload.map((entry) => (
+                        <div
+                          key={entry.value}
+                          className="flex items-center gap-1.5"
+                        >
+                          <span
+                            className="size-2 shrink-0 rounded-[2px]"
+                            style={{ backgroundColor: entry.color }}
+                          />
+                          <span className="text-xs text-muted-foreground">
+                            {entry.value}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  )
+                }}
+              />
+            </AreaChart>
+          </ResponsiveContainer>
+        </div>
       </CardContent>
     </Card>
   )
