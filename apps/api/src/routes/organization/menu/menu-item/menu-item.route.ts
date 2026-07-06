@@ -1,6 +1,6 @@
 import { Hono } from "hono"
 import type { AppEnv } from "../../../../index.js"
-import { HTTP_STATUS_CODES, zvalidator } from "../../../../lib/utils.js"
+import { HTTP_STATUS_CODES } from "../../../../lib/utils.js"
 import { sessionMiddleware } from "../../../../middleware/session.js"
 import { menuItemLogic } from "./menu-item.logic.js"
 import {
@@ -47,39 +47,7 @@ menuItemRouter.get("/:id", async (c) => {
   return c.json(result, result.code)
 })
 
-menuItemRouter.post(
-  "/",
-  zvalidator("json", createMenuItemSchema),
-  async (c) => {
-    const body = c.req.valid("json")
-    const organizationId = c.get("organizationId")
-    if (!organizationId) {
-      return c.json(
-        {
-          status: "error",
-          code: HTTP_STATUS_CODES.UNAUTHORIZED,
-          message: "Organization not found",
-        },
-        HTTP_STATUS_CODES.UNAUTHORIZED
-      )
-    }
-
-    let file: File | undefined
-    const contentType = c.req.header("content-type")
-    if (contentType?.includes("multipart/form-data")) {
-      const parsed = await c.req.parseBody()
-      const uploaded = parsed.image
-      if (uploaded instanceof File) {
-        file = uploaded
-      }
-    }
-
-    const result = await menuItemLogic.createItem(organizationId, body, file)
-    return c.json(result, result.code)
-  }
-)
-
-menuItemRouter.put("/", zvalidator("json", updateMenuItemSchema), async (c) => {
+menuItemRouter.post("/", async (c) => {
   const organizationId = c.get("organizationId")
   if (!organizationId) {
     return c.json(
@@ -92,19 +60,114 @@ menuItemRouter.put("/", zvalidator("json", updateMenuItemSchema), async (c) => {
     )
   }
 
-  const body = c.req.valid("json")
-
+  const contentType = c.req.header("content-type") || ""
+  let body: Record<string, unknown>
   let file: File | undefined
-  const contentType = c.req.header("content-type")
-  if (contentType?.includes("multipart/form-data")) {
-    const parsed = await c.req.parseBody()
-    const uploaded = parsed.image
-    if (uploaded instanceof File) {
-      file = uploaded
+
+  if (contentType.includes("multipart/form-data")) {
+    const formData = await c.req.parseBody()
+    file = formData.image instanceof File ? formData.image : undefined
+
+    body = {
+      menuId: formData.menuId as string,
+      name: formData.name as string,
+      description: (formData.description as string) || null,
+      ingredients:
+        (formData.ingredients as string)
+          ?.split(",")
+          .map((s: string) => s.trim())
+          .filter(Boolean) || null,
+      price: {
+        half: parseFloat((formData.price_half as string) || "0"),
+        full: parseFloat((formData.price_full as string) || "0"),
+      },
+      isAvailable: formData.isAvailable === "true",
+      isVegetarian: formData.isVegetarian === "true",
     }
+  } else {
+    body = await c.req.json()
   }
 
-  const result = await menuItemLogic.updateItem(organizationId, body, file)
+  const parsed = createMenuItemSchema.safeParse(body)
+  if (!parsed.success) {
+    return c.json(
+      {
+        status: "error",
+        code: HTTP_STATUS_CODES.BAD_REQUEST,
+        message: "Validation failed",
+        errors: parsed.error.issues,
+      },
+      HTTP_STATUS_CODES.BAD_REQUEST
+    )
+  }
+
+  const result = await menuItemLogic.createItem(
+    organizationId,
+    parsed.data,
+    file
+  )
+  return c.json(result, result.code)
+})
+
+menuItemRouter.put("/", async (c) => {
+  const organizationId = c.get("organizationId")
+  if (!organizationId) {
+    return c.json(
+      {
+        status: "error",
+        code: HTTP_STATUS_CODES.UNAUTHORIZED,
+        message: "Organization not found",
+      },
+      HTTP_STATUS_CODES.UNAUTHORIZED
+    )
+  }
+
+  const contentType = c.req.header("content-type") || ""
+  let body: Record<string, unknown>
+  let file: File | undefined
+
+  if (contentType.includes("multipart/form-data")) {
+    const formData = await c.req.parseBody()
+    file = formData.image instanceof File ? formData.image : undefined
+
+    body = {
+      id: formData.id as string,
+      name: formData.name as string,
+      description: (formData.description as string) || null,
+      ingredients:
+        (formData.ingredients as string)
+          ?.split(",")
+          .map((s: string) => s.trim())
+          .filter(Boolean) || null,
+      price: {
+        half: parseFloat((formData.price_half as string) || "0"),
+        full: parseFloat((formData.price_full as string) || "0"),
+      },
+      isAvailable: formData.isAvailable === "true",
+      isVegetarian: formData.isVegetarian === "true",
+    }
+  } else {
+    body = await c.req.json()
+  }
+
+  const parsed = updateMenuItemSchema.safeParse(body)
+  if (!parsed.success) {
+    return c.json(
+      {
+        status: "error",
+        code: HTTP_STATUS_CODES.BAD_REQUEST,
+        message: "Validation failed",
+        errors: parsed.error.issues,
+      },
+      HTTP_STATUS_CODES.BAD_REQUEST
+    )
+  }
+
+  const result = await menuItemLogic.updateItem(
+    organizationId,
+    parsed.data,
+    file
+  )
   return c.json(result, result.code)
 })
 

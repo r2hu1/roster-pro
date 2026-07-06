@@ -87,7 +87,7 @@ const data = {
 }
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const { organization } = useSession();
+  const { organization } = useSession()
 
   return (
     <Sidebar variant="inset" collapsible="offcanvas" {...props}>
@@ -95,7 +95,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       <SidebarHeader>
         <SidebarMenu className="space-y-4">
           <SidebarMenuItem className="-ml-2">
-              <Logo className="h-10 w-auto" />
+            <Logo className="h-10 w-auto" />
           </SidebarMenuItem>
           <SidebarMenuItem className="px-2 hidden">
             <SidebarMenuButton

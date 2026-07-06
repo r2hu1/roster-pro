@@ -18,7 +18,12 @@ import Image from "next/image"
 import Link from "next/link"
 import { toast } from "sonner"
 
-const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"]
+const ALLOWED_IMAGE_TYPES = [
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "image/gif",
+]
 const MAX_IMAGE_SIZE = 5 * 1024 * 1024
 const PHONE_REGEX = /^\d{10}$/
 
@@ -35,22 +40,32 @@ export default function OnboardingPageView() {
   }, [imagePreview])
 
   const handleImageChange = useCallback((file: File | null) => {
-    setImagePreview(prev => {
+    setImagePreview((prev) => {
       if (prev) URL.revokeObjectURL(prev)
       return file ? URL.createObjectURL(file) : null
     })
     setImage(file)
   }, [])
 
-  function validate(name: string, phone: string, address: string): string | null {
-    if (!name || name.length < 2) return "Restaurant name must be at least 2 characters"
-    if (name.length > 100) return "Restaurant name must be less than 100 characters"
+  function validate(
+    name: string,
+    phone: string,
+    address: string
+  ): string | null {
+    if (!name || name.length < 2)
+      return "Restaurant name must be at least 2 characters"
+    if (name.length > 100)
+      return "Restaurant name must be less than 100 characters"
     if (!phone) return "Restaurant phone is required"
-    if (!PHONE_REGEX.test(phone)) return "Please enter a valid 10-digit phone number"
-    if (!address || address.length < 10) return "Please enter a full restaurant address"
+    if (!PHONE_REGEX.test(phone))
+      return "Please enter a valid 10-digit phone number"
+    if (!address || address.length < 10)
+      return "Please enter a full restaurant address"
     if (address.length > 500) return "Address must be less than 500 characters"
-    if (image && !ALLOWED_IMAGE_TYPES.includes(image.type)) return "Logo must be a JPEG, PNG, WebP, or GIF image"
-    if (image && image.size > MAX_IMAGE_SIZE) return "Logo must be less than 5MB"
+    if (image && !ALLOWED_IMAGE_TYPES.includes(image.type))
+      return "Logo must be a JPEG, PNG, WebP, or GIF image"
+    if (image && image.size > MAX_IMAGE_SIZE)
+      return "Logo must be less than 5MB"
     return null
   }
 
