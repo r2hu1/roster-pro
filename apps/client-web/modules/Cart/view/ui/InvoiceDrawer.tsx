@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import {
     Drawer,
     DrawerClose,
@@ -15,6 +15,7 @@ import { Button } from "@workspace/ui/components/button";
 import FormatPrice from "@/util/FormatPrice";
 import { CartItemType } from "../../view/ui/ItemCard";
 import { ShoppingCart } from "lucide-react";
+import { toast } from "sonner"
 
 // Adjust to your org's actual applicable rates (or pull from org settings)
 const CGST_RATE = 0.025; // 2.5%
@@ -36,6 +37,7 @@ interface InvoiceDrawerProps {
 }
 
 export default function InvoiceDrawer({ cartItem, tableNumber, discount = 0, onPlaceOrder }: InvoiceDrawerProps) {
+    const [isOpen, setIsOpen] = useState(false);
     const invoice = useMemo(() => {
         const subtotal = cartItem.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0);
         const taxableAmount = subtotal - discount;
@@ -95,10 +97,14 @@ export default function InvoiceDrawer({ cartItem, tableNumber, discount = 0, onP
 
         console.log("Order Data:", orderData);
 
+        setIsOpen(false);
+
+        toast("Order placed successfully", { position: "top-center", description: `ordered ${orderData.items.length} items` })        
+
         // onPlaceOrder(invoice);
     }
     return (
-        <Drawer>
+        <Drawer open={isOpen} onOpenChange={setIsOpen}>
             <DrawerTrigger className="w-full ">
                 <Button className="w-full px-auto py-5">Place an order</Button>
             </DrawerTrigger>

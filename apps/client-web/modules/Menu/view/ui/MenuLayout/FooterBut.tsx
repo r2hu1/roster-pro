@@ -6,6 +6,7 @@ import { DrawerClose } from "@workspace/ui/components/drawer";
 import { Minus, Plus, ShoppingCart } from "lucide-react";
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner"
 import { CartItemType } from "@/modules/Cart/view/ui/ItemCard";
 
 export default function FooterBut({ item }: { item: MenuItem }) {
@@ -35,6 +36,7 @@ export default function FooterBut({ item }: { item: MenuItem }) {
                     existingItem.note = note.trim() || undefined;
                     sessionStorage.setItem("cart", JSON.stringify(cart));
                     window.dispatchEvent(new Event("cartUpdated")); // to auto update the cart item count
+                    toast("Item updated in cart", {position:"top-center"});
                     return;
                 }
             }
@@ -52,6 +54,7 @@ export default function FooterBut({ item }: { item: MenuItem }) {
             });
             sessionStorage.setItem("cart", JSON.stringify(cart));
             window.dispatchEvent(new Event("cartUpdated")); // to auto update the cart item count
+            toast(`${item.name} added to cart`, {position:"top-center"});
             // console.log("Item added to cart:", cart);
         } catch (error) {
             console.error("Failed to update cart", error);
@@ -134,7 +137,7 @@ export default function FooterBut({ item }: { item: MenuItem }) {
                 <textarea
                     value={note}
                     onChange={(e) => setNote(e.target.value)}
-                    placeholder="Add Extra sauce, extra cheese, etc..."
+                    placeholder="Add extra sauce, extra cheese, etc..."
                     rows={2}
                     className="w-full resize-none rounded-xl border border-border bg-muted px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground transition-colors focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
                 />
