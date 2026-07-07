@@ -2,7 +2,7 @@ import { Geist, Geist_Mono, Instrument_Sans } from "next/font/google";
 
 import "@workspace/ui/globals.css";
 import { cn } from "@workspace/ui/lib/utils";
-import { Toaster } from "@workspace/ui/components/sonner";
+import ReactQueryProvider from "@/components/ReactQueryProvider";
 
 const instrumentSans = Instrument_Sans({
     subsets: ["latin"],
@@ -22,8 +22,7 @@ export default function RootLayout({
     return (
         <html lang="en" suppressHydrationWarning className={cn("antialiased", fontMono.variable, "font-sans", instrumentSans.variable)}>
             <body>
-                {children}
-                <Toaster />
+                <ReactQueryProvider>{children}</ReactQueryProvider>
             </body>
         </html>
     );

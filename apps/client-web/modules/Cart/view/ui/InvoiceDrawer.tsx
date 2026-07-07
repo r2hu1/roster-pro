@@ -13,7 +13,7 @@ import {
 } from "@workspace/ui/components/drawer";
 import { Button } from "@workspace/ui/components/button";
 import FormatPrice from "@/util/FormatPrice";
-import { CartItemType } from "./ItemCard";
+import { CartItemType } from "../../view/ui/ItemCard";
 import { ShoppingCart } from "lucide-react";
 
 // Adjust to your org's actual applicable rates (or pull from org settings)

@@ -2,12 +2,12 @@
 
 import { useEffect, useState } from "react";
 import FormatPrice from "@/util/FormatPrice";
-import Top from "@/components/Cart/Top";
+import Top from "@/modules/Cart/view/ui/Top";
 import { CreateOrderDto } from "@workspace/shared";
-import ItemCard, { CartItemType } from "@/components/Cart/ItemCard";
-import InvoiceDrawer from "@/components/Cart/InvoiceDrawer";
+import ItemCard, { CartItemType } from "@/modules/Cart/view/ui/ItemCard";
+import InvoiceDrawer from "@/modules/Cart/view/ui/InvoiceDrawer";
 import { useSearchParams } from "next/navigation";
-import Loading from "@/components/Cart/Loading";
+import Loading from "@/modules/Cart/view/ui/Loading";
 
 export default function Page() {
     const { tableNumber }: Pick<CreateOrderDto, "tableNumber"> = { tableNumber: "1" };
