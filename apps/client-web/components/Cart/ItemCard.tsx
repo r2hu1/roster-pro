@@ -5,7 +5,7 @@ import React from "react";
 
 export type CartItemType = {
     id: string;
-    image: string;
+    image: string | null;
     name: string;
     unitPrice: number;
     quantity: number;
@@ -25,7 +25,7 @@ export default function ItemCard({ item, onQuantityChange, onRemove }: ItemCardP
         <div className="flex gap-3 rounded-2xl border border-border bg-card p-3 shadow-sm">
             {/* Image */}
             <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-xl bg-muted">
-                <img src={item.image} alt={item.name} className="h-full w-full object-cover" />
+                <img src={item.image || ""} alt={item.name} className="h-full w-full object-cover" />
                 <span
                     className={`absolute left-1.5 top-1.5 flex h-4 w-4 items-center justify-center rounded-[4px] border-[1.5px] bg-white ${
                         item.isVegetarian ? "border-green-600" : "border-red-600"

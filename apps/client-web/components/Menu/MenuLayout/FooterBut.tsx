@@ -5,11 +5,15 @@ import { MenuItem } from "@workspace/shared";
 import { DrawerClose } from "@workspace/ui/components/drawer";
 import { Minus, Plus, ShoppingCart } from "lucide-react";
 import React, { useState } from "react";
+import { useRouter } from "next/navigation";
+import { CartItemType } from "@/components/Cart/ItemCard";
 
 export default function FooterBut({ item }: { item: MenuItem }) {
     const [isHalf, setIsHalf] = useState(false);
     const [quantity, setQuantity] = useState(1);
     const [note, setNote] = useState("");
+
+    const router = useRouter();
 
     const unitPrice = isHalf ? item.price.half : item.price.full;
     const totalPrice = unitPrice * quantity;
@@ -52,6 +56,21 @@ export default function FooterBut({ item }: { item: MenuItem }) {
         } catch (error) {
             console.error("Failed to update cart", error);
         }
+    }
+
+    function handleOrderNow() {
+        const foodItem: CartItemType = {
+            id: item.id,
+            name: item.name,
+            size: isHalf ? "half" : "full",
+            unitPrice,
+            quantity,
+            image: item.image,
+            isVegetarian: item.isVegetarian,
+            note: note.trim() || undefined,
+        };
+
+        router.push(`/cart?Item=${encodeURIComponent(JSON.stringify(foodItem))}`);
     }
 
     return (
@@ -133,6 +152,7 @@ export default function FooterBut({ item }: { item: MenuItem }) {
                 </DrawerClose>
                 <button
                     type="button"
+                    onClick={handleOrderNow}
                     className="flex-1 rounded-full bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
                 >
                     Order now · {FormatPrice(totalPrice)}

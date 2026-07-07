@@ -14,6 +14,7 @@ import {
 import { Button } from "@workspace/ui/components/button";
 import FormatPrice from "@/util/FormatPrice";
 import { CartItemType } from "./ItemCard";
+import { ShoppingCart } from "lucide-react";
 
 // Adjust to your org's actual applicable rates (or pull from org settings)
 const CGST_RATE = 0.025; // 2.5%
@@ -184,10 +185,21 @@ export default function InvoiceDrawer({ cartItem, tableNumber, discount = 0, onP
                 </div>
 
                 <DrawerFooter>
-                    <Button onClick={handleSubmit}>Confirm & place order</Button>
-                    <DrawerClose asChild>
-                        <Button variant="outline" className="border-muted-foreground/50!">Cancel</Button>
-                    </DrawerClose>
+                    <div className="flex items-center gap-3 pt-1">
+                        <DrawerClose
+                            type="button"
+                            className="flex flex-1 items-center justify-center gap-1.5 rounded-full border border-border bg-background px-4 py-2.5 text-sm font-semibold text-foreground transition-colors hover:bg-muted"
+                        >
+                            Cancel
+                        </DrawerClose>
+                        <button
+                            type="button"
+                            onClick={handleSubmit}
+                            className="flex-1 rounded-full bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
+                        >
+                            Order now
+                        </button>
+                    </div>
                 </DrawerFooter>
             </DrawerContent>
         </Drawer>

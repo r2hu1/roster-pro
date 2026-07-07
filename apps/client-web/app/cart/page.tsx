@@ -5,27 +5,37 @@ import FormatPrice from "@/util/FormatPrice";
 import Top from "@/components/Cart/Top";
 import { CreateOrderDto } from "@workspace/shared";
 import ItemCard, { CartItemType } from "@/components/Cart/ItemCard";
-import {
-    Drawer,
-    DrawerClose,
-    DrawerContent,
-    DrawerDescription,
-    DrawerFooter,
-    DrawerHeader,
-    DrawerTitle,
-    DrawerTrigger,
-} from "@workspace/ui/components/drawer";
-import { Button } from "@workspace/ui/components/button";
 import InvoiceDrawer from "@/components/Cart/InvoiceDrawer";
+import { useSearchParams } from "next/navigation";
+import Loading from "@/components/Cart/Loading";
 
 export default function Page() {
     const { tableNumber }: Pick<CreateOrderDto, "tableNumber"> = { tableNumber: "1" };
     const [cartItem, setCartItem] = useState<CartItemType[]>([]);
+    const [loading, setLoading] = useState<boolean>(true);
+
+    const searchParams = useSearchParams();
 
     useEffect(() => {
-        const cart = JSON.parse(sessionStorage.getItem("cart") || "[]");
-        setCartItem(cart);
-    }, []);
+        try {
+            const itemParam = searchParams.get("Item");
+
+            if (itemParam) {
+                const orderItem = JSON.parse(decodeURIComponent(itemParam));
+                setCartItem([orderItem]);
+            } else {
+                const cart = JSON.parse(sessionStorage.getItem("cart") || "[]");
+                setCartItem(cart);
+            }
+        } catch (err) {
+            console.error("Failed to parse cart item:", err);
+
+            const cart = JSON.parse(sessionStorage.getItem("cart") || "[]");
+            setCartItem(cart);
+        } finally {
+            setLoading(false);
+        }
+    }, [searchParams]);
 
     function handleQuantityChange(id: string, delta: number) {
         setCartItem((prev) => prev.map((item) => (item.id === id ? { ...item, quantity: Math.max(1, item.quantity + delta) } : item)));
@@ -33,17 +43,19 @@ export default function Page() {
 
     function handleRemove(id: string) {
         setCartItem((prev) => {
-            const item = prev.filter((item) => item.id !== id)
+            const item = prev.filter((item) => item.id !== id);
             sessionStorage.setItem("cart", JSON.stringify(item));
-            return item
+            return item;
         });
     }
 
-    function placeOrder(){
+    function placeOrder() {
         console.log(cartItem);
     }
 
     const total = cartItem.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0);
+
+    if (loading) return <Loading/>;
 
     return (
         <div className="">
@@ -66,7 +78,7 @@ export default function Page() {
             )}
             <div className="fixed bg-white bottom-0 p-2 w-full flex items-center justify-center">
                 <div className="w-full">
-                    <InvoiceDrawer cartItem={cartItem} tableNumber={tableNumber} onPlaceOrder={placeOrder}/>
+                    <InvoiceDrawer cartItem={cartItem} tableNumber={tableNumber} onPlaceOrder={placeOrder} />
                 </div>
             </div>
         </div>
