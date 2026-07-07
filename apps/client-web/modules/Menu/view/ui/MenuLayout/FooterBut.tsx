@@ -3,11 +3,12 @@
 import FormatPrice from "@/util/FormatPrice";
 import { MenuItem } from "@workspace/shared";
 import { DrawerClose } from "@workspace/ui/components/drawer";
-import { Minus, Plus, ShoppingCart } from "lucide-react";
+import { Check, Minus, Plus, ShoppingCart } from "lucide-react";
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import { toast } from "sonner"
+import { toast } from "sonner";
 import { CartItemType } from "@/modules/Cart/view/ui/ItemCard";
+import Tost from "@/components/Tost";
 
 export default function FooterBut({ item }: { item: MenuItem }) {
     const [isHalf, setIsHalf] = useState(false);
@@ -36,7 +37,7 @@ export default function FooterBut({ item }: { item: MenuItem }) {
                     existingItem.note = note.trim() || undefined;
                     sessionStorage.setItem("cart", JSON.stringify(cart));
                     window.dispatchEvent(new Event("cartUpdated")); // to auto update the cart item count
-                    toast("Item updated in cart", {position:"top-center"});
+                    Tost.success({ heading: item.name, description: "Item updated in cart" });
                     return;
                 }
             }
@@ -54,7 +55,7 @@ export default function FooterBut({ item }: { item: MenuItem }) {
             });
             sessionStorage.setItem("cart", JSON.stringify(cart));
             window.dispatchEvent(new Event("cartUpdated")); // to auto update the cart item count
-            toast(`${item.name} added to cart`, {position:"top-center"});
+            Tost.success({ heading: item.name, description: "Added to your cart successfully" });
             // console.log("Item added to cart:", cart);
         } catch (error) {
             console.error("Failed to update cart", error);

@@ -16,6 +16,7 @@ import FormatPrice from "@/util/FormatPrice";
 import { CartItemType } from "../../view/ui/ItemCard";
 import { ShoppingCart } from "lucide-react";
 import { toast } from "sonner"
+import Tost from "@/components/Tost";
 
 // Adjust to your org's actual applicable rates (or pull from org settings)
 const CGST_RATE = 0.025; // 2.5%
@@ -99,7 +100,8 @@ export default function InvoiceDrawer({ cartItem, tableNumber, discount = 0, onP
 
         setIsOpen(false);
 
-        toast("Order placed successfully", { position: "top-center", description: `ordered ${orderData.items.length} items` })        
+        // toast("Order placed successfully", { position: "top-center", description: `ordered ${orderData.items.length} items` })   
+        Tost.success({ heading: "Order placed successfully", description: `ordered ${orderData.items.length} items` })     
 
         // onPlaceOrder(invoice);
     }
