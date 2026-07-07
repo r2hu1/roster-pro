@@ -23,6 +23,7 @@ export default function Menu({ MenuItems }: { MenuItems: MenuItem[] }) {
                 <Drawer key={item.id}>
                     <DrawerTrigger asChild>
                         <button className="text-left">
+                            {/* display card to frontend to trigger drawer */}
                             <MenuCard item={item} />
                         </button>
                     </DrawerTrigger>
@@ -103,6 +104,7 @@ export default function Menu({ MenuItems }: { MenuItems: MenuItem[] }) {
                             <Separator className={"bg-primary/50 mx-2 !w-auto mt-3 mb-2 !h-1 rounded-full"} />
 
                             <DrawerFooter className="pt-0">
+                                {/* client footer to take input from user */}
                                 <FooterBut item={item} />
                             </DrawerFooter>
                         </div>

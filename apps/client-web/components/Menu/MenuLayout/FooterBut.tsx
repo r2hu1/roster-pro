@@ -7,6 +7,7 @@ import { Minus, Plus, ShoppingCart } from "lucide-react";
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { CartItemType } from "@/components/Cart/ItemCard";
+import { toast } from "sonner"
 
 export default function FooterBut({ item }: { item: MenuItem }) {
     const [isHalf, setIsHalf] = useState(false);
@@ -35,6 +36,7 @@ export default function FooterBut({ item }: { item: MenuItem }) {
                     existingItem.note = note.trim() || undefined;
                     sessionStorage.setItem("cart", JSON.stringify(cart));
                     window.dispatchEvent(new Event("cartUpdated")); // to auto update the cart item count
+                    toast("Item updated in cart", { position: "top-center" });
                     return;
                 }
             }
@@ -52,6 +54,7 @@ export default function FooterBut({ item }: { item: MenuItem }) {
             });
             sessionStorage.setItem("cart", JSON.stringify(cart));
             window.dispatchEvent(new Event("cartUpdated")); // to auto update the cart item count
+            toast("Item added to cart", { position: "top-center" });
             // console.log("Item added to cart:", cart);
         } catch (error) {
             console.error("Failed to update cart", error);
