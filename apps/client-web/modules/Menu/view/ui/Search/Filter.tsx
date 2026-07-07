@@ -1,19 +1,26 @@
 "use client";
 
 import React, { useCallback, useEffect, useState } from "react";
-import { SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetFooter } from "@workspace/ui/components/sheet";
+import { SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetFooter, SheetClose } from "@workspace/ui/components/sheet";
 import { RadioGroup, RadioGroupItem } from "@workspace/ui/components/radio-group";
 import { Label } from "@workspace/ui/components/label";
 import { Slider } from "@workspace/ui/components/slider";
 import { Button } from "@workspace/ui/components/button";
 import { Badge } from "@workspace/ui/components/badge";
 import { Menu } from "@workspace/shared/types/organization/menu/types";
-import { Check, ChevronDown, UtensilsCrossed, Wallet, PackageCheck, ArrowUpDown, Star, RotateCcw } from "lucide-react";
+import { Check, ChevronDown, UtensilsCrossed, Wallet, PackageCheck, ArrowUpDown, RotateCcw } from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@workspace/ui/components/collapsible";
 import { Separator } from "@workspace/ui/components/separator";
 import FormatPrice from "@/util/FormatPrice";
 import { Switch } from "@workspace/ui/components/switch";
 import { cn } from "@workspace/ui/lib/utils";
+
+export type FilterValues = {
+    menuIds: string[];
+    price: number;
+    availability: boolean;
+    sortBy: string;
+};
 
 const SORT_OPTIONS = [
     { value: "featured", label: "Featured" },
@@ -23,57 +30,76 @@ const SORT_OPTIONS = [
     { value: "Time Low", label: "Time: Low to High" },
 ];
 
-export default function Filter({ menus }: { menus: Menu[] }) {
-    const [menu, setMenu] = useState<string[]>(["All"]);
-    const [price, setPrice] = useState<number>(500);
-    const [availability, setAvailability] = useState(false);
-    const [sortBy, setSortBy] = useState("featured");
+type FilterProps = {
+    menus: Menu[];
+    value: FilterValues;
+    onApply: (filters: FilterValues) => void;
+    maxPrice?: number;
+};
+
+export default function Filter({ menus, value, onApply, maxPrice = 2500 }: FilterProps) {
+    const [menuIds, setMenuIds] = useState<string[]>(value.menuIds);
+    const [price, setPrice] = useState<number>(value.price);
+    const [availability, setAvailability] = useState(value.availability);
+    const [sortBy, setSortBy] = useState(value.sortBy);
+    const [isSIdeOpen, setIsSideOpen] = useState(false);
 
     const [isMenuOpen, setIsMenuOpen] = useState(true);
     const [isPriceOpen, setIsPriceOpen] = useState(true);
     const [isAvailabilityOpen, setIsAvailabilityOpen] = useState(true);
     const [isSortByOpen, setIsSortByOpen] = useState(true);
 
-    const activeCount =
-        (menu.length && !(menu.length === 1 && menu[0] === "All") ? 1 : 0) +
-        (price !== 500 ? 1 : 0) +
-        (availability ? 1 : 0) +
-        (sortBy !== "featured" ? 1 : 0);
+    useEffect(() => {
+        setMenuIds(value.menuIds);
+        setPrice(value.price);
+        setAvailability(value.availability);
+        setSortBy(value.sortBy);
+    }, [value]);
+
+    const activeCount = (menuIds.length > 0 ? 1 : 0) + (price < maxPrice ? 1 : 0) + (availability ? 1 : 0) + (sortBy !== "featured" ? 1 : 0);
 
     const clearFilters = useCallback(() => {
-        setMenu(["All"]);
-        setPrice(500);
-        setAvailability(false);
-        setSortBy("featured");
-    }, []);
+        const resetFilters: FilterValues = {
+            menuIds: [],
+            price: maxPrice,
+            availability: false,
+            sortBy: "featured",
+        };
 
-    const toggleMenu = useCallback((menuOption: string) => {
-        if (menuOption === "All") {
-            setMenu(["All"]);
+        setMenuIds(resetFilters.menuIds);
+        setPrice(resetFilters.price);
+        setAvailability(resetFilters.availability);
+        setSortBy(resetFilters.sortBy);
+        onApply(resetFilters);
+    }, [maxPrice, onApply]);
+
+    const toggleMenu = useCallback((menuOptionId: string) => {
+        if (menuOptionId === "all") {
+            setMenuIds([]);
             return;
         }
-        setMenu((prevMenus) => {
-            if (prevMenus.includes(menuOption)) {
-                const newMenus = prevMenus.filter((m) => m !== menuOption);
-                return newMenus.length === 0 ? ["All"] : newMenus;
+
+        setMenuIds((prevMenuIds) => {
+            if (prevMenuIds.includes(menuOptionId)) {
+                const nextMenuIds = prevMenuIds.filter((id) => id !== menuOptionId);
+                return nextMenuIds.length === 0 ? [] : nextMenuIds;
             }
-            const newMenus = prevMenus.filter((m) => m !== "All");
-            return [...newMenus, menuOption];
+
+            return [...prevMenuIds.filter((id) => id !== "all"), menuOptionId];
         });
     }, []);
 
     const applyFilters = useCallback(() => {
-        // Implement the logic to submit the filters, e.g., make an API call or update the state in a parent component
-        console.log("Filters submitted:", { menu, price, availability, sortBy });
-    }, [menu, price, availability, sortBy]);
+        onApply({ menuIds, price, availability, sortBy });
+    }, [menuIds, price, availability, sortBy, onApply]);
 
     return (
         <SheetContent className="flex flex-col gap-0 p-0">
-            <SheetHeader className="space-y-1  px-4 pt-5 ">
+            <SheetHeader className="space-y-1 px-4 pt-5">
                 <div className="flex items-center justify-start gap-2">
                     <SheetTitle className="text-lg font-bold tracking-tight">Filters</SheetTitle>
                     {activeCount > 0 && (
-                        <Badge variant="secondary" className="rounded-full  px-2.5 py-0.5 text-xs font-medium">
+                        <Badge variant="secondary" className="rounded-full px-2.5 py-0.5 text-xs font-medium">
                             {activeCount} active
                         </Badge>
                     )}
@@ -83,21 +109,20 @@ export default function Filter({ menus }: { menus: Menu[] }) {
 
             <div className="flex-1 space-y-4 overflow-y-auto px-4 pb-5">
                 <Separator className={"bg-primary/20"} />
-                {/* Menu */}
                 <FilterSection
                     icon={<UtensilsCrossed size={15} />}
                     heading="Menu"
                     open={isMenuOpen}
                     onOpenChange={setIsMenuOpen}
-                    badge={menu.length && !(menu.length === 1 && menu[0] === "All") ? menu.length : undefined}
+                    badge={menuIds.length > 0 ? menuIds.length : undefined}
                 >
                     <div className="flex flex-wrap gap-2">
                         {[{ id: "all", name: "All" }, ...menus].map((menuItem) => {
-                            const selected = menu.includes(menuItem.name);
+                            const selected = menuItem.id === "all" ? menuIds.length === 0 : menuIds.includes(menuItem.id);
                             return (
                                 <button
                                     key={menuItem.id}
-                                    onClick={() => toggleMenu(menuItem.name)}
+                                    onClick={() => toggleMenu(menuItem.id)}
                                     className={cn(
                                         "inline-flex items-center gap-1 rounded-full border px-3.5 py-1.5 text-xs font-medium transition-all",
                                         selected
@@ -115,10 +140,18 @@ export default function Filter({ menus }: { menus: Menu[] }) {
 
                 <Separator className={"bg-primary/30"} />
 
-                {/* Price */}
                 <FilterSection icon={<Wallet size={15} />} heading="Price Range" open={isPriceOpen} onOpenChange={setIsPriceOpen}>
                     <div className="space-y-4 px-1">
-                        <Slider value={price} onValueChange={(value) => setPrice(value as number)} min={0} max={1000} step={10} />
+                        <Slider
+                            value={[price]}
+                            onValueChange={(value) => {
+                                const nextValue = Array.isArray(value) ? value[0] : value;
+                                setPrice(nextValue ?? maxPrice);
+                            }}
+                            min={0}
+                            max={maxPrice}
+                            step={10}
+                        />
                         <div className="flex items-center justify-between">
                             <Badge variant="outline" className="rounded-md font-normal text-muted-foreground">
                                 {FormatPrice(0)}
@@ -133,7 +166,6 @@ export default function Filter({ menus }: { menus: Menu[] }) {
 
                 <Separator className={"bg-primary/30"} />
 
-                {/* Availability */}
                 <FilterSection
                     icon={<PackageCheck size={15} />}
                     heading="Availability"
@@ -153,7 +185,6 @@ export default function Filter({ menus }: { menus: Menu[] }) {
 
                 <Separator className={"bg-primary/30"} />
 
-                {/* Sort */}
                 <FilterSection icon={<ArrowUpDown size={15} />} heading="Sort By" open={isSortByOpen} onOpenChange={setIsSortByOpen}>
                     <RadioGroup value={sortBy} onValueChange={setSortBy} className="gap-2.5">
                         {SORT_OPTIONS.map((option) => (
@@ -174,13 +205,17 @@ export default function Filter({ menus }: { menus: Menu[] }) {
             </div>
 
             <SheetFooter className="flex-row gap-2 border-t px-6 py-4 sm:justify-between">
-                <Button variant="ghost" onClick={clearFilters} className="gap-1.5 text-muted-foreground">
-                    <RotateCcw size={14} />
-                    Clear all
-                </Button>
-                <Button onClick={applyFilters} className="flex-1 sm:flex-none sm:px-8">
-                    Apply Filters
-                </Button>
+                <SheetClose className={"w-full"}>
+                    <Button variant="ghost" onClick={clearFilters} className="gap-1.5 w-full border! border-muted-foreground/50! text-muted-foreground">
+                        <RotateCcw size={14} />
+                        Clear all
+                    </Button>
+                </SheetClose>
+                <SheetClose className={"w-full"}>
+                    <Button onClick={applyFilters} className="flex-1 w-full sm:flex-none sm:px-8">
+                        Apply Filters
+                    </Button>
+                </SheetClose>
             </SheetFooter>
         </SheetContent>
     );
