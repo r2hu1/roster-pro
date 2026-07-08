@@ -60,16 +60,16 @@ export function TableCard({
         type="button"
         onClick={onClick}
         className={cn(
-          "flex flex-col hover:shadow-sm group-hover:rounded-b-none w-full items-center justify-between gap-3 rounded-2xl border p-4 text-left",
+          "flex flex-col group/btn hover:shadow-sm group-hover:rounded-b-none w-full items-center justify-between gap-3 rounded-2xl border p-4 text-left",
           className
         )}
       >
         <div className="flex flex-col items-center gap-3">
           <TableGlyph
             label={number}
-            className="group-hover:opacity-0 group-hover:h-0"
+            className="group-hover/btn:opacity-0 group-hover/btn:h-0"
           />
-          <div className="group-hover:opacity-100 opacity-0 size-0 flex items-center justify-center group-hover:size-11 rounded-lg bg-secondary">
+          <div className="group-hover/btn:opacity-100 opacity-0 size-0 flex items-center justify-center group-hover/btn:size-11 rounded-lg bg-secondary">
             <IconPencil className="size-5" />
           </div>
           {name && (
