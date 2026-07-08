@@ -50,7 +50,7 @@ export default function OrdersPageView() {
   const cancelledCount = orders.filter((o) => o.status === "cancelled").length
 
   const filtered = useMemo(() => {
-    let result = dummyOrders
+    let result = orders
     if (activeFilter !== "All") {
       result = result.filter((o) => o.status === activeFilter.toLowerCase())
     }
@@ -64,7 +64,7 @@ export default function OrdersPageView() {
       )
     }
     return result
-  }, [dummyOrders, activeFilter, search])
+  }, [orders, activeFilter, search])
 
   if (kitchenMode) {
     return (
@@ -113,7 +113,7 @@ export default function OrdersPageView() {
         </div>
 
         <div className="flex-1 overflow-x-auto overflow-y-hidden px-4 sm:px-6 py-4">
-          {dummyOrders.length === 0 ? (
+          {orders.length === 0 ? (
             <div className="h-full flex items-center justify-center">
               <EmptyData
                 title="No orders received yet."
