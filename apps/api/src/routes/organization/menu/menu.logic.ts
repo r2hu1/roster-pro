@@ -2,6 +2,7 @@ import type {
   CreateMenuDto,
   UpdateMenuDto,
 } from "@workspace/shared/types/organization/menu/dto"
+import type { MenuWithItemsResponse } from "@workspace/shared/schemas/menu/response"
 import { and, eq } from "drizzle-orm"
 import { db } from "../../../core/db/client.js"
 import { menu, menuItem } from "../../../core/db/schemas/menu.js"
@@ -135,9 +136,52 @@ export const menuLogic = {
       .returning()
 
     await redisClient.del(`${MENU_CACHE_PREFIX}${body.id}`)
-    await redisClient.delPattern(`${MENU_CACHE_PREFIX}all:${organizationId}`)
+    await redisClient.delPattern(`${MENU_CACHE_PREFIX}*:${organizationId}`)
 
     return { status: "success", code: HTTP_STATUS_CODES.OK, data: updated }
+  },
+
+  getAllWithItems: async (organizationId: string) => {
+    if (!organizationId) {
+      return {
+        status: "error",
+        code: HTTP_STATUS_CODES.NOT_FOUND,
+        message: "Organization not found",
+      }
+    }
+
+    const cacheKey = `${MENU_CACHE_PREFIX}with-items:${organizationId}`
+    const cached = await redisClient.get<MenuWithItemsResponse[]>(cacheKey)
+    if (cached) {
+      return { status: "success", code: HTTP_STATUS_CODES.OK, data: cached }
+    }
+
+    const rows = await db
+      .select()
+      .from(menu)
+      .leftJoin(menuItem, eq(menu.id, menuItem.menuId))
+      .where(eq(menu.organizationId, organizationId))
+
+    const menuMap = new Map<string, MenuWithItemsResponse>()
+
+    for (const row of rows) {
+      if (!menuMap.has(row.menu.id)) {
+        menuMap.set(row.menu.id, {
+          menu: row.menu.name,
+          id: row.menu.id,
+          items: [],
+        })
+      }
+      if (row.menu_item) {
+        menuMap.get(row.menu.id)!.items.push(row.menu_item)
+      }
+    }
+
+    const data = Array.from(menuMap.values())
+
+    await redisClient.set(cacheKey, data, CACHE_TTL)
+
+    return { status: "success", code: HTTP_STATUS_CODES.OK, data }
   },
 
   delete: async (id: string, organizationId: string) => {
@@ -177,7 +221,7 @@ export const menuLogic = {
     await db.delete(menu).where(eq(menu.id, id))
 
     await redisClient.del(`${MENU_CACHE_PREFIX}${id}`)
-    await redisClient.delPattern(`${MENU_CACHE_PREFIX}all:${organizationId}`)
+    await redisClient.delPattern(`${MENU_CACHE_PREFIX}*:${organizationId}`)
     await redisClient.delPattern(`${MENU_ITEMS_CACHE_PREFIX}*:${id}`)
 
     return { status: "success", code: HTTP_STATUS_CODES.OK }
