@@ -203,7 +203,6 @@ tableRouter.post("/token", sessionMiddleware, async (c) => {
   const result = await tableLogic.generateQrToken(
     body.tableId,
     organizationId,
-    body.tableNumber
   )
   return c.json(result, result.code)
 })
