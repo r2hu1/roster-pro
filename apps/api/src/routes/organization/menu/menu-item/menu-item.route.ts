@@ -11,7 +11,7 @@ import type { ContentfulStatusCode } from "hono/utils/http-status"
 
 export const menuItemRouter = new Hono<AppEnv>()
 
-menuItemRouter.get("/:menuId", async (c) => {
+menuItemRouter.get("/:menuId", sessionMiddleware, async (c) => {
   const organizationId = c.get("organizationId")
   if (!organizationId) {
     return c.json(
@@ -25,11 +25,11 @@ menuItemRouter.get("/:menuId", async (c) => {
   }
 
   const menuId = c.req.param("menuId")
-  const result = await menuItemLogic.getAllItems(menuId, organizationId)
+  const result = await menuItemLogic.getAllItems(menuId!, organizationId)
   return c.json(result, result.code)
 })
 
-menuItemRouter.get("/:id", async (c) => {
+menuItemRouter.get("/:id", sessionMiddleware, async (c) => {
   const organizationId = c.get("organizationId")
   if (!organizationId) {
     return c.json(
@@ -42,12 +42,12 @@ menuItemRouter.get("/:id", async (c) => {
     )
   }
 
-  const id = c.req.param("id")
+  const id = c.req.param("id")!
   const result = await menuItemLogic.getItemById(id, organizationId)
   return c.json(result, result.code)
 })
 
-menuItemRouter.post("/", async (c) => {
+menuItemRouter.post("/", sessionMiddleware, async (c) => {
   const organizationId = c.get("organizationId")
   if (!organizationId) {
     return c.json(
@@ -109,7 +109,7 @@ menuItemRouter.post("/", async (c) => {
   return c.json(result, result.code)
 })
 
-menuItemRouter.put("/", async (c) => {
+menuItemRouter.put("/", sessionMiddleware, async (c) => {
   const organizationId = c.get("organizationId")
   if (!organizationId) {
     return c.json(
@@ -171,7 +171,7 @@ menuItemRouter.put("/", async (c) => {
   return c.json(result, result.code)
 })
 
-menuItemRouter.delete("/:id", async (c) => {
+menuItemRouter.delete("/:id", sessionMiddleware, async (c) => {
   const organizationId = c.get("organizationId")
   if (!organizationId) {
     return c.json(
@@ -184,7 +184,7 @@ menuItemRouter.delete("/:id", async (c) => {
     )
   }
 
-  const id = c.req.param("id")
+  const id = c.req.param("id")!
   const result = await menuItemLogic.deleteItem(organizationId, id)
   return c.json(result, result.code as ContentfulStatusCode)
 })

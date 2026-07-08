@@ -15,6 +15,7 @@ export const UpdateOrderSchema = z.object({
   subtotal: z.number().positive().optional(),
   discount: z.number().min(0).optional(),
   taxableAmount: z.number().positive().optional(),
+  gstRate: z.number().min(0).optional(),
   cgstAmount: z.number().min(0).optional(),
   sgstAmount: z.number().min(0).optional(),
   igstAmount: z.number().min(0).optional(),

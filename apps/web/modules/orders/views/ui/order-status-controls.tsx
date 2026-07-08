@@ -32,7 +32,14 @@ export function OrderStatusSelect({
         }}
       >
         {(
-          ["pending", "preparing", "ready", "served", "completed", "cancelled"] as OrderStatus[]
+          [
+            "pending",
+            "preparing",
+            "ready",
+            "served",
+            "completed",
+            "cancelled",
+          ] as OrderStatus[]
         ).map((s) => (
           <NativeSelectOption key={s} value={s}>
             {s}
@@ -66,11 +73,13 @@ export function PaymentStatusSelect({
           await updateOrder({ id: orderId, paymentStatus: v })
         }}
       >
-        {(["pending", "paid", "failed", "refunded"] as PaymentStatus[]).map((s) => (
-          <NativeSelectOption key={s} value={s}>
-            {s}
-          </NativeSelectOption>
-        ))}
+        {(["pending", "paid", "failed", "refunded"] as PaymentStatus[]).map(
+          (s) => (
+            <NativeSelectOption key={s} value={s}>
+              {s}
+            </NativeSelectOption>
+          )
+        )}
       </NativeSelect>
     </div>
   )

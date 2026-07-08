@@ -17,6 +17,7 @@ import { generateInvoice } from "../../api/orders"
 import { OrderStatusSelect, PaymentStatusSelect } from "./order-status-controls"
 import { OrderItemsList } from "./order-items-list"
 import { OrderTotalsSummary } from "./order-totals-summary"
+import { formatCurrency } from "@workspace/shared/utils/formatter"
 
 interface InvoiceData {
   invoiceNumber: string
@@ -27,6 +28,8 @@ interface InvoiceData {
     address: string | null
     phone: string | null
     gstin: string | null
+    hsnSac: number | null
+    gstRate: number | null
   }
   customer: {
     name: string | null
@@ -46,6 +49,7 @@ interface InvoiceData {
     subtotal: number
     discount: number
     taxableAmount: number
+    gstRate: number
     cgst: number
     sgst: number
     igst: number
@@ -80,136 +84,410 @@ export default function OrdersInfo({
 
   const handlePrint = async () => {
     if (!organization?.id) return
+
     setPrinting(true)
+
     try {
       const invoice = (await generateInvoice(
         order.id,
         organization.id
       )) as InvoiceData
 
-      const printWindow = window.open("", "_blank")
+      const printWindow = window.open("", "_blank", "width=420,height=900")
       if (!printWindow) return
 
-      const fmt = (n: number) => `Rs.${n.toFixed(2)}`
       const esc = escapeHtml
 
+      const fmt = (value: number) => formatCurrency(value)
+
+      const date = new Date(invoice.issuedAt)
+
+      const issuedDate = date.toLocaleDateString("en-IN", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+      })
+
+      const issuedTime = date.toLocaleTimeString("en-IN", {
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: true,
+      })
+
+      const gstHalf = invoice.totals.gstRate / 2
+
       printWindow.document.write(`
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <title>Receipt ${esc(invoice.invoiceNumber)}</title>
-          <style>
-            @page { margin: 0; size: 80mm auto; }
-            * { margin: 0; padding: 0; box-sizing: border-box; }
-            html, body {
-              width: 100%;
-              font-family: 'Courier New', 'Consolas', monospace;
-              color: #000;
-              font-size: 12px;
-              line-height: 1.4;
-            }
-            .receipt {
-              width: 80mm;
-              margin: 0 auto;
-              padding: 6mm 4mm;
-            }
-            .receipt { padding: 6mm 4mm; }
-            .center { text-align: center; }
-            .bold { font-weight: 700; }
-            .big { font-size: 15px; }
-            .header { margin-bottom: 8px; }
-            .header h1 { font-size: 16px; font-weight: 700; text-transform: uppercase; }
-            .header p { font-size: 11px; margin-top: 2px; }
-            .dashed { border-top: 1px dashed #000; margin: 8px 0; }
-            .row { display: flex; justify-content: space-between; font-size: 11px; margin: 2px 0; }
-            table { width: 100%; border-collapse: collapse; font-size: 11px; margin: 6px 0; }
-            th { text-align: left; font-weight: 700; padding: 2px 0; border-bottom: 1px dashed #000; }
-            th.r, td.r { text-align: right; }
-            td { padding: 3px 0; vertical-align: top; }
-            .item-name { padding-right: 4px; }
-            .totals-row { display: flex; justify-content: space-between; font-size: 12px; margin: 2px 0; }
-            .grand { font-size: 14px; font-weight: 700; border-top: 1px dashed #000; padding-top: 6px; margin-top: 6px; }
-            .foot { margin-top: 10px; font-size: 10px; text-align: center; }
-            .thank { margin-top: 14px; text-align: center; font-size: 12px; font-weight: 700; }
-            .barcode-space { text-align: center; margin-top: 10px; font-size: 10px; letter-spacing: 2px; }
-            @media print { body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
-          </style>
-        </head>
-        <body>
-          <div class="receipt">
-            <div class="header center">
-              <h1>${esc(invoice.organization.name)}</h1>
-              ${invoice.organization.address ? `<p>${esc(invoice.organization.address)}</p>` : ""}
-              ${invoice.organization.phone ? `<p>Tel: ${esc(invoice.organization.phone)}</p>` : ""}
-              ${invoice.organization.gstin ? `<p>GSTIN: ${esc(invoice.organization.gstin)}</p>` : ""}
-            </div>
+  <!DOCTYPE html>
+  <html>
+  <head>
+  <meta charset="utf-8" />
+  <title>${esc(invoice.invoiceNumber)}</title>
 
-            <div class="dashed"></div>
+  <style>
+  @page{
+    size:80mm auto;
+    margin:0;
+  }
 
-            <div class="row"><span>Receipt#</span><span class="bold">${esc(invoice.invoiceNumber)}</span></div>
-            <div class="row"><span>Date</span><span>${new Date(invoice.issuedAt).toLocaleDateString("en-IN", { year: "numeric", month: "short", day: "numeric" })}</span></div>
-            <div class="row"><span>Time</span><span>${new Date(invoice.issuedAt).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })}</span></div>
-            <div class="row"><span>Table</span><span>${esc(invoice.customer.tableNumber)}</span></div>
-            <div class="row"><span>Customer</span><span>${esc(invoice.customer.name || "Guest")}</span></div>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body {
+    width: 100%;
+    font-family: 'Courier New', 'Consolas', monospace;
+    color: #000;
+    font-size: 12px;
+    line-height: 1.4;
+  }
+  .receipt{
+    width:80mm;
+    padding:5mm;
+    margin: 0 auto;
+  }
 
-            <div class="dashed"></div>
+  .center{
+    text-align:center;
+  }
 
-            <table>
-              <thead>
-                <tr>
-                  <th style="width:50%">Item</th>
-                  <th class="r">Qty</th>
-                  <th class="r">Rate</th>
-                  <th class="r">Amt</th>
-                </tr>
-              </thead>
-              <tbody>
-                ${invoice.items
-                  .map(
-                    (item) => `
-                  <tr>
-                    <td class="item-name">${esc(item.name)}</td>
-                    <td class="r">${item.quantity}</td>
-                    <td class="r">${item.unitPrice.toFixed(2)}</td>
-                    <td class="r">${item.total.toFixed(2)}</td>
-                  </tr>
-                `
-                  )
-                  .join("")}
-              </tbody>
-            </table>
+  .right{
+    text-align:right;
+  }
 
-            <div class="dashed"></div>
+  .bold{
+    font-weight:bold;
+  }
 
-            <div class="totals-row"><span>Subtotal</span><span>${fmt(invoice.totals.subtotal)}</span></div>
-            ${invoice.totals.discount > 0 ? `<div class="totals-row"><span>Discount</span><span>-${fmt(invoice.totals.discount)}</span></div>` : ""}
-            ${invoice.totals.taxableAmount > 0 ? `<div class="totals-row"><span>Taxable Amt</span><span>${fmt(invoice.totals.taxableAmount)}</span></div>` : ""}
-            ${invoice.totals.cgst > 0 ? `<div class="totals-row"><span>CGST</span><span>${fmt(invoice.totals.cgst)}</span></div>` : ""}
-            ${invoice.totals.sgst > 0 ? `<div class="totals-row"><span>SGST</span><span>${fmt(invoice.totals.sgst)}</span></div>` : ""}
-            ${invoice.totals.igst > 0 ? `<div class="totals-row"><span>IGST</span><span>${fmt(invoice.totals.igst)}</span></div>` : ""}
-            ${invoice.totals.roundOff !== 0 ? `<div class="totals-row"><span>Round Off</span><span>${fmt(invoice.totals.roundOff)}</span></div>` : ""}
+  .small{
+    font-size:10px;
+  }
 
-            <div class="totals-row grand"><span>TOTAL</span><span>${fmt(invoice.totals.grandTotal)}</span></div>
+  .big{
+    font-size:17px;
+    font-weight:bold;
+    text-transform:uppercase;
+  }
 
-            <div class="dashed"></div>
+  hr{
+    border:none;
+    border-top:1px dashed #000;
+    margin:8px 0;
+  }
 
-            <div class="row">
-              <span>Payment</span>
-              <span style="text-transform:capitalize">${esc(invoice.payment.status)}${invoice.payment.method ? ` (${esc(invoice.payment.method)})` : ""}</span>
-            </div>
+  .row{
+    display:flex;
+    justify-content:space-between;
+    gap:10px;
+    margin:2px 0;
+  }
 
-            ${invoice.notes ? `<div class="foot">Notes: ${esc(invoice.notes)}</div>` : ""}
+  table{
+    width:100%;
+    border-collapse:collapse;
+  }
 
-            <div class="thank">*** THANK YOU, VISIT AGAIN ***</div>
-            <div class="barcode-space">${esc(invoice.invoiceNumber)}</div>
-          </div>
-          <script>window.print()</script>
-        </body>
-        </html>
-      `)
+  thead th{
+    text-align:left;
+    padding:4px 0;
+    border-bottom:1px dashed #000;
+  }
+
+  th:last-child,
+  td:last-child{
+    text-align:right;
+  }
+
+  td{
+    padding:4px 0;
+    vertical-align:top;
+  }
+
+  .qty,
+  .rate,
+  .amount{
+    text-align:right;
+    white-space:nowrap;
+  }
+
+  .total-row{
+    display:flex;
+    justify-content:space-between;
+    margin:3px 0;
+  }
+
+  .grand{
+    font-size:15px;
+    font-weight:bold;
+    border-top:1px dashed #000;
+    padding-top:6px;
+    margin-top:6px;
+  }
+
+  .footer{
+    text-align:center;
+    margin-top:10px;
+  }
+
+  @media print{
+    body{
+      print-color-adjust:exact;
+      -webkit-print-color-adjust:exact;
+    }
+  }
+  </style>
+
+  </head>
+
+  <body>
+
+  <div class="receipt">
+
+  <div class="center">
+    <div class="big">${esc(invoice.organization.name)}</div>
+
+    ${
+      invoice.organization.address
+        ? `<div>${esc(invoice.organization.address)}</div>`
+        : ""
+    }
+
+    ${
+      invoice.organization.phone
+        ? `<div>Phone : ${esc(invoice.organization.phone)}</div>`
+        : ""
+    }
+
+    ${
+      invoice.organization.gstin
+        ? `<div>GSTIN : ${esc(invoice.organization.gstin)}</div>`
+        : ""
+    }
+
+    ${
+      invoice.organization.hsnSac
+        ? `<div>HSN/SAC : ${invoice.organization.hsnSac}</div>`
+        : ""
+    }
+  </div>
+
+  <hr>
+
+  <div class="row">
+    <span>Receipt No.</span>
+    <span class="bold">${esc(invoice.invoiceNumber)}</span>
+  </div>
+
+  <div class="row">
+    <span>Date</span>
+    <span>${issuedDate}</span>
+  </div>
+
+  <div class="row">
+    <span>Time</span>
+    <span>${issuedTime}</span>
+  </div>
+
+  <div class="row">
+    <span>Table</span>
+    <span>${esc(invoice.customer.tableNumber)}</span>
+  </div>
+
+  <div class="row">
+    <span>Customer</span>
+    <span>${esc(invoice.customer.name || "Guest")}</span>
+  </div>
+
+  <hr>
+
+  <table>
+
+  <thead>
+  <tr>
+  <th style="width:48%">Item</th>
+  <th class="qty">Qty</th>
+  <th class="rate">Rate</th>
+  <th class="amount">Amt</th>
+  </tr>
+  </thead>
+
+  <tbody>
+
+  ${invoice.items
+    .map(
+      (item) => `
+  <tr>
+  <td>${esc(item.name)}</td>
+  <td class="qty">${item.quantity}</td>
+  <td class="rate">${fmt(item.unitPrice)}</td>
+  <td class="amount">${fmt(item.total)}</td>
+  </tr>
+  `
+    )
+    .join("")}</tbody>
+
+    </table>
+
+    <hr>
+
+    <div class="total-row">
+      <span>Subtotal</span>
+      <span>${fmt(invoice.totals.subtotal)}</span>
+    </div>
+
+    ${
+      invoice.totals.discount > 0
+        ? `
+    <div class="total-row">
+      <span>Discount</span>
+      <span>- ${fmt(invoice.totals.discount)}</span>
+    </div>
+    `
+        : ""
+    }
+
+    ${
+      invoice.totals.taxableAmount !== invoice.totals.subtotal ||
+      invoice.totals.discount > 0
+        ? `
+    <div class="total-row">
+      <span>Taxable Amount</span>
+      <span>${fmt(invoice.totals.taxableAmount)}</span>
+    </div>
+    `
+        : ""
+    }
+
+    ${
+      invoice.totals.cgst > 0
+        ? `
+    <div class="total-row">
+      <span>CGST (${gstHalf}%)</span>
+      <span>${fmt(invoice.totals.cgst)}</span>
+    </div>
+    `
+        : ""
+    }
+
+    ${
+      invoice.totals.sgst > 0
+        ? `
+    <div class="total-row">
+      <span>SGST (${gstHalf}%)</span>
+      <span>${fmt(invoice.totals.sgst)}</span>
+    </div>
+    `
+        : ""
+    }
+
+    ${
+      invoice.totals.igst > 0
+        ? `
+    <div class="total-row">
+      <span>IGST (${invoice.totals.gstRate}%)</span>
+      <span>${fmt(invoice.totals.igst)}</span>
+    </div>
+    `
+        : ""
+    }
+
+    ${
+      invoice.totals.roundOff !== 0
+        ? `
+    <div class="total-row">
+      <span>Round Off</span>
+      <span>${fmt(invoice.totals.roundOff)}</span>
+    </div>
+    `
+        : ""
+    }
+
+    <div class="total-row grand">
+      <span>Grand Total</span>
+      <span>${fmt(invoice.totals.grandTotal)}</span>
+    </div>
+
+    <hr>
+
+    <div class="row">
+      <span>Payment Status</span>
+      <span style="text-transform:capitalize">
+        ${esc(invoice.payment.status)}
+      </span>
+    </div>
+
+    ${
+      invoice.payment.method
+        ? `
+    <div class="row">
+      <span>Payment Method</span>
+      <span style="text-transform:capitalize">
+        ${esc(invoice.payment.method)}
+      </span>
+    </div>
+    `
+        : ""
+    }
+
+    ${
+      invoice.notes
+        ? `
+    <hr>
+
+    <div class="small">
+    <strong>Notes</strong><br/>
+    ${esc(invoice.notes)}
+    </div>
+    `
+        : ""
+    }
+
+    <hr>
+
+    <div class="footer">
+
+    <div class="bold">
+    THANK YOU! VISIT AGAIN
+    </div>
+
+    <br/>
+
+    <div>
+    This is a computer generated receipt.
+    </div>
+
+    ${
+      invoice.organization.gstin
+        ? `
+    <div>
+    GST Included As Applicable.
+    </div>
+    `
+        : ""
+    }
+
+    <br/>
+
+    <div class="small">
+    Powered by Roster Pro
+    </div>
+
+    </div></div>
+
+    <script>
+    window.onload = () => {
+      window.focus();
+      window.print();
+
+      window.onafterprint = () => {
+        window.close();
+      };
+    };
+    </script>
+
+    </body>
+    </html>
+    `)
+
       printWindow.document.close()
-    } catch {
-      //
+    } catch (error) {
+      console.error("Failed to print receipt:", error)
     } finally {
       setPrinting(false)
     }
@@ -231,11 +509,18 @@ export default function OrdersInfo({
         <div className="flex-1 space-y-5 p-4 pt-0">
           <div className="space-y-3">
             <div className="grid gap-1.5">
-              <span className="text-muted-foreground font-medium text-sm">Table Number</span>
-              <span className="text-3xl font-semibold">{order.tableNumber}</span>
+              <span className="text-muted-foreground font-medium text-sm">
+                Table Number
+              </span>
+              <span className="text-3xl font-semibold">
+                {order.tableNumber}
+              </span>
             </div>
             <OrderStatusSelect orderId={order.id} initial={order.status} />
-            <PaymentStatusSelect orderId={order.id} initial={order.paymentStatus} />
+            <PaymentStatusSelect
+              orderId={order.id}
+              initial={order.paymentStatus}
+            />
           </div>
 
           {(order.customerName || order.customerPhone) && (

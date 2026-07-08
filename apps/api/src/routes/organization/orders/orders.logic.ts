@@ -109,6 +109,18 @@ export const orderLogic = {
       }
     }
 
+    const [org] = await db
+      .select()
+      .from(organization)
+      .where(eq(organization.id, organizationId))
+    if (!org) {
+      return {
+        status: "error",
+        code: HTTP_STATUS_CODES.NOT_FOUND,
+        message: "Organization not found",
+      }
+    }
+
     const created = await db.transaction(async (tx) => {
       const year = new Date().getFullYear()
       const prefix = `INV-${year}-`
@@ -123,6 +135,24 @@ export const orderLogic = {
         .returning()
 
       const invoiceNumber = `${prefix}${counter.lastSequence.toString().padStart(6, "0")}`
+
+      const taxableAmount = Number(body.taxableAmount)
+      const gstRate = Number(org.gstRate ?? 5)
+
+      const halfRate = gstRate / 2
+
+      const cgstAmount = +((taxableAmount * halfRate) / 100).toFixed(2)
+      const sgstAmount = +((taxableAmount * halfRate) / 100).toFixed(2)
+      const igstAmount = 0
+
+      const totalGst = cgstAmount + sgstAmount
+
+      const roundOff = +(
+        Math.round(taxableAmount + totalGst) -
+        (taxableAmount + totalGst)
+      ).toFixed(2)
+
+      const grandTotal = +(taxableAmount + totalGst + roundOff).toFixed(2)
 
       const [result] = await tx
         .insert(order)
@@ -139,12 +169,13 @@ export const orderLogic = {
           items: body.items ?? [],
           subtotal: body.subtotal,
           discount: body.discount ?? 0,
-          taxableAmount: body.taxableAmount,
-          cgstAmount: body.cgstAmount ?? 0,
-          sgstAmount: body.sgstAmount ?? 0,
-          igstAmount: body.igstAmount ?? 0,
-          roundOff: body.roundOff ?? 0,
-          grandTotal: body.grandTotal,
+          taxableAmount,
+          gstRate,
+          cgstAmount,
+          sgstAmount,
+          igstAmount: 0,
+          roundOff,
+          grandTotal,
           notes: body.notes ?? null,
         })
         .returning()
@@ -445,6 +476,8 @@ export const orderLogic = {
           address: org.address,
           phone: org.phone,
           gstin: org.gstin,
+          hsnSac: org.hsnSac,
+          gstRate: org.gstRate,
         },
 
         customer: {
@@ -467,6 +500,7 @@ export const orderLogic = {
           subtotal: existingOrder.subtotal,
           discount: existingOrder.discount,
           taxableAmount: existingOrder.taxableAmount,
+          gstRate: org.gstRate,
           cgst: existingOrder.cgstAmount,
           sgst: existingOrder.sgstAmount,
           igst: existingOrder.igstAmount,

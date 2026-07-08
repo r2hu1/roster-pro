@@ -64,7 +64,9 @@ export default function CreateManualOrderModal({
   const [orderItems, setOrderItems] = useState<OrderItemForm[]>([])
 
   const [selectedMenuItem, setSelectedMenuItem] = useState("")
-  const [selectedVariant, setSelectedVariant] = useState<"half" | "full">("full")
+  const [selectedVariant, setSelectedVariant] = useState<"half" | "full">(
+    "full"
+  )
   const [itemQuantity, setItemQuantity] = useState(1)
 
   const { data: tables = [] } = useQuery<TableItem[]>({
@@ -216,15 +218,19 @@ export default function CreateManualOrderModal({
           <div className="px-1.5 space-y-4 ">
             <div className="space-y-2">
               <Label htmlFor="table">Table</Label>
-              <NativeSelect className="w-full" value={tableNumber} onChange={(e)=>setTableNumber(e.target.value)}>
+              <NativeSelect
+                className="w-full"
+                value={tableNumber}
+                onChange={(e) => setTableNumber(e.target.value)}
+              >
                 <NativeSelectOption value="" disabled>
                   Select a table
                 </NativeSelectOption>
-                  {tables.map((t) => (
-                    <NativeSelectOption key={t.id} value={String(t.number)}>
-                      Table {t.number}
-                    </NativeSelectOption>
-                  ))}
+                {tables.map((t) => (
+                  <NativeSelectOption key={t.id} value={String(t.number)}>
+                    Table {t.number}
+                  </NativeSelectOption>
+                ))}
               </NativeSelect>
             </div>
 

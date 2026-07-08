@@ -15,7 +15,8 @@
     "./enums": "./src/enums/index.ts",
     "./enums/*": "./src/enums/*.ts",
     "./constants": "./src/constants/index.ts",
-    "./constants/*": "./src/constants/*.ts"
+    "./constants/*": "./src/constants/*.ts",
+    "./utils/*":"./src/utils/*.ts"
   },
   "peerDependencies": {
     "typescript": "^5"

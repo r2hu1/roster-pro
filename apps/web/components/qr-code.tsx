@@ -1,7 +1,7 @@
-"use client";
+"use client"
 
-import { useEffect, useRef, forwardRef, useImperativeHandle } from "react";
-import QRCodeStyling from "qr-code-styling";
+import { useEffect, useRef, forwardRef, useImperativeHandle } from "react"
+import QRCodeStyling from "qr-code-styling"
 
 type FileExtension = "svg" | "png" | "jpeg" | "webp"
 
@@ -11,8 +11,8 @@ export interface QRHandle {
 
 const QR = forwardRef<QRHandle, { token: string; className?: string }>(
   ({ token, className }, ref) => {
-    const containerRef = useRef<HTMLDivElement>(null);
-    const qrRef = useRef<QRCodeStyling | null>(null);
+    const containerRef = useRef<HTMLDivElement>(null)
+    const qrRef = useRef<QRCodeStyling | null>(null)
 
     useImperativeHandle(ref, () => ({
       download(options?: { extension?: FileExtension; name?: string }) {
@@ -48,7 +48,7 @@ const QR = forwardRef<QRHandle, { token: string; className?: string }>(
     }, [token])
 
     return <div ref={containerRef} className={className} />
-  },
+  }
 )
 
 QR.displayName = "QR"

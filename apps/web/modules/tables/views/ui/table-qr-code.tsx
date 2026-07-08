@@ -64,7 +64,7 @@ export default function TableQrCodeModal({
           {loading ? (
             <Skeleton className="h-70 w-full" />
           ) : token ? (
-            <QR ref={qrRef} token={token}/>
+            <QR ref={qrRef} token={token} />
           ) : null}
         </ResponsiveModalBody>
         {token && (
@@ -72,7 +72,12 @@ export default function TableQrCodeModal({
             <Button
               className="w-full"
               size="lg"
-              onClick={() => qrRef.current?.download({ extension: "png", name: `table-${table.number}-qr` })}
+              onClick={() =>
+                qrRef.current?.download({
+                  extension: "png",
+                  name: `table-${table.number}-qr`,
+                })
+              }
             >
               <IconDownload /> Download
             </Button>

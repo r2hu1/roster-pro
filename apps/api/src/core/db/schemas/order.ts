@@ -6,6 +6,7 @@ import {
   index,
   jsonb,
   primaryKey,
+  numeric,
 } from "drizzle-orm/pg-core"
 
 import { organization } from "./auth.js"
@@ -44,11 +45,46 @@ export const order = pgTable(
     subtotal: integer("subtotal").notNull(),
     discount: integer("discount").default(0).notNull(),
     taxableAmount: integer("taxable_amount").notNull(),
-    cgstAmount: integer("cgst_amount").default(0).notNull(),
-    sgstAmount: integer("sgst_amount").default(0).notNull(),
-    igstAmount: integer("igst_amount").default(0).notNull(),
-    roundOff: integer("round_off").default(0).notNull(),
-    grandTotal: integer("grand_total").notNull(),
+    gstRate: numeric("gst_rate", {
+      precision: 10,
+      scale: 2,
+      mode: "number",
+    })
+      .default(0)
+      .notNull(),
+    cgstAmount: numeric("cgst_amount", {
+      precision: 10,
+      scale: 2,
+      mode: "number",
+    })
+      .default(0)
+      .notNull(),
+    sgstAmount: numeric("sgst_amount", {
+      precision: 10,
+      scale: 2,
+      mode: "number",
+    })
+      .default(0)
+      .notNull(),
+    igstAmount: numeric("igst_amount", {
+      precision: 10,
+      scale: 2,
+      mode: "number",
+    })
+      .default(0)
+      .notNull(),
+    roundOff: numeric("round_off", {
+      precision: 10,
+      scale: 2,
+      mode: "number",
+    })
+      .default(0)
+      .notNull(),
+    grandTotal: numeric("grand_total", {
+      precision: 10,
+      scale: 2,
+      mode: "number",
+    }).notNull(),
     notes: text("notes"),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at")
