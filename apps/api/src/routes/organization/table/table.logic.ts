@@ -282,4 +282,19 @@ export const tableLogic = {
       data: encryptedToken,
     }
   },
+  decodeQrToken: async (token: string) => {
+    const decryptedToken = cryptoUtil.decrypt(token)
+    if (!decryptedToken) {
+      return {
+        status: "error",
+        code: HTTP_STATUS_CODES.INTERNAL_SERVER_ERROR,
+        message: "Failed to decode QR token",
+      }
+    }
+    return {
+      status: "success",
+      code: HTTP_STATUS_CODES.OK,
+      data: decryptedToken,
+    }
+  },
 }

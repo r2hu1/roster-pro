@@ -191,3 +191,19 @@ tableRouter.post("/token", sessionMiddleware, async (c) => {
   )
   return c.json(result, result.code)
 })
+
+tableRouter.get("/token/decode", async (c) => {
+  const token = c.req.query("token")
+  if (!token) {
+    return c.json(
+      {
+        message: "Token is required",
+        status: "error",
+        code: HTTP_STATUS_CODES.BAD_REQUEST,
+      },
+      HTTP_STATUS_CODES.BAD_REQUEST
+    )
+  }
+  const result = await tableLogic.decodeQrToken(token)
+  return c.json(result, result.code)
+})
