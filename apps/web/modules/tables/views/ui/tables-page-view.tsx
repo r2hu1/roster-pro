@@ -56,6 +56,7 @@ export default function TablesPageView() {
                 number={String(table.number)}
                 name={table.name ?? undefined}
                 status={table.status}
+                tableId={table.id}
               />
             </UpdateTableModal>
           ))}
