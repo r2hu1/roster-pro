@@ -5,7 +5,11 @@ import type { OrderResponse } from "@workspace/shared/schemas/order/index"
 import { HTTP_STATUS_CODES, zvalidator } from "../../../lib/utils.js"
 import { sessionMiddleware } from "../../../middleware/session.js"
 import { orderLogic, orderEmitter } from "./orders.logic.js"
-import { createOrderSchema, updateOrderSchema } from "./orders.validation.js"
+import {
+  createOrderSchema,
+  updateOrderSchema,
+  updateOrderStatusSchema,
+} from "./orders.validation.js"
 
 export const orderRouter = new Hono<AppEnv>()
 
@@ -23,7 +27,7 @@ orderRouter.get("/", sessionMiddleware, async (c) => {
   }
 
   const result = await orderLogic.getAll(organizationId)
-  return c.json(result)
+  return c.json(result, result.code)
 })
 
 orderRouter.get("/stream", sessionMiddleware, async (c) => {
@@ -134,13 +138,13 @@ orderRouter.get("/:id", async (c) => {
 
   const id = c.req.param("id")!
   const result = await orderLogic.getById(id, organizationId)
-  return c.json(result)
+  return c.json(result, result.code)
 })
 
 orderRouter.post("/", zvalidator("json", createOrderSchema), async (c) => {
   const body = c.req.valid("json")
   const result = await orderLogic.create(body)
-  return c.json(result)
+  return c.json(result, result.code)
 })
 
 orderRouter.put(
@@ -162,7 +166,31 @@ orderRouter.put(
 
     const body = c.req.valid("json")
     const result = await orderLogic.update(body, organizationId)
-    return c.json(result)
+    return c.json(result, result.code)
+  }
+)
+
+orderRouter.patch(
+  "/:id/status",
+  sessionMiddleware,
+  zvalidator("json", updateOrderStatusSchema),
+  async (c) => {
+    const organizationId = c.get("organizationId")
+    if (!organizationId) {
+      return c.json(
+        {
+          status: "error",
+          code: HTTP_STATUS_CODES.UNAUTHORIZED,
+          message: "Organization not found",
+        },
+        HTTP_STATUS_CODES.UNAUTHORIZED
+      )
+    }
+
+    const id = c.req.param("id")!
+    const { status } = c.req.valid("json")
+    const result = await orderLogic.updateStatus(id, status, organizationId)
+    return c.json(result, result.code)
   }
 )
 

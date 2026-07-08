@@ -267,6 +267,63 @@ export const orderLogic = {
     return { status: "success", code: HTTP_STATUS_CODES.OK, data: updated }
   },
 
+  updateStatus: async (
+    id: string,
+    status: typeof order.$inferSelect["status"],
+    organizationId: string
+  ) => {
+    if (!organizationId) {
+      return {
+        status: "error",
+        code: HTTP_STATUS_CODES.NOT_FOUND,
+        message: "Organization not found",
+      }
+    }
+
+    const [existing] = await db
+      .select()
+      .from(order)
+      .where(
+        and(eq(order.id, id), eq(order.organizationId, organizationId))
+      )
+
+    if (!existing) {
+      return {
+        status: "error",
+        code: HTTP_STATUS_CODES.NOT_FOUND,
+        message: "Order not found",
+      }
+    }
+
+    const [updated] = await db
+      .update(order)
+      .set({ status, updatedAt: new Date() })
+      .where(
+        and(eq(order.id, id), eq(order.organizationId, organizationId))
+      )
+      .returning()
+
+    await redisClient.del(`${ORDER_CACHE_PREFIX}${id}`)
+    await redisClient.delPattern(`${ORDER_CACHE_PREFIX}*:${organizationId}`)
+
+    orderEmitter.emit(`orders:${organizationId}`, {
+      type: "updated",
+      data: updated,
+    } satisfies OrderUpdatedEvent)
+
+    orderEmitter.emit(`order:${updated.id}`, {
+      type: "updated",
+      data: updated,
+    } satisfies OrderUpdatedEvent)
+
+    analyticsEmitter.emit(`analytics:${organizationId}`, {
+      type: "updated",
+      data: null,
+    })
+
+    return { status: "success", code: HTTP_STATUS_CODES.OK, data: updated }
+  },
+
   delete: async (id: string, organizationId: string) => {
     if (!organizationId) {
       return {
