@@ -20,9 +20,8 @@ export function OrderCard({ order }: { order: Order }) {
     <OrdersInfo order={order}>
       <div
         className={cn(
-          "group relative rounded-lg border bg-background p-4",
+          "group relative rounded-lg border hover:shadow-sm bg-background p-4",
           "transition-all duration-200",
-          "hover:border-foreground/20 hover:bg-muted/20",
           "cursor-pointer"
         )}
       >
@@ -71,17 +70,17 @@ export function OrderCard({ order }: { order: Order }) {
             <span className="mr-0.5 text-sm font-normal text-muted-foreground">
               ₹
             </span>
-            {order.grandTotal.toLocaleString("en-IN")}
+            {order.grandTotal}
           </p>
         </div>
 
         <div className="mt-3 flex items-center justify-between border-t pt-2.5">
           <span className={cn("text-xs font-medium")}>
-            {order.createdAt.toDateString()}
+            {new Date(order.createdAt).toDateString()}
           </span>
           {order.discount > 0 && (
             <span className="text-xs text-muted-foreground">
-              −₹{order.discount.toLocaleString("en-IN")}
+              −₹{order.discount}
             </span>
           )}
         </div>

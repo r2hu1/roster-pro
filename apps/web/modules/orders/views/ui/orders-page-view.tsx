@@ -10,6 +10,7 @@ import { Button } from "@workspace/ui/components/button"
 import PageHeader from "@/components/page-header"
 import EmptyData from "@/components/empty"
 import { useOrdersStream } from "../../hooks/use-orders-stream"
+import CreateManualOrderModal from "./create-manual-order-responsive-modal"
 import { OrdersStats } from "./orders-stats"
 import { OrdersFilters } from "./orders-filters"
 import { OrderCard } from "./order-card"
@@ -144,9 +145,11 @@ export default function OrdersPageView() {
             ) : (
               <IconWifiOff className="size-4" />
             )}
-            <Button>
-              New Order <IconCirclePlus />
-            </Button>
+            <CreateManualOrderModal>
+              <Button>
+                New Order <IconCirclePlus />
+              </Button>
+            </CreateManualOrderModal>
           </div>
         }
       />

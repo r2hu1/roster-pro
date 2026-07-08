@@ -1,8 +1,7 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import type { OrderResponse } from "@workspace/shared/schemas/order/index"
-import type { OrderStatus } from "@workspace/shared/enums"
 import {
   Sheet,
   SheetTrigger,
@@ -12,16 +11,12 @@ import {
   SheetFooter,
 } from "@workspace/ui/components/sheet"
 import { Button } from "@workspace/ui/components/button"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@workspace/ui/components/select"
 import { IconPrinter } from "@tabler/icons-react"
 import { useSession } from "@/modules/providers/session-provider"
-import { generateInvoice, updateOrderStatus } from "../../api/orders"
+import { generateInvoice } from "../../api/orders"
+import { OrderStatusSelect, PaymentStatusSelect } from "./order-status-controls"
+import { OrderItemsList } from "./order-items-list"
+import { OrderTotalsSummary } from "./order-totals-summary"
 
 interface InvoiceData {
   invoiceNumber: string
@@ -73,8 +68,6 @@ function escapeHtml(value: string) {
     .replace(/'/g, "&#39;")
 }
 
-const inr = (n: number) => n.toLocaleString("en-IN")
-
 export default function OrdersInfo({
   order,
   children,
@@ -82,14 +75,8 @@ export default function OrdersInfo({
   order: OrderResponse
   children: React.ReactNode
 }) {
-  if (!order) return null
   const { organization } = useSession()
-  const [localStatus, setLocalStatus] = useState(order.status)
   const [printing, setPrinting] = useState(false)
-
-  useEffect(() => {
-    setLocalStatus(order.status)
-  }, [order.status])
 
   const handlePrint = async () => {
     if (!organization?.id) return
@@ -103,72 +90,77 @@ export default function OrdersInfo({
       const printWindow = window.open("", "_blank")
       if (!printWindow) return
 
-      const fmt = (n: number) => `₹${n.toFixed(2)}`
+      const fmt = (n: number) => `Rs.${n.toFixed(2)}`
       const esc = escapeHtml
 
       printWindow.document.write(`
         <!DOCTYPE html>
         <html>
         <head>
-          <title>Invoice ${esc(invoice.invoiceNumber)}</title>
+          <title>Receipt ${esc(invoice.invoiceNumber)}</title>
           <style>
-            @page { margin: 12mm; size: A4; }
+            @page { margin: 0; size: 80mm auto; }
             * { margin: 0; padding: 0; box-sizing: border-box; }
-            body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color: #1a1a1a; line-height: 1.5; }
-            .invoice { max-width: 210mm; margin: 0 auto; padding: 24px; }
-            .header { text-align: center; border-bottom: 2px solid #1a1a1a; padding-bottom: 20px; margin-bottom: 24px; }
-            .header h1 { font-size: 22px; font-weight: 700; letter-spacing: -0.3px; }
-            .header .meta { font-size: 12px; color: #666; margin-top: 4px; }
-            .org { text-align: center; margin-top: 6px; font-size: 13px; color: #444; }
-            .org p { margin: 2px 0; }
-            .grid { display: flex; justify-content: space-between; margin-bottom: 24px; font-size: 13px; }
-            .grid .col h3 { font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: #888; margin-bottom: 6px; }
-            .grid .col p { margin: 2px 0; }
-            table { width: 100%; border-collapse: collapse; margin-bottom: 24px; font-size: 13px; }
-            th { background: #f5f5f5; text-align: left; padding: 10px 8px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: #666; font-weight: 600; }
-            td { padding: 10px 8px; border-bottom: 1px solid #eee; }
-            .r { text-align: right; }
-            .totals { margin-left: auto; width: 280px; }
-            .totals td { padding: 5px 8px; border: none; }
-            .totals tr:last-child td { font-weight: 700; font-size: 15px; border-top: 2px solid #1a1a1a; padding-top: 10px; }
-            .foot { margin-top: 24px; border-top: 1px solid #eee; padding-top: 16px; font-size: 12px; color: #666; }
-            .thank { margin-top: 28px; text-align: center; font-size: 13px; color: #888; }
+            html, body {
+              width: 100%;
+              font-family: 'Courier New', 'Consolas', monospace;
+              color: #000;
+              font-size: 12px;
+              line-height: 1.4;
+            }
+            .receipt {
+              width: 80mm;
+              margin: 0 auto;
+              padding: 6mm 4mm;
+            }
+            .receipt { padding: 6mm 4mm; }
+            .center { text-align: center; }
+            .bold { font-weight: 700; }
+            .big { font-size: 15px; }
+            .header { margin-bottom: 8px; }
+            .header h1 { font-size: 16px; font-weight: 700; text-transform: uppercase; }
+            .header p { font-size: 11px; margin-top: 2px; }
+            .dashed { border-top: 1px dashed #000; margin: 8px 0; }
+            .row { display: flex; justify-content: space-between; font-size: 11px; margin: 2px 0; }
+            table { width: 100%; border-collapse: collapse; font-size: 11px; margin: 6px 0; }
+            th { text-align: left; font-weight: 700; padding: 2px 0; border-bottom: 1px dashed #000; }
+            th.r, td.r { text-align: right; }
+            td { padding: 3px 0; vertical-align: top; }
+            .item-name { padding-right: 4px; }
+            .totals-row { display: flex; justify-content: space-between; font-size: 12px; margin: 2px 0; }
+            .grand { font-size: 14px; font-weight: 700; border-top: 1px dashed #000; padding-top: 6px; margin-top: 6px; }
+            .foot { margin-top: 10px; font-size: 10px; text-align: center; }
+            .thank { margin-top: 14px; text-align: center; font-size: 12px; font-weight: 700; }
+            .barcode-space { text-align: center; margin-top: 10px; font-size: 10px; letter-spacing: 2px; }
             @media print { body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
           </style>
         </head>
         <body>
-          <div class="invoice">
-            <div class="header">
+          <div class="receipt">
+            <div class="header center">
               <h1>${esc(invoice.organization.name)}</h1>
-              <div class="org">
-                ${invoice.organization.address ? `<p>${esc(invoice.organization.address)}</p>` : ""}
-                ${invoice.organization.phone ? `<p>${esc(invoice.organization.phone)}</p>` : ""}
-                ${invoice.organization.gstin ? `<p>GSTIN: ${esc(invoice.organization.gstin)}</p>` : ""}
-              </div>
-              <div class="meta">Invoice #${esc(invoice.invoiceNumber)}</div>
+              ${invoice.organization.address ? `<p>${esc(invoice.organization.address)}</p>` : ""}
+              ${invoice.organization.phone ? `<p>Tel: ${esc(invoice.organization.phone)}</p>` : ""}
+              ${invoice.organization.gstin ? `<p>GSTIN: ${esc(invoice.organization.gstin)}</p>` : ""}
             </div>
-            <div class="grid">
-              <div class="col">
-                <h3>Bill To</h3>
-                <p>${esc(invoice.customer.name || "Guest")}</p>
-                ${invoice.customer.phone ? `<p>${esc(invoice.customer.phone)}</p>` : ""}
-                ${invoice.customer.email ? `<p>${esc(invoice.customer.email)}</p>` : ""}
-                <p>Table: ${esc(invoice.customer.tableNumber)}</p>
-              </div>
-              <div class="col" style="text-align:right">
-                <h3>Date</h3>
-                <p>${new Date(invoice.issuedAt).toLocaleDateString("en-IN", { year: "numeric", month: "long", day: "numeric" })}</p>
-                <h3 style="margin-top:8px">Payment</h3>
-                <p style="text-transform:capitalize">${esc(invoice.payment.status)}${invoice.payment.method ? ` (${esc(invoice.payment.method)})` : ""}</p>
-              </div>
-            </div>
+
+            <div class="dashed"></div>
+
+            <div class="row"><span>Receipt#</span><span class="bold">${esc(invoice.invoiceNumber)}</span></div>
+            <div class="row"><span>Date</span><span>${new Date(invoice.issuedAt).toLocaleDateString("en-IN", { year: "numeric", month: "short", day: "numeric" })}</span></div>
+            <div class="row"><span>Time</span><span>${new Date(invoice.issuedAt).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })}</span></div>
+            <div class="row"><span>Table</span><span>${esc(invoice.customer.tableNumber)}</span></div>
+            <div class="row"><span>Customer</span><span>${esc(invoice.customer.name || "Guest")}</span></div>
+
+            <div class="dashed"></div>
+
             <table>
               <thead>
                 <tr>
-                  <th style="width:48%">Item</th>
+                  <th style="width:50%">Item</th>
                   <th class="r">Qty</th>
                   <th class="r">Rate</th>
-                  <th class="r">Amount</th>
+                  <th class="r">Amt</th>
                 </tr>
               </thead>
               <tbody>
@@ -176,30 +168,40 @@ export default function OrdersInfo({
                   .map(
                     (item) => `
                   <tr>
-                    <td>${esc(item.name)}</td>
+                    <td class="item-name">${esc(item.name)}</td>
                     <td class="r">${item.quantity}</td>
-                    <td class="r">${fmt(item.unitPrice)}</td>
-                    <td class="r">${fmt(item.total)}</td>
+                    <td class="r">${item.unitPrice.toFixed(2)}</td>
+                    <td class="r">${item.total.toFixed(2)}</td>
                   </tr>
                 `
                   )
                   .join("")}
               </tbody>
             </table>
-            <div class="totals">
-              <table>
-                <tr><td>Subtotal</td><td class="r">${fmt(invoice.totals.subtotal)}</td></tr>
-                ${invoice.totals.discount > 0 ? `<tr><td>Discount</td><td class="r">-${fmt(invoice.totals.discount)}</td></tr>` : ""}
-                ${invoice.totals.taxableAmount > 0 ? `<tr><td>Taxable Amount</td><td class="r">${fmt(invoice.totals.taxableAmount)}</td></tr>` : ""}
-                ${invoice.totals.cgst > 0 ? `<tr><td>CGST</td><td class="r">${fmt(invoice.totals.cgst)}</td></tr>` : ""}
-                ${invoice.totals.sgst > 0 ? `<tr><td>SGST</td><td class="r">${fmt(invoice.totals.sgst)}</td></tr>` : ""}
-                ${invoice.totals.igst > 0 ? `<tr><td>IGST</td><td class="r">${fmt(invoice.totals.igst)}</td></tr>` : ""}
-                ${invoice.totals.roundOff !== 0 ? `<tr><td>Round Off</td><td class="r">${fmt(invoice.totals.roundOff)}</td></tr>` : ""}
-                <tr><td>Grand Total</td><td class="r">${fmt(invoice.totals.grandTotal)}</td></tr>
-              </table>
+
+            <div class="dashed"></div>
+
+            <div class="totals-row"><span>Subtotal</span><span>${fmt(invoice.totals.subtotal)}</span></div>
+            ${invoice.totals.discount > 0 ? `<div class="totals-row"><span>Discount</span><span>-${fmt(invoice.totals.discount)}</span></div>` : ""}
+            ${invoice.totals.taxableAmount > 0 ? `<div class="totals-row"><span>Taxable Amt</span><span>${fmt(invoice.totals.taxableAmount)}</span></div>` : ""}
+            ${invoice.totals.cgst > 0 ? `<div class="totals-row"><span>CGST</span><span>${fmt(invoice.totals.cgst)}</span></div>` : ""}
+            ${invoice.totals.sgst > 0 ? `<div class="totals-row"><span>SGST</span><span>${fmt(invoice.totals.sgst)}</span></div>` : ""}
+            ${invoice.totals.igst > 0 ? `<div class="totals-row"><span>IGST</span><span>${fmt(invoice.totals.igst)}</span></div>` : ""}
+            ${invoice.totals.roundOff !== 0 ? `<div class="totals-row"><span>Round Off</span><span>${fmt(invoice.totals.roundOff)}</span></div>` : ""}
+
+            <div class="totals-row grand"><span>TOTAL</span><span>${fmt(invoice.totals.grandTotal)}</span></div>
+
+            <div class="dashed"></div>
+
+            <div class="row">
+              <span>Payment</span>
+              <span style="text-transform:capitalize">${esc(invoice.payment.status)}${invoice.payment.method ? ` (${esc(invoice.payment.method)})` : ""}</span>
             </div>
+
             ${invoice.notes ? `<div class="foot">Notes: ${esc(invoice.notes)}</div>` : ""}
-            <div class="thank">Thank you for your visit!</div>
+
+            <div class="thank">*** THANK YOU, VISIT AGAIN ***</div>
+            <div class="barcode-space">${esc(invoice.invoiceNumber)}</div>
           </div>
           <script>window.print()</script>
         </body>
@@ -212,6 +214,7 @@ export default function OrdersInfo({
       setPrinting(false)
     }
   }
+
   return (
     <Sheet>
       <SheetTrigger asChild>{children}</SheetTrigger>
@@ -225,40 +228,14 @@ export default function OrdersInfo({
           </SheetTitle>
         </SheetHeader>
 
-        <div className="flex-1 space-y-5 p-4">
-          <div className="flex items-center justify-between gap-10">
-            <Select
-              value={localStatus}
-              onValueChange={async (value) => {
-                if (!organization?.id) return
-                setLocalStatus(value as typeof order.status)
-                await updateOrderStatus(order.id, value, organization.id)
-              }}
-            >
-              <SelectTrigger className="flex items-center gap-1.5 rounded-full border px-2.5 py-1 w-full">
-                <SelectValue className="text-xs font-medium capitalize" />
-              </SelectTrigger>
-              <SelectContent>
-                {(
-                  [
-                    "pending",
-                    "preparing",
-                    "ready",
-                    "served",
-                    "completed",
-                    "cancelled",
-                  ] as OrderStatus[]
-                ).map((s) => (
-                  <SelectItem key={s} value={s} className="capitalize">
-                    <span className="capitalize">{s}</span>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <div className="flex items-center gap-1.5 text-sm min-w-fit">
-              <span className="text-muted-foreground">Table</span>
-              <span className="font-semibold">{order.tableNumber}</span>
+        <div className="flex-1 space-y-5 p-4 pt-0">
+          <div className="space-y-3">
+            <div className="grid gap-1.5">
+              <span className="text-muted-foreground font-medium text-sm">Table Number</span>
+              <span className="text-3xl font-semibold">{order.tableNumber}</span>
             </div>
+            <OrderStatusSelect orderId={order.id} initial={order.status} />
+            <PaymentStatusSelect orderId={order.id} initial={order.paymentStatus} />
           </div>
 
           {(order.customerName || order.customerPhone) && (
@@ -277,85 +254,8 @@ export default function OrdersInfo({
             </div>
           )}
 
-          <div className="space-y-2">
-            <p className="text-[11px] text-muted-foreground uppercase tracking-widest font-medium">
-              Items ({order.items.length})
-            </p>
-            <div className="space-y-0.5 bg-muted/30 p-0.5 rounded-lg px-3.5!">
-              {order.items.map((item) => (
-                <div
-                  key={item.id}
-                  className="flex items-center justify-between py-2.5 border-b last:border-0"
-                >
-                  <div className="min-w-0 pr-4">
-                    <p className="text-sm font-medium truncate">{item.name}</p>
-                    <p className="text-xs text-muted-foreground mt-0.5">
-                      {item.quantity} × ₹{inr(item.unitPrice)}
-                    </p>
-                  </div>
-                  <p className="text-sm font-medium tabular-nums whitespace-nowrap">
-                    ₹{inr(item.quantity * item.unitPrice)}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="bg-muted/30 rounded-lg p-3.5 space-y-1.5">
-            <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Subtotal</span>
-              <span className="tabular-nums">₹{inr(order.subtotal)}</span>
-            </div>
-            {order.discount > 0 && (
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Discount</span>
-                <span className="text-red-500 tabular-nums">
-                  −₹{inr(order.discount)}
-                </span>
-              </div>
-            )}
-            {order.taxableAmount > 0 && (
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Taxable Amount</span>
-                <span className="tabular-nums">
-                  ₹{inr(order.taxableAmount)}
-                </span>
-              </div>
-            )}
-            {(order.cgstAmount > 0 || order.sgstAmount > 0) && (
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">CGST & SGST</span>
-                <span className="tabular-nums">
-                  ₹{inr(order.cgstAmount + order.sgstAmount)}
-                </span>
-              </div>
-            )}
-            {order.igstAmount > 0 && (
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">IGST</span>
-                <span className="tabular-nums">₹{inr(order.igstAmount)}</span>
-              </div>
-            )}
-            {order.roundOff !== 0 && (
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Round Off</span>
-                <span className="tabular-nums">₹{inr(order.roundOff)}</span>
-              </div>
-            )}
-            <div className="flex justify-between font-semibold text-sm pt-2 border-t">
-              <span>Grand Total</span>
-              <span className="tabular-nums">₹{inr(order.grandTotal)}</span>
-            </div>
-          </div>
-
-          {/*{order.paymentMethod && (
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-muted-foreground">Payment</span>
-              <span className={cn("font-medium capitalize", paymentStyles[order.paymentStatus])}>
-                {order.paymentMethod}
-              </span>
-            </div>
-          )}*/}
+          <OrderItemsList items={order.items} />
+          <OrderTotalsSummary order={order} />
 
           {order.notes && (
             <div className="rounded-lg border p-3.5">
