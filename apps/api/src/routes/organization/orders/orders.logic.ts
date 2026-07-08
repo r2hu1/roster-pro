@@ -258,9 +258,7 @@ export const orderLogic = {
       )
       .returning()
 
-    if (
-      updated.status === "completed" || updated.status === "cancelled"
-    ) {
+    if (updated.status === "completed" || updated.status === "cancelled") {
       await db
         .update(tableSchema)
         .set({ status: "available" })

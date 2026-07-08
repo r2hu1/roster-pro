@@ -14,9 +14,7 @@ import type { ContentfulStatusCode } from "hono/utils/http-status"
 
 export const tableRouter = new Hono<AppEnv>()
 
-tableRouter.use(sessionMiddleware)
-
-tableRouter.get("/", async (c) => {
+tableRouter.get("/", sessionMiddleware, async (c) => {
   const organizationId = c.get("organizationId")
   if (!organizationId) {
     return c.json(
@@ -33,7 +31,7 @@ tableRouter.get("/", async (c) => {
   return c.json(result, result.code)
 })
 
-tableRouter.get("/:id", async (c) => {
+tableRouter.get("/:id", sessionMiddleware, async (c) => {
   const organizationId = c.get("organizationId")
   if (!organizationId) {
     return c.json(
@@ -46,12 +44,58 @@ tableRouter.get("/:id", async (c) => {
     )
   }
 
-  const id = c.req.param("id")
+  const id = c.req.param("id")!
   const result = await tableLogic.getById(id, organizationId)
   return c.json(result, result.code)
 })
 
-tableRouter.post("/", zvalidator("json", createTableSchema), async (c) => {
+tableRouter.post(
+  "/",
+  sessionMiddleware,
+  zvalidator("json", createTableSchema),
+  async (c) => {
+    const organizationId = c.get("organizationId")
+    if (!organizationId) {
+      return c.json(
+        {
+          status: "error",
+          code: HTTP_STATUS_CODES.UNAUTHORIZED,
+          message: "Organization not found",
+        },
+        HTTP_STATUS_CODES.UNAUTHORIZED
+      )
+    }
+
+    const body = c.req.valid("json")
+    const result = await tableLogic.create(body, organizationId)
+    return c.json(result, result.code)
+  }
+)
+
+tableRouter.put(
+  "/",
+  sessionMiddleware,
+  zvalidator("json", updateTableSchema),
+  async (c) => {
+    const organizationId = c.get("organizationId")
+    if (!organizationId) {
+      return c.json(
+        {
+          status: "error",
+          code: HTTP_STATUS_CODES.UNAUTHORIZED,
+          message: "Organization not found",
+        },
+        HTTP_STATUS_CODES.UNAUTHORIZED
+      )
+    }
+
+    const body = c.req.valid("json")
+    const result = await tableLogic.update(body, organizationId)
+    return c.json(result, result.code)
+  }
+)
+
+tableRouter.delete("/:id", sessionMiddleware, async (c) => {
   const organizationId = c.get("organizationId")
   if (!organizationId) {
     return c.json(
@@ -64,49 +108,14 @@ tableRouter.post("/", zvalidator("json", createTableSchema), async (c) => {
     )
   }
 
-  const body = c.req.valid("json")
-  const result = await tableLogic.create(body, organizationId)
-  return c.json(result, result.code)
-})
-
-tableRouter.put("/", zvalidator("json", updateTableSchema), async (c) => {
-  const organizationId = c.get("organizationId")
-  if (!organizationId) {
-    return c.json(
-      {
-        status: "error",
-        code: HTTP_STATUS_CODES.UNAUTHORIZED,
-        message: "Organization not found",
-      },
-      HTTP_STATUS_CODES.UNAUTHORIZED
-    )
-  }
-
-  const body = c.req.valid("json")
-  const result = await tableLogic.update(body, organizationId)
-  return c.json(result, result.code)
-})
-
-tableRouter.delete("/:id", async (c) => {
-  const organizationId = c.get("organizationId")
-  if (!organizationId) {
-    return c.json(
-      {
-        status: "error",
-        code: HTTP_STATUS_CODES.UNAUTHORIZED,
-        message: "Organization not found",
-      },
-      HTTP_STATUS_CODES.UNAUTHORIZED
-    )
-  }
-
-  const id = c.req.param("id")
+  const id = c.req.param("id")!
   const result = await tableLogic.delete(id, organizationId)
-  return c.json(result, result.code as ContentfulStatusCode)
+  return c.json(result, 200)
 })
 
 tableRouter.patch(
   "/status",
+  sessionMiddleware,
   zvalidator("json", updateTableStatusSchema),
   async (c) => {
     const organizationId = c.get("organizationId")
@@ -127,7 +136,7 @@ tableRouter.patch(
   }
 )
 
-tableRouter.get("/status/stream", async (c) => {
+tableRouter.get("/status/stream", sessionMiddleware, async (c) => {
   const organizationId = c.get("organizationId")
   if (!organizationId) {
     return c.json(
@@ -151,21 +160,28 @@ tableRouter.get("/status/stream", async (c) => {
       data: JSON.stringify(initialStatus.data),
     })
 
-    const listener = (data: TableStatusResponse) => {
+    const listener = (event: {
+      type: "status" | "deleted"
+      data: TableStatusResponse | { id: string }
+    }) => {
       stream.writeSSE({
-        event: "status",
-        data: JSON.stringify(data),
+        event: event.type,
+        data: JSON.stringify(event.data),
       })
     }
 
-    tableEmitter.on(`status:${organizationId}`, listener)
+    tableEmitter.on(`table:${organizationId}`, listener)
 
-    stream.onAbort(() => {
-      tableEmitter.off(`status:${organizationId}`, listener)
-    })
+    const heartbeat = setInterval(() => {
+      stream.writeSSE({ event: "ping", data: "" }).catch(() => {})
+    }, 30000)
 
     await new Promise<void>((resolve) => {
-      stream.onAbort(() => resolve())
+      stream.onAbort(() => {
+        tableEmitter.off(`table:${organizationId}`, listener)
+        clearInterval(heartbeat)
+        resolve()
+      })
     })
   })
 })
