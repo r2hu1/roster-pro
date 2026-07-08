@@ -1,6 +1,7 @@
 import { and, eq, desc, like, sql } from "drizzle-orm"
 import { db } from "../../../core/db/client.js"
 import { order, orderCounter } from "../../../core/db/schemas/order.js"
+import { tableSchema } from "../../../core/db/schemas/table.js"
 import { redisClient } from "../../../core/redis/client.js"
 import { HTTP_STATUS_CODES } from "../../../lib/utils.js"
 import type {
@@ -148,6 +149,16 @@ export const orderLogic = {
         })
         .returning()
 
+      await tx
+        .update(tableSchema)
+        .set({ status: "occupied" })
+        .where(
+          and(
+            eq(tableSchema.number, Number(body.tableNumber)),
+            eq(tableSchema.organizationId, organizationId)
+          )
+        )
+
       return result
     })
 
@@ -247,6 +258,20 @@ export const orderLogic = {
       )
       .returning()
 
+    if (
+      updated.status === "completed" || updated.status === "cancelled"
+    ) {
+      await db
+        .update(tableSchema)
+        .set({ status: "available" })
+        .where(
+          and(
+            eq(tableSchema.number, Number(updated.tableNumber)),
+            eq(tableSchema.organizationId, organizationId)
+          )
+        )
+    }
+
     await redisClient.del(`${ORDER_CACHE_PREFIX}${body.id}`)
     await redisClient.delPattern(`${ORDER_CACHE_PREFIX}*:${organizationId}`)
 
@@ -299,6 +324,18 @@ export const orderLogic = {
       .set({ status, updatedAt: new Date() })
       .where(and(eq(order.id, id), eq(order.organizationId, organizationId)))
       .returning()
+
+    if (status === "completed" || status === "cancelled") {
+      await db
+        .update(tableSchema)
+        .set({ status: "available" })
+        .where(
+          and(
+            eq(tableSchema.number, Number(updated.tableNumber)),
+            eq(tableSchema.organizationId, organizationId)
+          )
+        )
+    }
 
     await redisClient.del(`${ORDER_CACHE_PREFIX}${id}`)
     await redisClient.delPattern(`${ORDER_CACHE_PREFIX}*:${organizationId}`)
