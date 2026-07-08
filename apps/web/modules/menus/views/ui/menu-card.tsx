@@ -36,7 +36,7 @@ export default function MenuCard({ menu }: { menu: MenuResponse }) {
 
         <div className="relative h-34 -mr-28 -mb-20 ml-4 w-full -rotate-8 overflow-visible transition-transform duration-300 ease-out [transform-style:preserve-3d] group-hover:[transform:rotate(-8deg)_translateZ(40px)_translateY(-6px)]">
           <div
-            className="bg-secondary text-secondary-foreground flex h-full w-full flex-col gap-1.5 rounded-t-sm p-3 shadow-[0_10px_20px_-8px_rgba(0,0,0,0.45)] transition-shadow duration-300 group-hover:shadow-[0_20px_30px_-10px_rgba(0,0,0,0.55)]"
+            className="bg-secondary border text-secondary-foreground flex h-full w-full flex-col gap-1.5 rounded-t-sm p-3 shadow-[0_10px_20px_-8px_rgba(0,0,0,0.45)] transition-shadow duration-300 group-hover:shadow-[0_20px_30px_-10px_rgba(0,0,0,0.55)]"
             style={{
               clipPath:
                 "polygon(0% 0%, 100% 0%, 100% 85%, 95% 100%, 90% 85%, 85% 100%, 80% 85%, 75% 100%, 70% 85%, 65% 100%, 60% 85%, 55% 100%, 50% 85%, 45% 100%, 40% 85%, 35% 100%, 30% 85%, 25% 100%, 20% 85%, 15% 100%, 10% 85%, 5% 100%, 0% 85%)",
