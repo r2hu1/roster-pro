@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useRef } from "react"
 import {
   ResponsiveModal,
   ResponsiveModalTrigger,
@@ -9,11 +9,14 @@ import {
   ResponsiveModalTitle,
   ResponsiveModalDescription,
   ResponsiveModalBody,
+  ResponsiveModalFooter,
 } from "@workspace/ui/components/responsive-modal"
 import { toast } from "sonner"
+import { Button } from "@workspace/ui/components/button"
 import QR from "@/components/qr-code"
+import type { QRHandle } from "@/components/qr-code"
+import { IconDownload } from "@tabler/icons-react"
 import { generateQrToken } from "../../api/tables"
-import { Loader } from "@workspace/ui/components/loader"
 import { Skeleton } from "@workspace/ui/components/skeleton"
 
 export default function TableQrCodeModal({
@@ -23,6 +26,7 @@ export default function TableQrCodeModal({
   table: { id: string; number: number }
   children: React.ReactNode
 }) {
+  const qrRef = useRef<QRHandle>(null)
   const [open, setOpen] = useState(false)
   const [token, setToken] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
@@ -58,11 +62,22 @@ export default function TableQrCodeModal({
         </ResponsiveModalHeader>
         <ResponsiveModalBody className="flex justify-center">
           {loading ? (
-            <Skeleton className="h-70 w-full"/>
+            <Skeleton className="h-70 w-full" />
           ) : token ? (
-            <QR token={token} />
+            <QR ref={qrRef} token={token}/>
           ) : null}
         </ResponsiveModalBody>
+        {token && (
+          <ResponsiveModalFooter>
+            <Button
+              className="w-full"
+              size="lg"
+              onClick={() => qrRef.current?.download({ extension: "png", name: `table-${table.number}-qr` })}
+            >
+              <IconDownload /> Download
+            </Button>
+          </ResponsiveModalFooter>
+        )}
       </ResponsiveModalContent>
     </ResponsiveModal>
   )
