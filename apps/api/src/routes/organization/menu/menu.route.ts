@@ -86,7 +86,7 @@ menuRouter.put("/", zvalidator("json", updateMenuSchema), async (c) => {
 })
 
 menuRouter.post(
-  "/all-items",
+  "/all",
   zvalidator("json", z.object({ organizationId: z.string().min(1) })),
   async (c) => {
     const { organizationId } = c.req.valid("json")
