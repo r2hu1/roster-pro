@@ -20,13 +20,13 @@ export function OrdersFilters({
   onSearchChange: (value: string) => void
 }) {
   return (
-    <div className="flex items-center gap-3">
-      <div className="flex min-w-fit rounded-md bg-sidebar overflow-hidden">
+    <div className="flex flex-col md:flex-row md:items-center gap-3">
+      <div className="flex no-scrollbar md:min-w-fit w-full md:w-auto rounded-md bg-sidebar overflow-x-auto md:overflow-hidden scrollbar-none">
         <Button
           size="lg"
           variant="secondary"
           className={cn(
-            "rounded-none capitalize",
+            "rounded-none capitalize shrink-0",
             activeFilter === "All" && "bg-primary/15! text-primary!"
           )}
           onClick={() => onFilterChange("All")}
@@ -39,7 +39,7 @@ export function OrdersFilters({
             key={f}
             variant="secondary"
             className={cn(
-              "rounded-none capitalize",
+              "rounded-none capitalize shrink-0",
               activeFilter === f && "bg-primary/15! text-primary!"
             )}
             onClick={() => onFilterChange(f)}
@@ -48,7 +48,7 @@ export function OrdersFilters({
           </Button>
         ))}
       </div>
-      <InputGroup>
+      <InputGroup className="w-full">
         <InputGroupInput
           placeholder="Search orders..."
           value={search}
