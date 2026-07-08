@@ -22,18 +22,7 @@ export function OrdersFilters({
   return (
     <div className="flex flex-col md:flex-row md:items-center gap-3">
       <div className="flex no-scrollbar md:min-w-fit w-full md:w-auto rounded-md bg-sidebar overflow-x-auto md:overflow-hidden scrollbar-none">
-        <Button
-          size="lg"
-          variant="secondary"
-          className={cn(
-            "rounded-none capitalize shrink-0",
-            activeFilter === "All" && "bg-primary/15! text-primary!"
-          )}
-          onClick={() => onFilterChange("All")}
-        >
-          All
-        </Button>
-        {OrderStatus.options.map((f) => (
+        {["All","Pending","Preparing","Ready","Served", "Completed", "Cancelled"].map((f) => (
           <Button
             size="lg"
             key={f}

@@ -20,12 +20,6 @@ import {
   SelectValue,
 } from "@workspace/ui/components/select"
 import { IconPrinter } from "@tabler/icons-react"
-import { cn } from "@workspace/ui/lib/utils"
-import {
-  statusDotStyles,
-  statusTextStyles,
-  paymentStyles,
-} from "./orders-constants"
 import { useSession } from "@/modules/providers/session-provider"
 import { generateInvoice, updateOrderStatus } from "../../api/orders"
 
@@ -245,7 +239,7 @@ export default function OrdersInfo({
                 <SelectValue className="text-xs font-medium capitalize" />
               </SelectTrigger>
               <SelectContent>
-                {(["pending", "confirmed", "preparing", "ready", "served", "completed", "cancelled"] as OrderStatus[]).map((s) => (
+                {(["pending", "preparing", "ready", "served", "completed", "cancelled"] as OrderStatus[]).map((s) => (
                   <SelectItem key={s} value={s} className="capitalize">
                       <span className="capitalize">{s}</span>
                   </SelectItem>
