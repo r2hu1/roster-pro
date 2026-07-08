@@ -1,4 +1,5 @@
 import { IconSearch } from "@tabler/icons-react"
+import { OrderStatus } from "@workspace/shared/enums"
 import { Button } from "@workspace/ui/components/button"
 import {
   InputGroup,
@@ -6,7 +7,6 @@ import {
   InputGroupInput,
 } from "@workspace/ui/components/input-group"
 import { cn } from "@workspace/ui/lib/utils"
-import { filters } from "./orders-constants"
 
 export function OrdersFilters({
   activeFilter,
@@ -22,18 +22,29 @@ export function OrdersFilters({
   return (
     <div className="flex items-center gap-3">
       <div className="flex min-w-fit rounded-md bg-sidebar overflow-hidden">
-        {filters.map((f) => (
+        <Button
+          size="lg"
+          variant="secondary"
+          className={cn(
+            "rounded-none capitalize",
+            activeFilter === "All" && "bg-primary/15! text-primary!"
+          )}
+          onClick={() => onFilterChange("All")}
+        >
+          All
+        </Button>
+        {OrderStatus.options.map((f) => (
           <Button
             size="lg"
-            key={f.value}
+            key={f}
             variant="secondary"
             className={cn(
-              "rounded-none",
-              activeFilter === f.value && "bg-primary/15! text-primary!"
+              "rounded-none capitalize",
+              activeFilter === f && "bg-primary/15! text-primary!"
             )}
-            onClick={() => onFilterChange(f.value)}
+            onClick={() => onFilterChange(f)}
           >
-            {f.label}
+            {f}
           </Button>
         ))}
       </div>

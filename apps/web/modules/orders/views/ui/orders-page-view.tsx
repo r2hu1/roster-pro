@@ -9,6 +9,7 @@ import { useOrdersStream } from "../../hooks/use-orders-stream"
 import { OrdersStats } from "./orders-stats"
 import { OrdersFilters } from "./orders-filters"
 import { OrderCard } from "./order-card"
+import { dummyOrders } from "../../hooks/dummy-orders"
 
 export default function OrdersPageView() {
   const { orders, connected } = useOrdersStream()
@@ -21,7 +22,7 @@ export default function OrdersPageView() {
   const cancelledCount = orders.filter((o) => o.status === "cancelled").length
 
   const filtered = useMemo(() => {
-    let result = orders
+    let result = dummyOrders
     if (activeFilter !== "All") {
       result = result.filter((o) => o.status === activeFilter)
     }
