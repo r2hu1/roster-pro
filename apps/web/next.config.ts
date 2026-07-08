@@ -13,7 +13,7 @@ const nextConfig: NextConfig = {
         port: "",
         pathname: "/",
       },
-    ]
+    ],
   },
   async rewrites() {
     return [

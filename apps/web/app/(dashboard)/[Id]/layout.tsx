@@ -1,23 +1,22 @@
+"use client"
 import { SidebarInset, SidebarProvider } from "@workspace/ui/components/sidebar"
 import { AppSidebar } from "../../../modules/sidebar/views/ui/sidebar"
-import { SessionProvider } from "@/modules/providers/session-provider"
-import { ReactQueryProvider } from "@/modules/providers/query-client"
+import { useKitchenMode } from "@/modules/providers/kitchen-mode"
+import KitchenModeToggle from "@/modules/sidebar/views/ui/kitchen-mode-toggle"
 
-export default async function RootLayout({
+export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode
 }>) {
+  const { kitchenMode } = useKitchenMode()
+
   return (
-    <ReactQueryProvider>
-      <SessionProvider>
-        <SidebarProvider>
-          <AppSidebar />
-          <SidebarInset className="p-6">
-            <main className="max-w-6xl w-full mx-auto!">{children}</main>
-          </SidebarInset>
-        </SidebarProvider>
-      </SessionProvider>
-    </ReactQueryProvider>
+    <SidebarProvider>
+      {!kitchenMode ? <AppSidebar /> : <KitchenModeToggle/>}
+      <SidebarInset className="p-6">
+        <main className="max-w-6xl w-full mx-auto!">{children}</main>
+      </SidebarInset>
+    </SidebarProvider>
   )
 }

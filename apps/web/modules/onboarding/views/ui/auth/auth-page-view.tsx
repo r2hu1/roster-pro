@@ -96,20 +96,21 @@ export default function LoginPageView() {
 
           {mode === "signup" && (
             <div>
-              <label htmlFor="name" className="mb-1.5 block text-sm font-medium text-foreground">
+              <label
+                htmlFor="name"
+                className="mb-1.5 block text-sm font-medium text-foreground"
+              >
                 Full name
               </label>
-              <Input
-                id="name"
-                name="name"
-                placeholder="John Doe"
-                required
-              />
+              <Input id="name" name="name" placeholder="John Doe" required />
             </div>
           )}
 
           <div>
-            <label htmlFor="email" className="mb-1.5 block text-sm font-medium text-foreground">
+            <label
+              htmlFor="email"
+              className="mb-1.5 block text-sm font-medium text-foreground"
+            >
               Email address
             </label>
             <Input
@@ -122,7 +123,10 @@ export default function LoginPageView() {
           </div>
 
           <div>
-            <label htmlFor="password" className="mb-1.5 block text-sm font-medium text-foreground">
+            <label
+              htmlFor="password"
+              className="mb-1.5 block text-sm font-medium text-foreground"
+            >
               Password
             </label>
             <Input
@@ -140,7 +144,13 @@ export default function LoginPageView() {
             className="w-full h-10"
             size="lg"
           >
-            {loading ? <Loader /> : mode === "login" ? "Sign In" : "Create Account"}
+            {loading ? (
+              <Loader />
+            ) : mode === "login" ? (
+              "Sign In"
+            ) : (
+              "Create Account"
+            )}
           </Button>
         </form>
 
@@ -170,7 +180,10 @@ export default function LoginPageView() {
               Don&apos;t have an account?{" "}
               <button
                 type="button"
-                onClick={() => { setMode("signup"); setError("") }}
+                onClick={() => {
+                  setMode("signup")
+                  setError("")
+                }}
                 className="font-medium text-foreground underline-offset-4 hover:underline"
               >
                 Sign up
@@ -181,7 +194,10 @@ export default function LoginPageView() {
               Already have an account?{" "}
               <button
                 type="button"
-                onClick={() => { setMode("login"); setError("") }}
+                onClick={() => {
+                  setMode("login")
+                  setError("")
+                }}
                 className="font-medium text-foreground underline-offset-4 hover:underline"
               >
                 Sign in

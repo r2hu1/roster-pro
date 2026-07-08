@@ -1,4 +1,7 @@
-import type { Menu, MenuItem } from "@workspace/shared/types/organization/menu/types"
+import type {
+  Menu,
+  MenuItem,
+} from "@workspace/shared/types/organization/menu/types"
 
 const menus: Menu[] = [
   {

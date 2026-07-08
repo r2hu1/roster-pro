@@ -1,7 +1,12 @@
 "use client"
 
 import { useMemo, useState } from "react"
-import { IconCirclePlus, IconToolsKitchen2Off, IconWifi, IconWifiOff } from "@tabler/icons-react"
+import {
+  IconCirclePlus,
+  IconToolsKitchen2Off,
+  IconWifi,
+  IconWifiOff,
+} from "@tabler/icons-react"
 import { Button } from "@workspace/ui/components/button"
 import PageHeader from "@/components/page-header"
 import EmptyData from "@/components/empty"
@@ -10,9 +15,11 @@ import { OrdersStats } from "./orders-stats"
 import { OrdersFilters } from "./orders-filters"
 import { OrderCard } from "./order-card"
 import { dummyOrders } from "../../hooks/dummy-orders"
+import { useKitchenMode } from "@/modules/providers/kitchen-mode"
 
 export default function OrdersPageView() {
-  const { orders, connected } = useOrdersStream()
+  const { orders, connected } = useOrdersStream();
+  const { kitchenMode } = useKitchenMode();
   const [activeFilter, setActiveFilter] = useState<string>("All")
   const [search, setSearch] = useState("")
 
@@ -40,6 +47,8 @@ export default function OrdersPageView() {
 
   return (
     <div className="space-y-6">
+      {!kitchenMode && (
+
       <PageHeader
         title="Orders"
         actions={
@@ -55,13 +64,20 @@ export default function OrdersPageView() {
           </div>
         }
       />
+      )}
       <div className="space-y-6">
-        <OrdersStats
+        {!kitchenMode ? (<OrdersStats
           total={totalOrders}
           pending={pendingCount}
           completed={completedCount}
-          cancelled={cancelledCount}
-        />
+            cancelled={cancelledCount}
+          />
+        ) : <div>
+            <h1 className="text-xl md:text-3xl font-medium flex items-center gap-3">
+              Live Orders
+              {connected ? <IconWifi className="size-7" /> : <IconWifiOff className="size-7" />}
+            </h1>
+        </div>}
         <OrdersFilters
           activeFilter={activeFilter}
           onFilterChange={setActiveFilter}

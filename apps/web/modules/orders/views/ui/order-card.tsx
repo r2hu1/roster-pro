@@ -1,7 +1,11 @@
 import { cn } from "@workspace/ui/lib/utils"
 import type { OrderSchema } from "@workspace/shared/schemas/order/index"
 import type { z } from "zod"
-import { statusDotStyles, statusTextStyles, paymentStyles } from "./orders-constants"
+import {
+  statusDotStyles,
+  statusTextStyles,
+  paymentStyles,
+} from "./orders-constants"
 import OrdersInfo from "./orders-info"
 
 type Order = z.infer<typeof OrderSchema>
@@ -27,12 +31,24 @@ export function OrderCard({ order }: { order: Order }) {
             <p className="text-base font-semibold leading-tight">
               Table {order.tableNumber}
             </p>
-            <p className="text-xs text-muted-foreground">{order.invoiceNumber}</p>
+            <p className="text-xs text-muted-foreground">
+              {order.invoiceNumber}
+            </p>
           </div>
 
           <div className="flex items-center gap-1.5 rounded-full border px-2 py-1">
-            <span className={cn("size-1.5 rounded-full", statusDotStyles[order.status])} />
-            <span className={cn("text-xs font-medium capitalize", statusTextStyles[order.status])}>
+            <span
+              className={cn(
+                "size-1.5 rounded-full",
+                statusDotStyles[order.status]
+              )}
+            />
+            <span
+              className={cn(
+                "text-xs font-medium capitalize",
+                statusTextStyles[order.status]
+              )}
+            >
               {order.status}
             </span>
           </div>
@@ -52,15 +68,17 @@ export function OrderCard({ order }: { order: Order }) {
             <p className="text-xs text-muted-foreground/70">{time}</p>
           </div>
           <p className="font-mono text-lg font-semibold tracking-tight">
-            <span className="mr-0.5 text-sm font-normal text-muted-foreground">₹</span>
+            <span className="mr-0.5 text-sm font-normal text-muted-foreground">
+              ₹
+            </span>
             {order.grandTotal.toLocaleString("en-IN")}
           </p>
         </div>
 
         <div className="mt-3 flex items-center justify-between border-t pt-2.5">
-            <span className={cn("text-xs font-medium")}>
-              {order.createdAt.toDateString()}
-            </span>
+          <span className={cn("text-xs font-medium")}>
+            {order.createdAt.toDateString()}
+          </span>
           {order.discount > 0 && (
             <span className="text-xs text-muted-foreground">
               −₹{order.discount.toLocaleString("en-IN")}

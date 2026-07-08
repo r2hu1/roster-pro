@@ -1,5 +1,6 @@
 "use client"
 
+import { useKitchenMode } from "@/modules/providers/kitchen-mode"
 import {
   IconCreditCard,
   IconDotsVertical,
@@ -14,6 +15,7 @@ import {
   AvatarFallback,
   AvatarImage,
 } from "@workspace/ui/components/avatar"
+import { Button } from "@workspace/ui/components/button"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -29,12 +31,23 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@workspace/ui/components/sidebar"
+import { Switch } from "@workspace/ui/components/switch"
 
 export function NavUser({ org }: { org: OrganizationResponse }) {
   const { isMobile } = useSidebar()
+  const { kitchenMode, setKitchenMode } = useKitchenMode()
 
   return (
-    <SidebarMenu>
+    <SidebarMenu className="space-y-3">
+      <SidebarMenuItem>
+        <SidebarMenuButton
+          variant="outline"
+          className="flex shadow-sm border-none hover:shadow-sm items-center h-9 text-sm! justify-between"
+        >
+          Kitchen Mode
+          <Switch checked={kitchenMode} onCheckedChange={setKitchenMode} />
+        </SidebarMenuButton>
+      </SidebarMenuItem>
       <SidebarMenuItem>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>

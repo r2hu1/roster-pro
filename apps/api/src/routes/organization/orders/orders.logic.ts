@@ -269,7 +269,7 @@ export const orderLogic = {
 
   updateStatus: async (
     id: string,
-    status: typeof order.$inferSelect["status"],
+    status: (typeof order.$inferSelect)["status"],
     organizationId: string
   ) => {
     if (!organizationId) {
@@ -283,9 +283,7 @@ export const orderLogic = {
     const [existing] = await db
       .select()
       .from(order)
-      .where(
-        and(eq(order.id, id), eq(order.organizationId, organizationId))
-      )
+      .where(and(eq(order.id, id), eq(order.organizationId, organizationId)))
 
     if (!existing) {
       return {
@@ -298,9 +296,7 @@ export const orderLogic = {
     const [updated] = await db
       .update(order)
       .set({ status, updatedAt: new Date() })
-      .where(
-        and(eq(order.id, id), eq(order.organizationId, organizationId))
-      )
+      .where(and(eq(order.id, id), eq(order.organizationId, organizationId)))
       .returning()
 
     await redisClient.del(`${ORDER_CACHE_PREFIX}${id}`)

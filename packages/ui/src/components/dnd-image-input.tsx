@@ -112,8 +112,8 @@ export function DnDImageInput({
             />
             <div className="absolute inset-0 bg-black/40 opacity-0 transition-opacity group-hover:opacity-100" />
             <div className="absolute inset-0 flex items-center justify-center gap-2 opacity-0 transition-opacity group-hover:opacity-100">
-                <Button
-                  type="button"
+              <Button
+                type="button"
                 size="sm"
                 variant="secondary"
                 onClick={handleThumbnailClick}
@@ -121,8 +121,8 @@ export function DnDImageInput({
               >
                 <Upload className="h-4 w-4" />
               </Button>
-                <Button
-                  type="button"
+              <Button
+                type="button"
                 size="sm"
                 variant="destructive"
                 onClick={handleRemove}
@@ -135,8 +135,8 @@ export function DnDImageInput({
           {fileName && (
             <div className="text-muted-foreground mt-2 flex w-fit max-w-xs items-center gap-2 text-sm">
               <span className="truncate">{fileName}</span>
-                <button
-                  type="button"
+              <button
+                type="button"
                 onClick={handleRemove}
                 className="hover:bg-muted ml-auto rounded-full p-1"
               >

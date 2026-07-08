@@ -239,9 +239,18 @@ export default function OrdersInfo({
                 <SelectValue className="text-xs font-medium capitalize" />
               </SelectTrigger>
               <SelectContent>
-                {(["pending", "preparing", "ready", "served", "completed", "cancelled"] as OrderStatus[]).map((s) => (
+                {(
+                  [
+                    "pending",
+                    "preparing",
+                    "ready",
+                    "served",
+                    "completed",
+                    "cancelled",
+                  ] as OrderStatus[]
+                ).map((s) => (
                   <SelectItem key={s} value={s} className="capitalize">
-                      <span className="capitalize">{s}</span>
+                    <span className="capitalize">{s}</span>
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -261,7 +270,9 @@ export default function OrdersInfo({
                 <p className="text-sm font-medium">{order.customerName}</p>
               )}
               {order.customerPhone && (
-                <p className="text-sm text-muted-foreground">{order.customerPhone}</p>
+                <p className="text-sm text-muted-foreground">
+                  {order.customerPhone}
+                </p>
               )}
             </div>
           )}
@@ -298,19 +309,25 @@ export default function OrdersInfo({
             {order.discount > 0 && (
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Discount</span>
-                <span className="text-red-500 tabular-nums">−₹{inr(order.discount)}</span>
+                <span className="text-red-500 tabular-nums">
+                  −₹{inr(order.discount)}
+                </span>
               </div>
             )}
             {order.taxableAmount > 0 && (
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Taxable Amount</span>
-                <span className="tabular-nums">₹{inr(order.taxableAmount)}</span>
+                <span className="tabular-nums">
+                  ₹{inr(order.taxableAmount)}
+                </span>
               </div>
             )}
             {(order.cgstAmount > 0 || order.sgstAmount > 0) && (
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">CGST & SGST</span>
-                <span className="tabular-nums">₹{inr(order.cgstAmount + order.sgstAmount)}</span>
+                <span className="tabular-nums">
+                  ₹{inr(order.cgstAmount + order.sgstAmount)}
+                </span>
               </div>
             )}
             {order.igstAmount > 0 && (
@@ -351,25 +368,25 @@ export default function OrdersInfo({
         </div>
 
         <SheetFooter>
-        <div className="flex items-center justify-between">
-          <p className="text-xs text-muted-foreground">
-            {new Date(order.createdAt).toLocaleDateString("en-IN", {
-              year: "numeric",
-              month: "short",
-              day: "numeric",
-              hour: "2-digit",
-              minute: "2-digit",
-            })}
-          </p>
-          <Button
-            size="lg"
-            onClick={handlePrint}
-            disabled={!organization?.id || printing}
-          >
-            <IconPrinter className="size-3.5 mr-1.5" />
-            {printing ? "Preparing..." : "Print Receipt"}
-          </Button>
-        </div>
+          <div className="flex items-center justify-between">
+            <p className="text-xs text-muted-foreground">
+              {new Date(order.createdAt).toLocaleDateString("en-IN", {
+                year: "numeric",
+                month: "short",
+                day: "numeric",
+                hour: "2-digit",
+                minute: "2-digit",
+              })}
+            </p>
+            <Button
+              size="lg"
+              onClick={handlePrint}
+              disabled={!organization?.id || printing}
+            >
+              <IconPrinter className="size-3.5 mr-1.5" />
+              {printing ? "Preparing..." : "Print Receipt"}
+            </Button>
+          </div>
         </SheetFooter>
       </SheetContent>
     </Sheet>

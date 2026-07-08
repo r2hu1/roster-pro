@@ -1,3 +1,4 @@
+import { useKitchenMode } from "@/modules/providers/kitchen-mode"
 import { IconSearch } from "@tabler/icons-react"
 import { OrderStatus } from "@workspace/shared/enums"
 import { Button } from "@workspace/ui/components/button"
@@ -18,11 +19,14 @@ export function OrdersFilters({
   onFilterChange: (value: string) => void
   search: string
   onSearchChange: (value: string) => void
-}) {
+  }) {
+
+  const { kitchenMode } = useKitchenMode();
+  const filters = !kitchenMode ? ["All", "Pending", "Preparing", "Ready", "Served", "Completed", "Cancelled"] : ["All", "Pending", "Preparing", "Ready", "Served"];
   return (
     <div className="flex flex-col md:flex-row md:items-center gap-3">
       <div className="flex no-scrollbar md:min-w-fit w-full md:w-auto rounded-md bg-sidebar overflow-x-auto md:overflow-hidden scrollbar-none">
-        {["All","Pending","Preparing","Ready","Served", "Completed", "Cancelled"].map((f) => (
+        {filters.map((f) => (
           <Button
             size="lg"
             key={f}
