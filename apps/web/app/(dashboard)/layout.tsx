@@ -10,9 +10,7 @@ export default async function RootLayout({
   return (
     <ReactQueryProvider>
       <SessionProvider>
-        <KitchenModeProvider>
-          {children}
-        </KitchenModeProvider>
+        <KitchenModeProvider>{children}</KitchenModeProvider>
       </SessionProvider>
     </ReactQueryProvider>
   )

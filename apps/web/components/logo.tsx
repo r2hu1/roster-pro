@@ -1,10 +1,20 @@
 import { cn } from "@workspace/ui/lib/utils"
 import Image from "next/image"
 
-export const Logo = ({ className }: { className?: string }) => {
+export const Logo = ({
+  className,
+  type,
+}: {
+  className?: string
+  type?: "full" | "icon"
+}) => {
   return (
     <Image
-      src="/assets/roster-pro-logo-full.jpeg"
+      src={
+        type === "icon"
+          ? "/assets/roster-pro-logo.jpeg"
+          : "/assets/roster-pro-logo-full.jpeg"
+      }
       height={100}
       preload
       unoptimized

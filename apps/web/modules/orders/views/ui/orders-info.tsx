@@ -82,6 +82,7 @@ export default function OrdersInfo({
   order: OrderResponse
   children: React.ReactNode
 }) {
+  if (!order) return null
   const { organization } = useSession()
   const [localStatus, setLocalStatus] = useState(order.status)
   const [printing, setPrinting] = useState(false)
@@ -211,7 +212,6 @@ export default function OrdersInfo({
       setPrinting(false)
     }
   }
-
   return (
     <Sheet>
       <SheetTrigger asChild>{children}</SheetTrigger>

@@ -9,7 +9,7 @@ import { z } from "zod"
 
 export const menuRouter = new Hono<AppEnv>()
 
-menuRouter.get("/",sessionMiddleware, async (c) => {
+menuRouter.get("/", sessionMiddleware, async (c) => {
   const organizationId = c.get("organizationId")
   if (!organizationId) {
     return c.json(
@@ -44,23 +44,28 @@ menuRouter.get("/:id", async (c) => {
   return c.json(result, result.code)
 })
 
-menuRouter.post("/",sessionMiddleware, zvalidator("json", createMenuSchema), async (c) => {
-  const organizationId = c.get("organizationId")
-  if (!organizationId) {
-    return c.json(
-      {
-        status: "error",
-        code: HTTP_STATUS_CODES.UNAUTHORIZED,
-        message: "Organization not found",
-      },
-      HTTP_STATUS_CODES.UNAUTHORIZED
-    )
-  }
+menuRouter.post(
+  "/",
+  sessionMiddleware,
+  zvalidator("json", createMenuSchema),
+  async (c) => {
+    const organizationId = c.get("organizationId")
+    if (!organizationId) {
+      return c.json(
+        {
+          status: "error",
+          code: HTTP_STATUS_CODES.UNAUTHORIZED,
+          message: "Organization not found",
+        },
+        HTTP_STATUS_CODES.UNAUTHORIZED
+      )
+    }
 
-  const body = c.req.valid("json")
-  const result = await menuLogic.create(body, organizationId)
-  return c.json(result, result.code)
-})
+    const body = c.req.valid("json")
+    const result = await menuLogic.create(body, organizationId)
+    return c.json(result, result.code)
+  }
+)
 
 menuRouter.put("/", zvalidator("json", updateMenuSchema), async (c) => {
   const organizationId = c.get("organizationId")
@@ -80,13 +85,17 @@ menuRouter.put("/", zvalidator("json", updateMenuSchema), async (c) => {
   return c.json(result, result.code)
 })
 
-menuRouter.post("/all-items", zvalidator("json", z.object({ organizationId: z.string().min(1) })), async (c) => {
-  const { organizationId } = c.req.valid("json")
-  const result = await menuLogic.getAllWithItems(organizationId)
-  return c.json(result, result.code)
-})
+menuRouter.post(
+  "/all-items",
+  zvalidator("json", z.object({ organizationId: z.string().min(1) })),
+  async (c) => {
+    const { organizationId } = c.req.valid("json")
+    const result = await menuLogic.getAllWithItems(organizationId)
+    return c.json(result, result.code)
+  }
+)
 
-menuRouter.delete("/:id",sessionMiddleware, async (c) => {
+menuRouter.delete("/:id", sessionMiddleware, async (c) => {
   const organizationId = c.get("organizationId")
   if (!organizationId) {
     return c.json(

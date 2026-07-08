@@ -20,7 +20,7 @@ export function OrderCard({ order }: { order: Order }) {
     <OrdersInfo order={order}>
       <div
         className={cn(
-          "group relative rounded-2xl border bg-background p-4",
+          "group relative rounded-lg border bg-background p-4",
           "transition-all duration-200",
           "hover:border-foreground/20 hover:bg-muted/20",
           "cursor-pointer"

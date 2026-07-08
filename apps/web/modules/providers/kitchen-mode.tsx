@@ -18,17 +18,17 @@ export function KitchenModeProvider({
   children,
 }: {
   children: React.ReactNode
-  }) {
-  const path = usePathname();
-  const { organization } = useSession();
-  const router = useRouter();
+}) {
+  const path = usePathname()
+  const { organization } = useSession()
+  const router = useRouter()
   const [kitchenMode, setKitchenMode] = React.useState(false)
   React.useEffect(() => {
     if (path.split("/").length > 2) {
-      if (!kitchenMode) return;
+      if (!kitchenMode) return
       router.push(`/${organization?.id}`)
     }
-  },[kitchenMode,organization?.id, path, router])
+  }, [kitchenMode, organization?.id, path, router])
 
   return (
     <KitchenModeContext.Provider value={{ kitchenMode, setKitchenMode }}>
