@@ -1,6 +1,8 @@
 "use client"
 
+import { usePathname, useRouter } from "next/navigation"
 import React from "react"
+import { useSession } from "./session-provider"
 
 interface KitchenModeContextType {
   kitchenMode: boolean
@@ -16,8 +18,17 @@ export function KitchenModeProvider({
   children,
 }: {
   children: React.ReactNode
-}) {
+  }) {
+  const path = usePathname();
+  const { organization } = useSession();
+  const router = useRouter();
   const [kitchenMode, setKitchenMode] = React.useState(false)
+  React.useEffect(() => {
+    if (path.split("/").length > 2) {
+      if (!kitchenMode) return;
+      router.push(`/${organization?.id}`)
+    }
+  },[kitchenMode,organization?.id, path, router])
 
   return (
     <KitchenModeContext.Provider value={{ kitchenMode, setKitchenMode }}>
