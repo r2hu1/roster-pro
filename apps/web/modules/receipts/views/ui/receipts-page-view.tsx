@@ -46,7 +46,9 @@ export default function ReceiptsPageView() {
       <div className="flex items-center justify-between">
         <div className="space-y-0">
           <h1 className="text-2xl font-medium tracking-tight">Receipts</h1>
-          <p className="text-sm text-muted-foreground md:text-lg">All receipts for orders till date.</p>
+          <p className="text-sm text-muted-foreground md:text-lg">
+            All receipts for orders till date.
+          </p>
         </div>
       </div>
       <InputGroup className="w-full">
