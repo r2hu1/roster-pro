@@ -1,7 +1,8 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import type { OrderResponse } from "@workspace/shared/schemas/order/index"
+import type { OrderStatus } from "@workspace/shared/enums"
 import {
   Sheet,
   SheetTrigger,
@@ -11,6 +12,13 @@ import {
   SheetFooter,
 } from "@workspace/ui/components/sheet"
 import { Button } from "@workspace/ui/components/button"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@workspace/ui/components/select"
 import { IconPrinter } from "@tabler/icons-react"
 import { cn } from "@workspace/ui/lib/utils"
 import {
@@ -19,7 +27,7 @@ import {
   paymentStyles,
 } from "./orders-constants"
 import { useSession } from "@/modules/providers/session-provider"
-import { generateInvoice } from "../../api/orders"
+import { generateInvoice, updateOrderStatus } from "../../api/orders"
 
 interface InvoiceData {
   invoiceNumber: string
@@ -81,7 +89,12 @@ export default function OrdersInfo({
   children: React.ReactNode
 }) {
   const { organization } = useSession()
+  const [localStatus, setLocalStatus] = useState(order.status)
   const [printing, setPrinting] = useState(false)
+
+  useEffect(() => {
+    setLocalStatus(order.status)
+  }, [order.status])
 
   const handlePrint = async () => {
     if (!organization?.id) return
@@ -218,15 +231,28 @@ export default function OrdersInfo({
           </SheetTitle>
         </SheetHeader>
 
-        <div className="flex-1 space-y-5 p-5">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-1.5 rounded-full border px-2.5 py-1">
-              <span className={cn("size-1.5 rounded-full", statusDotStyles[order.status])} />
-              <span className={cn("text-xs font-medium capitalize", statusTextStyles[order.status])}>
-                {order.status}
-              </span>
-            </div>
-            <div className="flex items-center gap-1.5 text-sm">
+        <div className="flex-1 space-y-5 p-4">
+          <div className="flex items-center justify-between gap-10">
+            <Select
+              value={localStatus}
+              onValueChange={async (value) => {
+                if (!organization?.id) return
+                setLocalStatus(value as typeof order.status)
+                await updateOrderStatus(order.id, value, organization.id)
+              }}
+            >
+              <SelectTrigger className="flex items-center gap-1.5 rounded-full border px-2.5 py-1 w-full">
+                <SelectValue className="text-xs font-medium capitalize" />
+              </SelectTrigger>
+              <SelectContent>
+                {(["pending", "confirmed", "preparing", "ready", "served", "completed", "cancelled"] as OrderStatus[]).map((s) => (
+                  <SelectItem key={s} value={s} className="capitalize">
+                      <span className="capitalize">{s}</span>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <div className="flex items-center gap-1.5 text-sm min-w-fit">
               <span className="text-muted-foreground">Table</span>
               <span className="font-semibold">{order.tableNumber}</span>
             </div>
@@ -311,14 +337,14 @@ export default function OrdersInfo({
             </div>
           </div>
 
-          {order.paymentMethod && (
+          {/*{order.paymentMethod && (
             <div className="flex items-center justify-between text-sm">
               <span className="text-muted-foreground">Payment</span>
               <span className={cn("font-medium capitalize", paymentStyles[order.paymentStatus])}>
                 {order.paymentMethod}
               </span>
             </div>
-          )}
+          )}*/}
 
           {order.notes && (
             <div className="rounded-lg border p-3.5">

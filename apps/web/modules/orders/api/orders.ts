@@ -43,6 +43,17 @@ export async function deleteOrder(id: string): Promise<void> {
   await api.delete(`/organization/orders/${id}`)
 }
 
+export async function updateOrderStatus(
+  orderId: string,
+  status: string,
+  organizationId: string
+): Promise<OrderResponse> {
+  const { data } = await api.patch(`/organization/orders/${orderId}/status`, {
+    status,
+  })
+  return data.data
+}
+
 export async function generateInvoice(orderId: string, organizationId: string) {
   const { data } = await api.get(`/organization/orders/${orderId}/invoice`, {
     params: { organizationId },

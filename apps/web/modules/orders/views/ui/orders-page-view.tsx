@@ -22,7 +22,7 @@ export default function OrdersPageView() {
   const cancelledCount = orders.filter((o) => o.status === "cancelled").length
 
   const filtered = useMemo(() => {
-    let result = dummyOrders
+    let result = orders
     if (activeFilter !== "All") {
       result = result.filter((o) => o.status === activeFilter)
     }
