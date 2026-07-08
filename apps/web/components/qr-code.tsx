@@ -11,8 +11,8 @@ export default function QR({ token, className }: {
 
   useEffect(() => {
     const qr = new QRCodeStyling({
-      width: 340,
-      height: 340,
+      width: 320,
+      height: 320,
       data: `${process.env.NEXT_PUBLIC_CLIENT_WEB_URL}/${token}`,
       image: "/assets/roster-pro-logo.jpeg",
       dotsOptions: {
