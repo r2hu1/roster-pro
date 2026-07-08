@@ -11,6 +11,7 @@ import type {
 } from "@workspace/shared/schemas/table/index"
 import { EventEmitter } from "node:events"
 import { cryptoUtil } from "../../../lib/crypto.js"
+import { organization } from "../../../core/db/schemas/auth.js"
 
 const TABLE_CACHE_PREFIX = "table:"
 const CACHE_TTL = 300
@@ -289,16 +290,27 @@ export const tableLogic = {
 
     return { status: "success", code: HTTP_STATUS_CODES.OK, data: tables }
   },
-  generateQrToken: async (
-    tableId: string,
-    organizationId: string,
-    tableNumber: string
-  ) => {
+  generateQrToken: async (tableId: string, organizationId: string) => {
+    const [existingToken] = await db
+      .select({ token: tableSchema.qrToken })
+      .from(tableSchema)
+      .where(eq(tableSchema.id, tableId))
+
+    if (existingToken?.token) {
+      return {
+        status: "success",
+        code: HTTP_STATUS_CODES.OK,
+        data: {
+          token: existingToken.token,
+        },
+      }
+    }
+
     const encryptedToken = cryptoUtil.encrypt({
       tableId,
-      tableNumber,
       organizationId,
     })
+
     if (!encryptedToken) {
       return {
         status: "error",
@@ -306,14 +318,25 @@ export const tableLogic = {
         message: "Failed to generate QR token",
       }
     }
+
+    await db
+      .update(tableSchema)
+      .set({ qrToken: encryptedToken })
+      .where(eq(tableSchema.id, tableId))
+
     return {
       status: "success",
       code: HTTP_STATUS_CODES.OK,
-      data: encryptedToken,
+      data: {
+        token: encryptedToken,
+      },
     }
   },
   decodeQrToken: async (token: string) => {
-    const decryptedToken = cryptoUtil.decrypt(token)
+    const decryptedToken = cryptoUtil.decrypt<{
+      organizationId: string
+      tableId: string
+    }>(token)
     if (!decryptedToken) {
       return {
         status: "error",
@@ -321,10 +344,54 @@ export const tableLogic = {
         message: "Failed to decode QR token",
       }
     }
+    const [table] = await db
+      .select()
+      .from(tableSchema)
+      .where(
+        and(
+          eq(tableSchema.id, decryptedToken.tableId),
+          eq(tableSchema.organizationId, decryptedToken.organizationId)
+        )
+      );
+
+    if (!table) {
+      return {
+        status: "error",
+        code: HTTP_STATUS_CODES.NOT_FOUND,
+        message: "Invalid QR code, table not found.",
+      };
+    }
+    if (table.qrToken !== token) {
+      return {
+        status: "error",
+        code: HTTP_STATUS_CODES.UNAUTHORIZED,
+        message: "Invalid QR code.",
+      };
+    }
+
+    const [org] = await db
+      .select()
+      .from(organization)
+      .where(eq(organization.id, decryptedToken.organizationId));
+
     return {
       status: "success",
       code: HTTP_STATUS_CODES.OK,
-      data: decryptedToken,
+      data: {
+        organization: {
+          id: org?.id,
+          name: org?.name,
+          logo: org?.logo,
+          phone: org?.phone,
+          address: org?.address,
+        },
+        table: {
+          id: decryptedToken.tableId,
+          name: table?.name,
+          status: table?.status,
+          number: table?.number,
+        },
+      },
     }
   },
 }
