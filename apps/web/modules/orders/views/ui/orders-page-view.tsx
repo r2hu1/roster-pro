@@ -25,6 +25,7 @@ export default function OrdersPageView() {
 
   const totalOrders = orders.length
   const pendingCount = orders.filter((o) => o.status === "pending").length
+  const readyCount = orders.filter((o) => o.status === "ready").length
   const completedCount = orders.filter((o) => o.status === "completed").length
   const cancelledCount = orders.filter((o) => o.status === "cancelled").length
 
@@ -69,6 +70,7 @@ export default function OrdersPageView() {
         {!kitchenMode ? (<OrdersStats
           total={totalOrders}
           pending={pendingCount}
+          ready={readyCount}
           completed={completedCount}
             cancelled={cancelledCount}
           />
