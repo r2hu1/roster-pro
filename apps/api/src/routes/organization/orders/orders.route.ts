@@ -66,12 +66,16 @@ orderRouter.get("/stream", sessionMiddleware, async (c) => {
 
     orderEmitter.on(`orders:${organizationId}`, listener)
 
-    stream.onAbort(() => {
-      orderEmitter.off(`orders:${organizationId}`, listener)
-    })
+    const heartbeat = setInterval(() => {
+      stream.writeSSE({ event: "ping", data: "" }).catch(() => {})
+    }, 30000)
 
     await new Promise<void>((resolve) => {
-      stream.onAbort(() => resolve())
+      stream.onAbort(() => {
+        orderEmitter.off(`orders:${organizationId}`, listener)
+        clearInterval(heartbeat)
+        resolve()
+      })
     })
   })
 })
@@ -113,12 +117,16 @@ orderRouter.get("/:id/stream", async (c) => {
 
     orderEmitter.on(`order:${id}`, listener)
 
-    stream.onAbort(() => {
-      orderEmitter.off(`order:${id}`, listener)
-    })
+    const heartbeat = setInterval(() => {
+      stream.writeSSE({ event: "ping", data: "" }).catch(() => {})
+    }, 30000)
 
     await new Promise<void>((resolve) => {
-      stream.onAbort(() => resolve())
+      stream.onAbort(() => {
+        orderEmitter.off(`order:${id}`, listener)
+        clearInterval(heartbeat)
+        resolve()
+      })
     })
   })
 })
