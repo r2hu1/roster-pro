@@ -95,6 +95,9 @@ export type {
   OrderListResponse,
 } from "./schemas/order/index.js"
 
+// Invoice
+export type { InvoiceData } from "./schemas/order/index.js"
+
 // Order Item
 export {
   OrderItemSchema,

@@ -20,6 +20,8 @@ export {
   type OrderListResponse,
 } from "./response.js"
 
+export { type InvoiceData } from "./invoice.js"
+
 export {
   OrderItemSchema,
   type OrderItem,
