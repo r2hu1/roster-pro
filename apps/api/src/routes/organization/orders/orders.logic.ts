@@ -58,6 +58,7 @@ export const orderLogic = {
       .select()
       .from(order)
       .where(eq(order.organizationId, organizationId))
+      .orderBy(desc(order.createdAt))
 
     await redisClient.set(cacheKey, orders, CACHE_TTL)
 
