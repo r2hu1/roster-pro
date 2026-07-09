@@ -87,10 +87,12 @@ export default function OnboardingPageView() {
       return
     }
 
-    const slug = name
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, "-")
-      .replace(/^-|-$/g, "")
+    const slug =
+      `${name
+        .toLowerCase()
+        .trim()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-+|-+$/g, "")}-${crypto.randomUUID().split("-")[0]}`;
 
     const body = new FormData()
     if (image) body.append("logo", image)
