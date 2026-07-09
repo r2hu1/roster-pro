@@ -1,8 +1,8 @@
 "use client"
 
 import {
-  Area,
-  AreaChart,
+  Bar,
+  BarChart,
   CartesianGrid,
   Legend,
   ResponsiveContainer,
@@ -42,7 +42,7 @@ export function OrdersRevenueChart({
 
   return (
     <Card className="pt-0">
-      <CardHeader className="flex items-center gap-2 space-y-0 border-b py-5 sm:flex-row">
+      <CardHeader className="flex items-center gap-2 space-y-0 py-5 sm:flex-row">
         <div className="grid flex-1 gap-1">
           <CardTitle>Orders & Revenue</CardTitle>
           <CardDescription>
@@ -53,7 +53,7 @@ export function OrdersRevenueChart({
       <CardContent className="px-2 pt-4 sm:px-6 sm:pt-6">
         <div className="h-[250px] w-full">
           <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={data}>
+            <BarChart data={data}>
               <defs>
                 <linearGradient id="fillOrders" x1="0" y1="0" x2="0" y2="1">
                   <stop
@@ -149,21 +149,21 @@ export function OrdersRevenueChart({
                   )
                 }}
               />
-              <Area
+              <Bar
                 dataKey="orders"
-                type="natural"
                 fill="url(#fillOrders)"
                 stroke="var(--chart-1)"
                 strokeWidth={2}
+                radius={[4, 4, 0, 0]}
                 yAxisId="left"
                 name="Orders"
               />
-              <Area
+              <Bar
                 dataKey="revenue"
-                type="natural"
                 fill="url(#fillRevenue)"
                 stroke="var(--chart-2)"
                 strokeWidth={2}
+                radius={[4, 4, 0, 0]}
                 yAxisId="right"
                 name="Revenue"
               />
@@ -190,7 +190,7 @@ export function OrdersRevenueChart({
                   )
                 }}
               />
-            </AreaChart>
+            </BarChart>
           </ResponsiveContainer>
         </div>
       </CardContent>

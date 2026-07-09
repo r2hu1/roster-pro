@@ -154,9 +154,17 @@ export const analyticsLogic = {
         entry.revenue += o.grandTotal
         dailyMap.set(dateKey, entry)
       }
-      const daily: DailyData[] = Array.from(dailyMap.entries())
-        .sort(([a], [b]) => a.localeCompare(b))
-        .map(([date, data]) => ({ date, ...data }))
+      const daily: DailyData[] = []
+      const cursor = new Date(fromDate)
+      while (cursor < toDate) {
+        const dateKey = cursor.toISOString().split("T")[0]
+        const entry = dailyMap.get(dateKey) ?? {
+          orderCount: 0,
+          revenue: 0,
+        }
+        daily.push({ date: dateKey, ...entry })
+        cursor.setDate(cursor.getDate() + 1)
+      }
 
       const statusMap = new Map<string, number>()
       for (const o of orders) {
