@@ -142,7 +142,10 @@ export const organizationLogic = {
         metadata: body.metadata
           ? JSON.stringify(body.metadata)
           : getOrg.metadata,
+        hsnSac: body.hsnSac ?? getOrg.hsnSac,
+        gstin: body.gstin ?? getOrg.gstin,
         websiteId: body.websiteId ?? getOrg.websiteId,
+        gstRate: body.gstRate ?? getOrg.gstRate,
       })
       .where(eq(organization.id, getOrg.id))
       .returning()

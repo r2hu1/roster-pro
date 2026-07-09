@@ -26,7 +26,7 @@ menuRouter.get("/", sessionMiddleware, async (c) => {
   return c.json(result, result.code)
 })
 
-menuRouter.get("/:id", async (c) => {
+menuRouter.get("/:id", sessionMiddleware, async (c) => {
   const organizationId = c.get("organizationId")
   if (!organizationId) {
     return c.json(
@@ -40,7 +40,7 @@ menuRouter.get("/:id", async (c) => {
   }
 
   const id = c.req.param("id")
-  const result = await menuLogic.getById(id, organizationId)
+  const result = await menuLogic.getById(id!, organizationId)
   return c.json(result, result.code)
 })
 
@@ -67,7 +67,7 @@ menuRouter.post(
   }
 )
 
-menuRouter.put("/", zvalidator("json", updateMenuSchema), async (c) => {
+menuRouter.put("/", sessionMiddleware, zvalidator("json", updateMenuSchema), async (c) => {
   const organizationId = c.get("organizationId")
   if (!organizationId) {
     return c.json(

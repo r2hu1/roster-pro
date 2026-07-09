@@ -352,27 +352,27 @@ export const tableLogic = {
           eq(tableSchema.id, decryptedToken.tableId),
           eq(tableSchema.organizationId, decryptedToken.organizationId)
         )
-      );
+      )
 
     if (!table) {
       return {
         status: "error",
         code: HTTP_STATUS_CODES.NOT_FOUND,
         message: "Invalid QR code, table not found.",
-      };
+      }
     }
     if (table.qrToken !== token) {
       return {
         status: "error",
         code: HTTP_STATUS_CODES.UNAUTHORIZED,
         message: "Invalid QR code.",
-      };
+      }
     }
 
     const [org] = await db
       .select()
       .from(organization)
-      .where(eq(organization.id, decryptedToken.organizationId));
+      .where(eq(organization.id, decryptedToken.organizationId))
 
     return {
       status: "success",

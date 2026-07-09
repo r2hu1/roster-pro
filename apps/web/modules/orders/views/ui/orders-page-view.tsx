@@ -7,13 +7,14 @@ import {
   IconWifiOff,
 } from "@tabler/icons-react"
 import { Button } from "@workspace/ui/components/button"
+import { Skeleton } from "@workspace/ui/components/skeleton"
 import PageHeader from "@/components/page-header"
 import EmptyData from "@/components/empty"
 import { useOrdersStream } from "../../hooks/use-orders-stream"
+import CreateManualOrderModal from "./create-manual-order-responsive-modal"
 import { OrdersStats } from "./orders-stats"
 import { OrdersFilters } from "./orders-filters"
 import { OrderCard } from "./order-card"
-import { dummyOrders } from "../../hooks/dummy-orders"
 import { useKitchenMode } from "@/modules/providers/kitchen-mode"
 import { Logo } from "@/components/logo"
 import { useSession } from "@/modules/providers/session-provider"
@@ -137,6 +138,7 @@ export default function OrdersPageView() {
     <div className="space-y-6">
       <PageHeader
         title="Orders"
+        description="Realtime orders of your restaurant."
         actions={
           <div className="flex items-center gap-3">
             {connected ? (
@@ -144,37 +146,57 @@ export default function OrdersPageView() {
             ) : (
               <IconWifiOff className="size-4" />
             )}
-            <Button>
-              New Order <IconCirclePlus />
-            </Button>
+            <CreateManualOrderModal>
+              <Button>
+                New Order <IconCirclePlus />
+              </Button>
+            </CreateManualOrderModal>
           </div>
         }
       />
       <div className="space-y-6">
-        <OrdersStats
-          total={totalOrders}
-          pending={pendingCount}
-          ready={readyCount}
-          completed={completedCount}
-          cancelled={cancelledCount}
-        />
-        <OrdersFilters
-          activeFilter={activeFilter}
-          onFilterChange={setActiveFilter}
-          search={search}
-          onSearchChange={setSearch}
-        />
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-          {filtered.map((order) => (
-            <OrderCard key={order.id} order={order} />
-          ))}
-        </div>
-        {filtered.length === 0 && (
-          <EmptyData
-            title="No orders recieved yet."
-            description="Let your customer order, and you will see it here in realtime."
-            icon={<IconToolsKitchen2Off />}
-          />
+        {!connected && orders.length === 0 ? (
+          <div className="space-y-6">
+            <div className="grid grid-cols-4 gap-4">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <Skeleton key={i} className="h-28 rounded-2xl" />
+              ))}
+            </div>
+            <Skeleton className="h-10 w-full rounded-lg" />
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <Skeleton key={i} className="h-40 rounded-2xl" />
+              ))}
+            </div>
+          </div>
+        ) : (
+          <>
+            <OrdersStats
+              total={totalOrders}
+              pending={pendingCount}
+              ready={readyCount}
+              completed={completedCount}
+              cancelled={cancelledCount}
+            />
+            <OrdersFilters
+              activeFilter={activeFilter}
+              onFilterChange={setActiveFilter}
+              search={search}
+              onSearchChange={setSearch}
+            />
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+              {filtered.map((order, i) => (
+                <OrderCard key={i} order={order} />
+              ))}
+            </div>
+            {filtered.length === 0 && (
+              <EmptyData
+                title="No orders recieved yet."
+                description="Let your customer order, and you will see it here in realtime."
+                icon={<IconToolsKitchen2Off />}
+              />
+            )}
+          </>
         )}
       </div>
     </div>

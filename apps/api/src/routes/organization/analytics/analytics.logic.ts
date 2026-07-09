@@ -1,4 +1,4 @@
-import { and, eq, sql, count } from "drizzle-orm"
+import { and, eq, gte, lt, sql, count } from "drizzle-orm"
 import { db } from "../../../core/db/client.js"
 import { order } from "../../../core/db/schemas/order.js"
 import { tableSchema } from "../../../core/db/schemas/table.js"
@@ -72,6 +72,7 @@ export const analyticsLogic = {
     try {
       const fromDate = new Date(query.from)
       const toDate = new Date(query.to)
+      toDate.setDate(toDate.getDate() + 1)
 
       const orders = await db
         .select()
@@ -79,8 +80,8 @@ export const analyticsLogic = {
         .where(
           and(
             eq(order.organizationId, organizationId),
-            sql`${order.createdAt} >= ${fromDate}`,
-            sql`${order.createdAt} <= ${toDate}`
+            gte(order.createdAt, fromDate),
+            lt(order.createdAt, toDate)
           )
         )
 
@@ -153,9 +154,17 @@ export const analyticsLogic = {
         entry.revenue += o.grandTotal
         dailyMap.set(dateKey, entry)
       }
-      const daily: DailyData[] = Array.from(dailyMap.entries())
-        .sort(([a], [b]) => a.localeCompare(b))
-        .map(([date, data]) => ({ date, ...data }))
+      const daily: DailyData[] = []
+      const cursor = new Date(fromDate)
+      while (cursor < toDate) {
+        const dateKey = cursor.toISOString().split("T")[0]
+        const entry = dailyMap.get(dateKey) ?? {
+          orderCount: 0,
+          revenue: 0,
+        }
+        daily.push({ date: dateKey, ...entry })
+        cursor.setDate(cursor.getDate() + 1)
+      }
 
       const statusMap = new Map<string, number>()
       for (const o of orders) {

@@ -29,6 +29,20 @@
       "when": 1783328705003,
       "tag": "0003_special_brother_voodoo",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1783533043974,
+      "tag": "0004_aspiring_argent",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1783533538654,
+      "tag": "0005_square_scarecrow",
+      "breakpoints": true
     }
   ]
 }

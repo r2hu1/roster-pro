@@ -23,6 +23,7 @@ export const OrderSchema = z.object({
   roundOff: z.number(),
   grandTotal: z.number(),
   notes: z.string().nullable(),
+  gstRate: z.number(),
   createdAt: z.date(),
   updatedAt: z.date(),
 })

@@ -10,6 +10,8 @@ export const UpdateOrganizationSchema = z.object({
   websiteId: z.string().nullable().optional(),
   address: z.string().nullable().optional(),
   gstin: z.string().nullable().optional(),
+  hsnSac: z.number().nullable().optional(),
+  gstRate: z.number().nullable().optional(),
   phone: z.string().nullable().optional(),
 })
 

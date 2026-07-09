@@ -23,6 +23,7 @@ import {
 import { Skeleton } from "@workspace/ui/components/skeleton"
 
 import { OrdersRevenueChart } from "./charts/orders-revenue-chart"
+import { HourlyRevenuePieChart } from "./charts/hourly-revenue-pie-chart"
 import { PeakHourBusiestTableChart } from "./charts/peak-hour-and-busiest-table-chart"
 import { TopItemsList } from "./charts/top-items-list"
 import { TableStatsList } from "./charts/table-stats-list"
@@ -32,7 +33,10 @@ import { IconCalendar } from "@tabler/icons-react"
 const MIN_RANGE_DAYS = 7
 
 function toDateString(date: Date) {
-  return date.toISOString().substring(0, 10)
+  const y = date.getFullYear()
+  const m = String(date.getMonth() + 1).padStart(2, "0")
+  const d = String(date.getDate()).padStart(2, "0")
+  return `${y}-${m}-${d}`
 }
 
 function addDays(date: Date, days: number) {
@@ -72,7 +76,7 @@ function useAnalytics(from: string, to: string) {
 
 export function AnalyticsPageView() {
   const today = React.useMemo(() => startOfDay(new Date()), [])
-  const defaultFrom = React.useMemo(() => addDays(today, -30), [today])
+  const defaultFrom = React.useMemo(() => addDays(today, -6), [today])
 
   const [from, setFrom] = React.useState(defaultFrom)
   const [to, setTo] = React.useState(today)
@@ -115,18 +119,26 @@ export function AnalyticsPageView() {
   const hasChanges =
     pendingRange.from.getTime() !== from.getTime() ||
     pendingRange.to.getTime() !== to.getTime()
+  const isSingleDate =
+    pendingRange.from.getTime() === pendingRange.to.getTime()
 
   return (
     <div>
       <PageHeader
         title="Analytics"
+        description="Watch how your restaurant is performing."
         actions={
           <Popover open={open} onOpenChange={setOpen}>
             <PopoverTrigger
               render={
                 <Button disabled={isFetching}>
                   <IconCalendar className="size-4" />
-                  {formatDateRange(from, to)}
+                  <span className="flex sm:hidden">
+                    Filter
+                  </span>
+                  <span className="hidden sm:flex">
+                    {formatDateRange(from, to)}
+                  </span>
                 </Button>
               }
             />
@@ -139,7 +151,7 @@ export function AnalyticsPageView() {
                   numberOfMonths={1}
                   defaultMonth={pendingRange.from}
                 />
-                <Button onClick={handleApply} disabled={!hasChanges}>
+                <Button onClick={handleApply} disabled={!hasChanges || isSingleDate}>
                   Apply
                 </Button>
               </div>
@@ -220,19 +232,21 @@ export function AnalyticsPageView() {
             </Card>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
             <OrdersRevenueChart
               chartData={data.revenue.daily}
               timeRange={formatDateRange(from, to)}
             />
+          <div className="grid md:grid-cols-2 gap-4">
             <PeakHourBusiestTableChart
               hourlyData={data.revenue.hourly}
               peakHour={data.summary.peakHour}
               busiestTable={data.summary.busiestTable}
             />
+            <HourlyRevenuePieChart
+              hourlyData={data.revenue.hourly}
+            />
           </div>
-
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid md:grid-cols-2 gap-4">
             <TopItemsList items={data.topItems} />
             <TableStatsList stats={data.tableStats} />
           </div>
