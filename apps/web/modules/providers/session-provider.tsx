@@ -3,10 +3,11 @@
 import { authClient } from "@/lib/better-auth/client"
 import Transform from "@workspace/ui/components/transform"
 import type { Session, User } from "better-auth"
-import { createContext, useContext } from "react"
+import { createContext, useContext, useEffect } from "react"
 import { useQuery } from "@tanstack/react-query"
 import api from "@/lib/axios"
 import type { OrganizationResponse } from "@workspace/shared/schemas/organization/response"
+import { useRouter } from "next/navigation"
 
 interface SessionContextProps {
   session: Session | null
@@ -18,6 +19,8 @@ interface SessionContextProps {
 const SessionContext = createContext<SessionContextProps | null>(null)
 
 export function SessionProvider({ children }: { children: React.ReactNode }) {
+  const router = useRouter();
+
   const { data: sessionData, isPending: sessionIsPending } =
     authClient.useSession()
 
@@ -29,7 +32,15 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
     },
   })
 
-  const isLoading = sessionIsPending || organizationsIsPending
+  const isLoading = sessionIsPending || organizationsIsPending;
+
+  useEffect(() => {
+    if (sessionIsPending) return;
+    if (!sessionData) {
+      router.push("/");
+    }
+    if (organizationsIsPending) return;
+  }, [sessionData,sessionIsPending,organizations,organizationsIsPending,router]);
 
   return (
     <SessionContext.Provider
