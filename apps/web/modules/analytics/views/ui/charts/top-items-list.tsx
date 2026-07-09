@@ -34,7 +34,7 @@ export function TopItemsList({ items }: { items: TopItem[] }) {
           {items.map((item, i) => (
             <div
               key={item.name}
-              className="flex items-center justify-between gap-4"
+              className="flex bg-muted/40 p-3 rounded-md max-h-90 overflow-y-scroll no-scrollbar items-center justify-between gap-4"
             >
               <div className="flex items-center gap-3 min-w-0">
                 <span className="text-muted-foreground text-xs tabular-nums w-4 shrink-0">

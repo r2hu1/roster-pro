@@ -23,6 +23,7 @@ import {
 import { Skeleton } from "@workspace/ui/components/skeleton"
 
 import { OrdersRevenueChart } from "./charts/orders-revenue-chart"
+import { HourlyRevenuePieChart } from "./charts/hourly-revenue-pie-chart"
 import { PeakHourBusiestTableChart } from "./charts/peak-hour-and-busiest-table-chart"
 import { TopItemsList } from "./charts/top-items-list"
 import { TableStatsList } from "./charts/table-stats-list"
@@ -241,9 +242,14 @@ export function AnalyticsPageView() {
               peakHour={data.summary.peakHour}
               busiestTable={data.summary.busiestTable}
             />
+            <HourlyRevenuePieChart
+              hourlyData={data.revenue.hourly}
+            />
+          </div>
+          <div className="grid md:grid-cols-2 gap-4">
+            <TopItemsList items={data.topItems} />
             <TableStatsList stats={data.tableStats} />
           </div>
-            <TopItemsList items={data.topItems} />
         </div>
       )}
     </div>
