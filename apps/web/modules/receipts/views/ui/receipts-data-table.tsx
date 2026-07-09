@@ -48,6 +48,18 @@ export const columns: ColumnDef<OrderResponse>[] = [
     },
   },
   {
+    accessorKey: "gstRate",
+    header: () => <div className="text-right">GST Rate</div>,
+    cell: ({ row }) => {
+      const amount = row.getValue("gstRate") as number
+      return (
+        <div className="text-right font-medium tabular-nums">
+          {amount}%
+        </div>
+      )
+    },
+  },
+  {
     accessorKey: "tableNumber",
     header: "Table",
     cell: ({ row }) => (

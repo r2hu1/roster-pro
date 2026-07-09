@@ -11,6 +11,7 @@ import {
   InputGroupInput,
 } from "@workspace/ui/components/input-group"
 import ReceiptsDataTable from "./receipts-data-table"
+import PageHeader from "@/components/page-header"
 
 export default function ReceiptsPageView() {
   const { orders, connected } = useOrdersStream()
@@ -19,11 +20,6 @@ export default function ReceiptsPageView() {
   const [activeFilter, setActiveFilter] = useState<string>("All")
   const [search, setSearch] = useState("")
 
-  const totalOrders = orders.length
-  const pendingCount = orders.filter((o) => o.status === "pending").length
-  const readyCount = orders.filter((o) => o.status === "ready").length
-  const completedCount = orders.filter((o) => o.status === "completed").length
-  const cancelledCount = orders.filter((o) => o.status === "cancelled").length
 
   const filtered = useMemo(() => {
     let result = orders
@@ -43,14 +39,7 @@ export default function ReceiptsPageView() {
   }, [orders, activeFilter, search])
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <div className="space-y-0">
-          <h1 className="text-2xl font-medium tracking-tight">Receipts</h1>
-          <p className="text-sm text-muted-foreground md:text-lg">
-            All receipts for orders till date.
-          </p>
-        </div>
-      </div>
+      <PageHeader title="Receipts" description="All receipts for orders till date." />
       <InputGroup className="w-full">
         <InputGroupInput
           placeholder="Search by invoice, table, or customer..."

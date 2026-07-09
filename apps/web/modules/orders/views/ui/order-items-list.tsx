@@ -9,9 +9,9 @@ export function OrderItemsList({ items }: { items: OrderResponse["items"] }) {
         Items ({items.length})
       </p>
       <div className="space-y-0.5 bg-muted/30 p-0.5 rounded-lg px-3.5!">
-        {items.map((item) => (
+        {items.map((item,i) => (
           <div
-            key={item.id}
+            key={i}
             className="flex items-center justify-between py-2.5 border-b last:border-0"
           >
             <div className="min-w-0 pr-4">

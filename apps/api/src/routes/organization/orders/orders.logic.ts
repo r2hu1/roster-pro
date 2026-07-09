@@ -364,6 +364,16 @@ export const orderLogic = {
             eq(tableSchema.organizationId, organizationId)
           )
         )
+    } else {
+      await db
+        .update(tableSchema)
+        .set({ status: "occupied" })
+        .where(
+          and(
+            eq(tableSchema.number, Number(updated.tableNumber)),
+            eq(tableSchema.organizationId, organizationId)
+          )
+        )
     }
 
     await redisClient.del(`${ORDER_CACHE_PREFIX}${id}`)

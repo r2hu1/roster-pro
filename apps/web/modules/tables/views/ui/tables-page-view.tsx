@@ -32,6 +32,7 @@ export default function TablesPageView() {
     <div>
       <PageHeader
         title="Tables"
+        description="Manage your restaurant tables in real-time."
         actions={
           <div className="flex items-center gap-3">
             {connected ? (

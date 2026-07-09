@@ -79,7 +79,7 @@ export function TableCard({
           )}
         </div>
 
-        <Badge variant="secondary">{STATUS_LABEL[status]}</Badge>
+        <Badge variant={!isAvailable ? "secondary":"default"}>{STATUS_LABEL[status]}</Badge>
       </button>
       <div className="h-0 p-0 justify-center overflow-hidden group-hover:p-4 group-hover:h-4 flex items-center rounded-b-xl group-hover:border-b group-hover:border-l group-hover:border-r transition-all bg-sidebar">
         <TableQrCodeModal table={{ id: tableId!, number: Number(number) }}>

@@ -137,6 +137,7 @@ export default function OrdersPageView() {
     <div className="space-y-6">
       <PageHeader
         title="Orders"
+        description="Realtime orders of your restaurant."
         actions={
           <div className="flex items-center gap-3">
             {connected ? (
@@ -167,8 +168,8 @@ export default function OrdersPageView() {
           onSearchChange={setSearch}
         />
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-          {filtered.map((order) => (
-            <OrderCard key={order.id} order={order} />
+          {filtered.map((order, i) => (
+            <OrderCard key={i} order={order} />
           ))}
         </div>
         {filtered.length === 0 && (
