@@ -14,6 +14,12 @@ export const auth = betterAuth({
     "http://localhost:3000",
     "http://localhost:3001",
   ],
+  session: {
+    cookieCache: {
+      enabled: true,
+      refreshCache: true,
+    }
+  },
   database: drizzleAdapter(db, {
     provider: "pg",
   }),

@@ -22,21 +22,27 @@ export const cryptoUtil = {
     return Buffer.concat([iv, authTag, encrypted]).toString("base64url")
   },
 
-  decrypt<T>(token: string): T {
-    const buffer = Buffer.from(token, "base64url")
+  decrypt<T>(token: string): T | null {
+    try {
+      const buffer = Buffer.from(token, "base64url")
 
-    const iv = buffer.subarray(0, 12)
-    const authTag = buffer.subarray(12, 28)
-    const encrypted = buffer.subarray(28)
+      if (buffer.length < 28) return null
 
-    const decipher = crypto.createDecipheriv(ALGORITHM, KEY, iv)
-    decipher.setAuthTag(authTag)
+      const iv = buffer.subarray(0, 12)
+      const authTag = buffer.subarray(12, 28)
+      const encrypted = buffer.subarray(28)
 
-    const decrypted = Buffer.concat([
-      decipher.update(encrypted),
-      decipher.final(),
-    ])
+      const decipher = crypto.createDecipheriv(ALGORITHM, KEY, iv)
+      decipher.setAuthTag(authTag)
 
-    return JSON.parse(decrypted.toString("utf8")) as T
+      const decrypted = Buffer.concat([
+        decipher.update(encrypted),
+        decipher.final(),
+      ])
+
+      return JSON.parse(decrypted.toString("utf8")) as T
+    } catch {
+      return null
+    }
   },
 }

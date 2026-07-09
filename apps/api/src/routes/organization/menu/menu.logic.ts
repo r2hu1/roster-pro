@@ -50,7 +50,7 @@ export const menuLogic = {
       }
     }
 
-    const cacheKey = `${MENU_CACHE_PREFIX}${id}`
+    const cacheKey = `${MENU_CACHE_PREFIX}${organizationId}:${id}`
     const cached = await redisClient.get<typeof menu.$inferSelect>(cacheKey)
     if (cached) {
       return { status: "success", code: HTTP_STATUS_CODES.OK, data: cached }
@@ -135,7 +135,7 @@ export const menuLogic = {
       .where(eq(menu.id, body.id))
       .returning()
 
-    await redisClient.del(`${MENU_CACHE_PREFIX}${body.id}`)
+    await redisClient.del(`${MENU_CACHE_PREFIX}${organizationId}:${body.id}`)
     await redisClient.delPattern(`${MENU_CACHE_PREFIX}*:${organizationId}`)
 
     return { status: "success", code: HTTP_STATUS_CODES.OK, data: updated }
@@ -220,7 +220,7 @@ export const menuLogic = {
     await db.delete(menuItem).where(eq(menuItem.menuId, id))
     await db.delete(menu).where(eq(menu.id, id))
 
-    await redisClient.del(`${MENU_CACHE_PREFIX}${id}`)
+    await redisClient.del(`${MENU_CACHE_PREFIX}${organizationId}:${id}`)
     await redisClient.delPattern(`${MENU_CACHE_PREFIX}*:${organizationId}`)
     await redisClient.delPattern(`${MENU_ITEMS_CACHE_PREFIX}*:${id}`)
 

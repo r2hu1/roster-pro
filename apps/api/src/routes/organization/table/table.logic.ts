@@ -55,7 +55,7 @@ export const tableLogic = {
       }
     }
 
-    const cacheKey = `${TABLE_CACHE_PREFIX}${id}`
+    const cacheKey = `${TABLE_CACHE_PREFIX}${organizationId}:${id}`
     const cached =
       await redisClient.get<typeof tableSchema.$inferSelect>(cacheKey)
     if (cached) {
@@ -158,7 +158,7 @@ export const tableLogic = {
       .where(eq(tableSchema.id, body.id))
       .returning()
 
-    await redisClient.del(`${TABLE_CACHE_PREFIX}${body.id}`)
+    await redisClient.del(`${TABLE_CACHE_PREFIX}${organizationId}:${body.id}`)
     await redisClient.delPattern(`${TABLE_CACHE_PREFIX}all:${organizationId}`)
 
     tableEmitter.emit(`table:${organizationId}`, {
@@ -204,7 +204,7 @@ export const tableLogic = {
 
     await db.delete(tableSchema).where(eq(tableSchema.id, id))
 
-    await redisClient.del(`${TABLE_CACHE_PREFIX}${id}`)
+    await redisClient.del(`${TABLE_CACHE_PREFIX}${organizationId}:${id}`)
     await redisClient.delPattern(`${TABLE_CACHE_PREFIX}all:${organizationId}`)
 
     tableEmitter.emit(`table:${organizationId}`, {
@@ -251,7 +251,7 @@ export const tableLogic = {
       .where(eq(tableSchema.id, body.id))
       .returning()
 
-    await redisClient.del(`${TABLE_CACHE_PREFIX}${body.id}`)
+    await redisClient.del(`${TABLE_CACHE_PREFIX}${organizationId}:${body.id}`)
     await redisClient.delPattern(`${TABLE_CACHE_PREFIX}all:${organizationId}`)
 
     tableEmitter.emit(`table:${organizationId}`, {
@@ -294,7 +294,12 @@ export const tableLogic = {
     const [existingToken] = await db
       .select({ token: tableSchema.qrToken })
       .from(tableSchema)
-      .where(eq(tableSchema.id, tableId))
+      .where(
+        and(
+          eq(tableSchema.id, tableId),
+          eq(tableSchema.organizationId, organizationId)
+        )
+      )
 
     if (existingToken?.token) {
       return {
@@ -322,7 +327,12 @@ export const tableLogic = {
     await db
       .update(tableSchema)
       .set({ qrToken: encryptedToken })
-      .where(eq(tableSchema.id, tableId))
+      .where(
+        and(
+          eq(tableSchema.id, tableId),
+          eq(tableSchema.organizationId, organizationId)
+        )
+      )
 
     return {
       status: "success",
