@@ -53,7 +53,7 @@ const SORT_OPTIONS = [
 ]
 
 type FilterProps = {
-  menus: Menu[]
+  menus: {id: string, name: string}[]
   value: FilterValues
   onApply: (filters: FilterValues) => void
   maxPrice?: number
