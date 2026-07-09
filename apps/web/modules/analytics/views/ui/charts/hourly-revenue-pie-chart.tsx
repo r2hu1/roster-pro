@@ -5,6 +5,7 @@ import { Legend, Pie, PieChart, Cell, ResponsiveContainer, Tooltip } from "recha
 import {
   Card,
   CardContent,
+  CardDescription,
   CardHeader,
   CardTitle,
 } from "@workspace/ui/components/card"
@@ -42,13 +43,36 @@ export function HourlyRevenuePieChart({
       value: entry?.revenue ?? 0,
       color: period ? PERIOD_COLORS[period.label] : "var(--chart-4)",
     }
-  })
+  }).filter((d) => d.value > 0)
+
+  if (data.length === 0) {
+    return (
+      <Card className="pt-0">
+        <CardHeader className="flex items-center gap-2 space-y-0 py-5 sm:flex-row">
+          <div className="grid gap-1">
+            <CardTitle>Revenue</CardTitle>
+            <CardDescription>
+              Revenue by time of day
+            </CardDescription>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <p className="text-muted-foreground">
+            No revenue in this period
+          </p>
+        </CardContent>
+      </Card>
+    )
+  }
 
   return (
     <Card className="pt-0">
       <CardHeader className="flex items-center gap-2 space-y-0 py-5 sm:flex-row">
-        <div className="grid flex-1 gap-1">
-          <CardTitle>Revenue by Time of Day</CardTitle>
+        <div className="grid gap-1">
+          <CardTitle>Revenue</CardTitle>
+          <CardDescription>
+            Revenue by time of day
+          </CardDescription>
         </div>
       </CardHeader>
       <CardContent className="px-2 pt-4 sm:px-6 sm:pt-6">
@@ -62,6 +86,7 @@ export function HourlyRevenuePieChart({
                 cx="50%"
                 cy="50%"
                 outerRadius={100}
+                minAngle={5}
                 label={({ name, value }) =>
                   value > 0 ? `${name} ₹${value.toLocaleString()}` : ""
                 }
