@@ -44,7 +44,14 @@ export default function ReceiptsPageView() {
         description="All receipts for orders till date."
       />
       {!connected && orders.length === 0 ? (
-        <Skeleton className="h-100 w-full" />
+        <div className="space-y-4">
+          <Skeleton className="h-10 w-full rounded-lg" />
+          <div className="space-y-2">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <Skeleton key={i} className="h-12 w-full rounded-lg" />
+            ))}
+          </div>
+        </div>
       ) : (
         <>
           <InputGroup className="w-full">
