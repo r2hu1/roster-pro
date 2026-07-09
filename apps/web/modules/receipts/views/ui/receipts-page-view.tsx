@@ -20,7 +20,6 @@ export default function ReceiptsPageView() {
   const [activeFilter, setActiveFilter] = useState<string>("All")
   const [search, setSearch] = useState("")
 
-
   const filtered = useMemo(() => {
     let result = orders
     if (activeFilter !== "All") {
@@ -39,7 +38,10 @@ export default function ReceiptsPageView() {
   }, [orders, activeFilter, search])
   return (
     <div className="space-y-4">
-      <PageHeader title="Receipts" description="All receipts for orders till date." />
+      <PageHeader
+        title="Receipts"
+        description="All receipts for orders till date."
+      />
       <InputGroup className="w-full">
         <InputGroupInput
           placeholder="Search by invoice, table, or customer..."

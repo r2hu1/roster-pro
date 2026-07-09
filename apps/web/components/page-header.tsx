@@ -13,13 +13,13 @@ export default function PageHeader({
 }) {
   return (
     <div className="mb-6 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <SidebarTrigger />
-      <div className="grid gap-0">
+      <div className="flex items-center gap-2">
+        <SidebarTrigger />
+        <div className="grid gap-0">
           <h1 className="text-sm text-foreground/80 font-medium">{title}</h1>
           <p className="text-xs text-muted-foreground">{description}</p>
-      </div>
         </div>
+      </div>
       {actions && <div>{actions}</div>}
     </div>
   )

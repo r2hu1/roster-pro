@@ -9,13 +9,13 @@ export const filters: { label: string; value: "All" | OrderStatus }[] = [
 
 // Legacy badge style (bg + text + border) — keep if used elsewhere
 export const statusStyles: Record<string, string> = {
-  pending: "bg-yellow-100 text-yellow-800 border-yellow-800",
-  confirmed: "bg-blue-100 text-blue-800 border-blue-800",
-  preparing: "bg-orange-100 text-orange-800 border-orange-800",
-  ready: "bg-green-100 text-green-800 border-green-800",
-  served: "bg-teal-100 text-teal-800 border-teal-800",
-  completed: "bg-emerald-100 text-emerald-800 border-emerald-800",
-  cancelled: "bg-red-100 text-red-800 border-red-800",
+  pending: "bg-yellow-100/50 text-yellow-800 border-yellow-200",
+  confirmed: "bg-blue-100/50 text-blue-800 border-blue-200",
+  preparing: "bg-orange-100/50 text-orange-800 border-orange-200",
+  ready: "bg-green-100/50 text-green-800 border-green-200",
+  served: "bg-teal-100/50 text-teal-800 border-teal-200",
+  completed: "bg-emerald-100/50 text-emerald-800 border-emerald-200",
+  cancelled: "bg-red-100/50 text-red-800 border-red-200",
 }
 
 // Dot color for the pill indicator

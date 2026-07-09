@@ -53,9 +53,7 @@ export const columns: ColumnDef<OrderResponse>[] = [
     cell: ({ row }) => {
       const amount = row.getValue("gstRate") as number
       return (
-        <div className="text-right font-medium tabular-nums">
-          {amount}%
-        </div>
+        <div className="text-right font-medium tabular-nums">{amount}%</div>
       )
     },
   },
