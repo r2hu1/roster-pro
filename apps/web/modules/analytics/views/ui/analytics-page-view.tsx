@@ -76,7 +76,7 @@ function useAnalytics(from: string, to: string) {
 
 export function AnalyticsPageView() {
   const today = React.useMemo(() => startOfDay(new Date()), [])
-  const defaultFrom = React.useMemo(() => addDays(today, -30), [today])
+  const defaultFrom = React.useMemo(() => addDays(today, -6), [today])
 
   const [from, setFrom] = React.useState(defaultFrom)
   const [to, setTo] = React.useState(today)

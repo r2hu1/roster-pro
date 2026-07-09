@@ -5,6 +5,7 @@ import { useKitchenMode } from "@/modules/providers/kitchen-mode"
 import { useSession } from "@/modules/providers/session-provider"
 import { useMemo, useState } from "react"
 import { IconSearch } from "@tabler/icons-react"
+import { Skeleton } from "@workspace/ui/components/skeleton"
 import {
   InputGroup,
   InputGroupAddon,
@@ -42,17 +43,23 @@ export default function ReceiptsPageView() {
         title="Receipts"
         description="All receipts for orders till date."
       />
-      <InputGroup className="w-full">
-        <InputGroupInput
-          placeholder="Search by invoice, table, or customer..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
-        <InputGroupAddon>
-          <IconSearch />
-        </InputGroupAddon>
-      </InputGroup>
-      <ReceiptsDataTable orders={filtered} />
+      {!connected && orders.length === 0 ? (
+        <Skeleton className="h-100 w-full" />
+      ) : (
+        <>
+          <InputGroup className="w-full">
+            <InputGroupInput
+              placeholder="Search by invoice, table, or customer..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+            <InputGroupAddon>
+              <IconSearch />
+            </InputGroupAddon>
+          </InputGroup>
+          <ReceiptsDataTable orders={filtered} />
+        </>
+      )}
     </div>
   )
 }

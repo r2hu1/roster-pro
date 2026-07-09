@@ -7,6 +7,7 @@ import {
   IconWifiOff,
 } from "@tabler/icons-react"
 import { Button } from "@workspace/ui/components/button"
+import { Skeleton } from "@workspace/ui/components/skeleton"
 import PageHeader from "@/components/page-header"
 import EmptyData from "@/components/empty"
 import { useOrdersStream } from "../../hooks/use-orders-stream"
@@ -154,30 +155,36 @@ export default function OrdersPageView() {
         }
       />
       <div className="space-y-6">
-        <OrdersStats
-          total={totalOrders}
-          pending={pendingCount}
-          ready={readyCount}
-          completed={completedCount}
-          cancelled={cancelledCount}
-        />
-        <OrdersFilters
-          activeFilter={activeFilter}
-          onFilterChange={setActiveFilter}
-          search={search}
-          onSearchChange={setSearch}
-        />
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-          {filtered.map((order, i) => (
-            <OrderCard key={i} order={order} />
-          ))}
-        </div>
-        {filtered.length === 0 && (
-          <EmptyData
-            title="No orders recieved yet."
-            description="Let your customer order, and you will see it here in realtime."
-            icon={<IconToolsKitchen2Off />}
-          />
+        {!connected && orders.length === 0 ? (
+          <Skeleton className="h-100 w-full" />
+        ) : (
+          <>
+            <OrdersStats
+              total={totalOrders}
+              pending={pendingCount}
+              ready={readyCount}
+              completed={completedCount}
+              cancelled={cancelledCount}
+            />
+            <OrdersFilters
+              activeFilter={activeFilter}
+              onFilterChange={setActiveFilter}
+              search={search}
+              onSearchChange={setSearch}
+            />
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+              {filtered.map((order, i) => (
+                <OrderCard key={i} order={order} />
+              ))}
+            </div>
+            {filtered.length === 0 && (
+              <EmptyData
+                title="No orders recieved yet."
+                description="Let your customer order, and you will see it here in realtime."
+                icon={<IconToolsKitchen2Off />}
+              />
+            )}
+          </>
         )}
       </div>
     </div>

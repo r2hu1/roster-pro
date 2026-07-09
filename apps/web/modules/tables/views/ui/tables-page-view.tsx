@@ -1,6 +1,7 @@
 "use client"
 
 import { useMemo } from "react"
+import { Skeleton } from "@workspace/ui/components/skeleton"
 import PageHeader from "@/components/page-header"
 import { TableStats } from "./table-stats"
 import { Button } from "@workspace/ui/components/button"
@@ -49,25 +50,31 @@ export default function TablesPageView() {
         }
       />
       <div className="space-y-6">
-        <TableStats total={total} occupied={occupied} available={available} />
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
-          {sorted.map((table) => (
-            <UpdateTableModal key={table.id} table={table}>
-              <TableCard
-                number={String(table.number)}
-                name={table.name ?? undefined}
-                status={table.status}
-                tableId={table.id}
+        {!connected && tables.length === 0 ? (
+          <Skeleton className="h-100 w-full" />
+        ) : (
+          <>
+            <TableStats total={total} occupied={occupied} available={available} />
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+              {sorted.map((table) => (
+                <UpdateTableModal key={table.id} table={table}>
+                  <TableCard
+                    number={String(table.number)}
+                    name={table.name ?? undefined}
+                    status={table.status}
+                    tableId={table.id}
+                  />
+                </UpdateTableModal>
+              ))}
+            </div>
+            {sorted.length === 0 && (
+              <EmptyData
+                title="No tables yet."
+                description="Add a table to start taking orders."
+                icon={<IconToolsKitchen2Off />}
               />
-            </UpdateTableModal>
-          ))}
-        </div>
-        {sorted.length === 0 && (
-          <EmptyData
-            title="No tables yet."
-            description="Add a table to start taking orders."
-            icon={<IconToolsKitchen2Off />}
-          />
+            )}
+          </>
         )}
       </div>
     </div>
