@@ -32,7 +32,10 @@ import { IconCalendar } from "@tabler/icons-react"
 const MIN_RANGE_DAYS = 7
 
 function toDateString(date: Date) {
-  return date.toISOString().substring(0, 10)
+  const y = date.getFullYear()
+  const m = String(date.getMonth() + 1).padStart(2, "0")
+  const d = String(date.getDate()).padStart(2, "0")
+  return `${y}-${m}-${d}`
 }
 
 function addDays(date: Date, days: number) {
@@ -120,13 +123,19 @@ export function AnalyticsPageView() {
     <div>
       <PageHeader
         title="Analytics"
+        description="Watch how your restaurant is performing."
         actions={
           <Popover open={open} onOpenChange={setOpen}>
             <PopoverTrigger
               render={
                 <Button disabled={isFetching}>
                   <IconCalendar className="size-4" />
-                  {formatDateRange(from, to)}
+                  <span className="flex sm:hidden">
+                    Filter
+                  </span>
+                  <span className="hidden sm:flex">
+                    {formatDateRange(from, to)}
+                  </span>
                 </Button>
               }
             />
@@ -220,22 +229,19 @@ export function AnalyticsPageView() {
             </Card>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
             <OrdersRevenueChart
               chartData={data.revenue.daily}
               timeRange={formatDateRange(from, to)}
             />
+          <div className="grid md:grid-cols-2 gap-4">
             <PeakHourBusiestTableChart
               hourlyData={data.revenue.hourly}
               peakHour={data.summary.peakHour}
               busiestTable={data.summary.busiestTable}
             />
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <TopItemsList items={data.topItems} />
             <TableStatsList stats={data.tableStats} />
           </div>
+            <TopItemsList items={data.topItems} />
         </div>
       )}
     </div>

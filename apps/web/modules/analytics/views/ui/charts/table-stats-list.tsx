@@ -3,6 +3,7 @@
 import {
   Card,
   CardContent,
+  CardDescription,
   CardHeader,
   CardTitle,
 } from "@workspace/ui/components/card"
@@ -24,15 +25,18 @@ export function TableStatsList({ stats }: { stats: TableStat[] }) {
 
   return (
     <Card>
-      <CardHeader>
+      <CardHeader className="gap-1">
         <CardTitle>Table Stats</CardTitle>
+        <CardDescription>
+          Total {stats.length} table{stats.length !== 1 ? "s" : ""} and {stats.reduce((acc, stat) => acc + stat.orderCount, 0)} orders with {stats.reduce((acc, stat) => acc + stat.totalSpent, 0).toLocaleString()}₹ in total
+        </CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="space-y-3">
+        <div className="space-y-3 h-100 overflow-y-scroll no-scrollbar">
           {stats.map((stat) => (
             <div
               key={stat.tableNumber}
-              className="flex items-center justify-between gap-4"
+              className="flex bg-muted/50 p-3 rounded-md items-center justify-between gap-4"
             >
               <span className="text-sm font-medium">
                 Table {stat.tableNumber}

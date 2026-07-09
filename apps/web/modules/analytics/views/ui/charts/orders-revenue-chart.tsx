@@ -1,8 +1,8 @@
 "use client"
 
 import {
-  Bar,
-  BarChart,
+  Area,
+  AreaChart,
   CartesianGrid,
   Legend,
   ResponsiveContainer,
@@ -41,7 +41,7 @@ export function OrdersRevenueChart({
   }))
 
   return (
-    <Card className="pt-0">
+    <Card className="pt-0 pb-0!">
       <CardHeader className="flex items-center gap-2 space-y-0 py-5 sm:flex-row">
         <div className="grid flex-1 gap-1">
           <CardTitle>Orders & Revenue</CardTitle>
@@ -50,32 +50,32 @@ export function OrdersRevenueChart({
           </CardDescription>
         </div>
       </CardHeader>
-      <CardContent className="px-2 pt-4 sm:px-6 sm:pt-6">
-        <div className="h-[250px] w-full">
+      <CardContent className="p-3!">
+        <div className="h-[350px] w-full">
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={data}>
+            <AreaChart data={data}>
               <defs>
                 <linearGradient id="fillOrders" x1="0" y1="0" x2="0" y2="1">
                   <stop
                     offset="5%"
-                    stopColor="var(--chart-1)"
+                    stopColor="var(--chart-2)"
                     stopOpacity={0.8}
                   />
                   <stop
                     offset="95%"
-                    stopColor="var(--chart-1)"
+                    stopColor="var(--chart-2)"
                     stopOpacity={0.1}
                   />
                 </linearGradient>
                 <linearGradient id="fillRevenue" x1="0" y1="0" x2="0" y2="1">
                   <stop
                     offset="5%"
-                    stopColor="var(--chart-2)"
+                    stopColor="var(--chart-4)"
                     stopOpacity={0.8}
                   />
                   <stop
                     offset="95%"
-                    stopColor="var(--chart-2)"
+                    stopColor="var(--chart-4)"
                     stopOpacity={0.1}
                   />
                 </linearGradient>
@@ -149,48 +149,49 @@ export function OrdersRevenueChart({
                   )
                 }}
               />
-              <Bar
+              <Area
                 dataKey="orders"
+                type="monotone"
                 fill="url(#fillOrders)"
-                stroke="var(--chart-1)"
+                stroke="var(--chart-2)"
                 strokeWidth={2}
-                radius={[4, 4, 0, 0]}
                 yAxisId="left"
                 name="Orders"
               />
-              <Bar
+              <Area
                 dataKey="revenue"
+                type="monotone"
                 fill="url(#fillRevenue)"
-                stroke="var(--chart-2)"
+                stroke="var(--chart-4)"
                 strokeWidth={2}
-                radius={[4, 4, 0, 0]}
                 yAxisId="right"
                 name="Revenue"
               />
               <Legend
-                content={({ payload }) => {
-                  if (!payload?.length) return null
-                  return (
-                    <div className="flex items-center justify-center gap-4 pt-3">
-                      {payload.map((entry) => (
-                        <div
-                          key={entry.value}
-                          className="flex items-center gap-1.5"
-                        >
-                          <span
-                            className="size-2 shrink-0 rounded-[2px]"
-                            style={{ backgroundColor: entry.color }}
-                          />
-                          <span className="text-xs text-muted-foreground">
-                            {entry.value}
-                          </span>
-                        </div>
-                      ))}
+                content={() => (
+                  <div className="flex items-center justify-center gap-4 pt-3">
+                    <div className="flex items-center gap-1.5">
+                      <span
+                        className="size-2 shrink-0 rounded-[2px]"
+                        style={{ backgroundColor: "var(--chart-2)" }}
+                      />
+                      <span className="text-xs text-muted-foreground">
+                        Orders
+                      </span>
                     </div>
-                  )
-                }}
+                    <div className="flex items-center gap-1.5">
+                      <span
+                        className="size-2 shrink-0 rounded-[2px]"
+                        style={{ backgroundColor: "var(--chart-4)" }}
+                      />
+                      <span className="text-xs text-muted-foreground">
+                        Revenue
+                      </span>
+                    </div>
+                  </div>
+                )}
               />
-            </BarChart>
+            </AreaChart>
           </ResponsiveContainer>
         </div>
       </CardContent>

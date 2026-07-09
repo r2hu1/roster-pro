@@ -5,6 +5,7 @@ import {
   BarChart,
   CartesianGrid,
   Cell,
+  Legend,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -35,18 +36,20 @@ export function PeakHourBusiestTableChart({
   }))
 
   return (
-    <Card>
-      <CardHeader>
+  <Card className="pt-0 pb-0!">
+    <CardHeader className="flex items-center gap-2 space-y-0 py-5 sm:flex-row">
+      <div className="grid flex-1 gap-1">
         <CardTitle>Peak Hours & Busiest Table</CardTitle>
         <CardDescription>
           {peakHour != null
             ? `Peak hour at ${peakHour}:00 with ${hourlyData[peakHour]?.orderCount ?? 0} orders`
             : "No order data available"}
           {busiestTable ? ` · Busiest table: ${busiestTable}` : ""}
-        </CardDescription>
+          </CardDescription>
+      </div>
       </CardHeader>
-      <CardContent>
-        <div className="h-[250px] w-full">
+      <CardContent className="p-4!">
+        <div className="h-[350px] w-full">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={chartData}>
               <CartesianGrid
@@ -91,6 +94,33 @@ export function PeakHourBusiestTableChart({
                   )
                 }}
               />
+              <Legend
+                content={({ payload }) => {
+                  if (!payload?.length) return null
+                  return (
+                    <div className="flex items-center justify-center gap-4 pt-3">
+                      <div className="flex items-center gap-1.5">
+                        <span
+                          className="size-2 shrink-0 rounded-[2px]"
+                          style={{ backgroundColor: "var(--chart-2)" }}
+                        />
+                        <span className="text-xs text-muted-foreground">
+                          Other Hours
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <span
+                          className="size-2 shrink-0 rounded-[2px]"
+                          style={{ backgroundColor: "var(--chart-4)" }}
+                        />
+                        <span className="text-xs text-muted-foreground">
+                          Peak Hour
+                        </span>
+                      </div>
+                    </div>
+                  )
+                }}
+              />
               <Bar dataKey="orders" radius={[4, 4, 0, 0]} name="Orders">
                 {chartData.map((entry) => {
                   const hourNum = Number.parseInt(entry.hour)
@@ -100,7 +130,7 @@ export function PeakHourBusiestTableChart({
                       fill={
                         hourNum === peakHour
                           ? "var(--chart-2)"
-                          : "var(--chart-1)"
+                          : "var(--chart-4)"
                       }
                     />
                   )
