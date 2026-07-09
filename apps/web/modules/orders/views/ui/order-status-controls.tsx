@@ -20,7 +20,7 @@ export function OrderStatusSelect({
   return (
     <div className="grid gap-1.5">
       <label className="text-xs text-muted-foreground uppercase tracking-widest font-medium">
-        Order Status
+        Order Status <span className="lowercase text-[10px]">(click to update)</span>
       </label>
       <NativeSelect
         className="w-full"
@@ -62,7 +62,7 @@ export function PaymentStatusSelect({
   return (
     <div className="grid gap-1.5">
       <label className="text-xs text-muted-foreground uppercase tracking-widest font-medium">
-        Payment Status
+        Payment Status <span className="lowercase text-[10px]">(click to update)</span>
       </label>
       <NativeSelect
         className="w-full"
