@@ -9,10 +9,6 @@ import {
   SheetFooter,
 } from "@workspace/ui/components/sheet"
 import Image from "next/image"
-import EditMenuItem from "./edit-menu-item"
-import { DropdownMenuItem } from "@workspace/ui/components/dropdown-menu"
-import DeleteItem from "./delete-menu-item"
-import { Button } from "@workspace/ui/components/button"
 
 export default function MenuItemInfo({
   item,
@@ -81,6 +77,8 @@ export default function MenuItemInfo({
                 ))}
               </div>
             )}
+
+            {item.preparationTime && <Badge variant="outline" className="bg-transparent!">Preparation Time - {item.preparationTime} minutes</Badge>}
 
             {!item.description ? (
               <p className="text-muted-foreground mt-4! text-sm">

@@ -18,22 +18,38 @@ export const onError = (err: Error, c: Context<AppEnv>) => {
         error: err.message,
       })
     )
+
     return c.json(
-      { status: "error", code: err.status, message: err.message, data:null },
+      {
+        status: "error",
+        code: err.status,
+        message: err.message,
+        data: null,
+      },
       err.status
     )
   }
 
+  const cause =
+    err instanceof Error && err.cause && typeof err.cause === "object"
+      ? err.cause
+      : undefined
+
   console.error(
-    JSON.stringify({
-      level: "error",
-      msg: "unhandled_error",
-      requestId,
-      path: c.req.path,
-      method: c.req.method,
-      error: err.message,
-      stack: isProd ? undefined : err.stack,
-    })
+    JSON.stringify(
+      {
+        level: "error",
+        msg: "unhandled_error",
+        requestId,
+        path: c.req.path,
+        method: c.req.method,
+        error: err.message,
+        cause,
+        stack: isProd ? undefined : err.stack,
+      },
+      null,
+      2
+    )
   )
 
   return c.json(

@@ -30,7 +30,7 @@ export const order = pgTable(
       .references(() => organization.id, {
         onDelete: "cascade",
       }),
-    invoiceNumber: text("invoice_number").notNull().unique(),
+    invoiceNumber: text("invoice_number").notNull(),
     customerName: text("customer_name"),
     customerPhone: text("customer_phone"),
     customerEmail: text("customer_email"),
