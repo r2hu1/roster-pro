@@ -30,6 +30,8 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
       const { data } = await api.get("/organization")
       return data.data
     },
+    staleTime: 5 * 50 * 1000,
+    gcTime:10*5*1000
   })
 
   const isLoading = sessionIsPending || organizationsIsPending;
