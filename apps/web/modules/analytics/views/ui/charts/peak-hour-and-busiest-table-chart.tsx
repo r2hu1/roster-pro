@@ -70,6 +70,11 @@ export function PeakHourBusiestTableChart({
                 cursor={false}
                 content={({ active, payload, label }) => {
                   if (!active || !payload?.length) return null
+                  const hourNum = Number.parseInt(label as string)
+                  const barColor =
+                    hourNum === peakHour
+                      ? "var(--chart-2)"
+                      : "var(--chart-4)"
                   return (
                     <div className="rounded-lg border border-border/50 bg-background px-3 py-2 text-xs shadow-xl">
                       <p className="font-medium">{label}</p>
@@ -80,7 +85,7 @@ export function PeakHourBusiestTableChart({
                         >
                           <span
                             className="size-2 shrink-0 rounded-[2px]"
-                            style={{ backgroundColor: entry.color }}
+                            style={{ backgroundColor: barColor }}
                           />
                           <span className="text-muted-foreground">
                             {entry.name}
@@ -102,19 +107,19 @@ export function PeakHourBusiestTableChart({
                       <div className="flex items-center gap-1.5">
                         <span
                           className="size-2 shrink-0 rounded-[2px]"
-                          style={{ backgroundColor: "var(--chart-2)" }}
+                          style={{ backgroundColor: "var(--chart-4)" }}
                         />
                         <span className="text-xs text-muted-foreground">
-                          Other Hours
+                          Peak Hour
                         </span>
                       </div>
                       <div className="flex items-center gap-1.5">
                         <span
                           className="size-2 shrink-0 rounded-[2px]"
-                          style={{ backgroundColor: "var(--chart-4)" }}
+                          style={{ backgroundColor: "var(--chart-2)" }}
                         />
                         <span className="text-xs text-muted-foreground">
-                          Peak Hour
+                          Other Hours
                         </span>
                       </div>
                     </div>
@@ -129,8 +134,8 @@ export function PeakHourBusiestTableChart({
                       key={entry.hour}
                       fill={
                         hourNum === peakHour
-                          ? "var(--chart-2)"
-                          : "var(--chart-4)"
+                          ? "var(--chart-4)"
+                          : "var(--chart-2)"
                       }
                     />
                   )

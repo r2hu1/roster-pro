@@ -118,6 +118,8 @@ export function AnalyticsPageView() {
   const hasChanges =
     pendingRange.from.getTime() !== from.getTime() ||
     pendingRange.to.getTime() !== to.getTime()
+  const isSingleDate =
+    pendingRange.from.getTime() === pendingRange.to.getTime()
 
   return (
     <div>
@@ -148,7 +150,7 @@ export function AnalyticsPageView() {
                   numberOfMonths={1}
                   defaultMonth={pendingRange.from}
                 />
-                <Button onClick={handleApply} disabled={!hasChanges}>
+                <Button onClick={handleApply} disabled={!hasChanges || isSingleDate}>
                   Apply
                 </Button>
               </div>
