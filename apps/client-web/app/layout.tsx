@@ -4,7 +4,6 @@ import "@workspace/ui/globals.css";
 import { cn } from "@workspace/ui/lib/utils";
 import ReactQueryProvider from "@/components/ReactQueryProvider";
 import { Toaster } from "sonner";
-import {ContextProvide} from "@/components/ContextProvide";
 
 const instrumentSans = Instrument_Sans({
     subsets: ["latin"],
@@ -24,9 +23,7 @@ export default function RootLayout({
     return (
         <html lang="en" suppressHydrationWarning className={cn("antialiased ", fontMono.variable, "font-sans", instrumentSans.variable)}>
             <body>
-                <ReactQueryProvider>
-                    <ContextProvide>{children}</ContextProvide>
-                </ReactQueryProvider>
+                <ReactQueryProvider>{children}</ReactQueryProvider>
                 <Toaster
                     toastOptions={{
                         classNames: {

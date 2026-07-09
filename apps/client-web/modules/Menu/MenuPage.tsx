@@ -12,7 +12,8 @@ import { menuItems as seedMenuItems, menus as menuGroups } from "@/dummy/menu";
 import { restaurantData } from "@/dummy/Restaurant";
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
-import { useContextValue } from "@/components/ContextProvide";
+import getTableData from "./view/server/fetchData";
+// import { useContextValue } from "@/components/ContextProvide";
 
 const DEFAULT_FILTERS: FilterValues = {
     menuIds: [],
@@ -25,7 +26,7 @@ export default function MenuPage({ id }: { id: string }) {
     const [searchQuery, setSearchQuery] = useState("");
     const [filters, setFilters] = useState<FilterValues>(DEFAULT_FILTERS);
 
-    const { getTableData } = useContextValue();
+    // const { getTableData } = useContextValue();
 
     const { data, isLoading, isError } = useQuery({
         queryKey: [`menu-${id}`],
