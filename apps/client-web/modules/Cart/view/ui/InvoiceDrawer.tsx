@@ -20,6 +20,8 @@ import "../style/style.css";
 import { CreateOrderDto } from "@workspace/shared";
 import axios from "axios";
 import SuccessDialog from "./SuccessDialog";
+import { setCookie } from "@/util/Cookies";
+import { orderIdTTL, sessionStoreKey } from "@/util/constant";
 
 // Adjust to your org's actual applicable rates (or pull from org settings)
 const CGST_RATE = 0.025; // 2.5%
@@ -75,14 +77,21 @@ export default function InvoiceDrawer({ cartItem, tableNumber, discount = 0, onP
         // Prevent duplicate clicks
         if (isSubmitting) return;
 
-        const orgId = sessionStorage.getItem("ORG_ID");
+        const ids = sessionStorage.getItem(sessionStoreKey.id);
 
-        if(!orgId) {
+        if(!ids) {
             throw new Error("Organization ID is missing.");
         }
 
         try {
             setIsSubmitting(true);
+
+            const orgId = JSON.parse(ids).org_id;
+            const tableId = JSON.parse(ids).table_id;
+
+            if(!orgId) {
+                throw new Error("Organization ID is missing.");
+            }
 
 
             // Cart validation
@@ -136,23 +145,21 @@ export default function InvoiceDrawer({ cartItem, tableNumber, discount = 0, onP
 
             console.log("Order Data:", orderData);
 
-            // const res = await axios.post("/api/organization/orders", orderData);
+            const res = await axios.post("/api/organization/orders", orderData);
 
-            // if (res.status !== 200 && res.status !== 201) {
-            //     throw new Error("Failed to place order.");
-            // }
+            if (res.status !== 200 && res.status !== 201) {
+                throw new Error("Failed to place order.");
+            }
 
-            // console.log("Order placed:", res.data);
+            console.log("Order placed:", res.data);
 
-            setOrderId("ORD-123");
-            // setOrderId(res.data.data.invoiceNumber);
+            
+            setCookie({name: tableId, value: res.data.data.id, hours: orderIdTTL});     // save cookies WRT table ID so that we can get order WRT table QR
+            setOrderId(res.data.data.invoiceNumber);
 
-            // Clear cart if required
-            // clearCart();
             setIsOpen(false);
             setIsOrderSuccessful(true);
 
-            // toast.success("Order placed successfully");
         } catch (error) {
             console.error(error);
 

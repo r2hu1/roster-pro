@@ -10,6 +10,7 @@ import SkeletonLoader from "./view/ui/Skeleton";
 import { useQuery } from "@tanstack/react-query";
 // import getTableData from "./view/server/fetchData";
 import { useContextValue } from "@/components/ContextProvide";
+import { sessionStoreKey } from "@/util/constant";
 
 const DEFAULT_FILTERS: FilterValues = {
     menuIds: [],
@@ -30,8 +31,8 @@ export default function MenuPage({ id }: { id: string }) {
     });
 
     useEffect(() => {
-        if (data?.table.orgId) {
-            sessionStorage.setItem("ORG_ID", data?.table.orgId);
+        if (data?.table.orgId && data?.table.tableId) {
+            sessionStorage.setItem(sessionStoreKey.id, JSON.stringify({ org_id: data?.table.orgId, table_id: data?.table.tableId }));
         }
     }, [data]);
 

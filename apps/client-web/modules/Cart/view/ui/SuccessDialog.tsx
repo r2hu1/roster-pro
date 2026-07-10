@@ -100,11 +100,11 @@ export default function SuccessDialog({
                 <Button
                     onClick={() => {
                         setIsOrderSuccessful(false);
-                        router.back();
+                        router.push("/order");
                     }}
                     className="w-full rounded-full py-6 text-base font-semibold"
                 >
-                    Done
+                    Track Order
                 </Button>
             </DialogContent>
         </Dialog>

@@ -9,6 +9,7 @@ import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 import { CartItemType } from "@/modules/Cart/view/ui/ItemCard"
 import Tost from "@/components/Tost"
+import { sessionStoreKey } from "@/util/constant"
 
 export default function FooterBut({ item }: { item: MenuItem }) {
   const [isHalf, setIsHalf] = useState(false)
@@ -27,7 +28,7 @@ export default function FooterBut({ item }: { item: MenuItem }) {
 
   function handleAddToCart() {
     try {
-      const cart = JSON.parse(sessionStorage.getItem("cart") || "[]")
+      const cart = JSON.parse(sessionStorage.getItem(sessionStoreKey.cart) || "[]")
 
       if (cart.length > 0) {
         const existingItem = cart.find(
@@ -37,7 +38,7 @@ export default function FooterBut({ item }: { item: MenuItem }) {
           // console.log("Item already exists in cart:", existingItem);
           existingItem.quantity += quantity
           existingItem.note = note.trim() || undefined
-          sessionStorage.setItem("cart", JSON.stringify(cart))
+          sessionStorage.setItem(sessionStoreKey.cart, JSON.stringify(cart))
           window.dispatchEvent(new Event("cartUpdated")) // to auto update the cart item count
           Tost.success({
             heading: item.name,
@@ -58,7 +59,7 @@ export default function FooterBut({ item }: { item: MenuItem }) {
         preparationTime: item.preparationTime,
         note: note.trim() || undefined,
       })
-      sessionStorage.setItem("cart", JSON.stringify(cart))
+      sessionStorage.setItem(sessionStoreKey.cart, JSON.stringify(cart))
       window.dispatchEvent(new Event("cartUpdated")) // to auto update the cart item count
       Tost.success({
         heading: item.name,
