@@ -3,6 +3,7 @@ import type { NextConfig } from "next"
 const API_URL = process.env.API_URL ?? "http://localhost:3000"
 
 const nextConfig: NextConfig = {
+  compress: false,
   transpilePackages: ["@workspace/ui"],
   images: {
     unoptimized: true,

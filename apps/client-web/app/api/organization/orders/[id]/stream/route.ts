@@ -9,7 +9,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
     // console.log(`SSR req at = "/api/organization/orders/${id}/stream?${searchParams}"`);
 
     
-    const backendUrl = `${API_URL}/v1/organization/orders/${id}/stream?organizationId=${searchParams}`;
+    const backendUrl = `${API_URL}/v1/organization/orders/${id}/stream?${searchParams}`;
 
 
     const backendRes = await fetch(backendUrl, {
