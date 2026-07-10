@@ -3,7 +3,7 @@ import type { AppEnv } from "../index.js"
 import { auth } from "../lib/better-auth/auth.js"
 import { HTTP_STATUS_CODES } from "@workspace/shared/constants"
 
-const excludedPaths = ["/v1/auth/polar/webhooks", "v1/"]
+const excludedPaths = ["/v1/auth/polar/webhooks"]
 
 export const sessionMiddleware = async (
   c: Context<AppEnv>,

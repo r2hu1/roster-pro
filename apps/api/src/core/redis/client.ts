@@ -65,14 +65,26 @@ export const redisClient = {
 
   async delPattern(pattern: string): Promise<number> {
     const client = getClient()
-    const keys: string[] = await client.keys(pattern)
-    if (keys.length === 0) return 0
 
-    const pipeline = client.pipeline()
-    keys.forEach((k) => pipeline.del(k))
-    await pipeline.exec()
+    let cursor = "0"
+    let deleted = 0
 
-    return keys.length
+    do {
+      const [nextCursor, keys] = await client.scan(cursor, {
+        match: pattern,
+        count: 100,
+      })
+      cursor = nextCursor
+
+      if (keys.length > 0) {
+        const pipeline = client.pipeline()
+        keys.forEach((k) => pipeline.del(k))
+        await pipeline.exec()
+        deleted += keys.length
+      }
+    } while (cursor !== "0")
+
+    return deleted
   },
 
   async setMultiple(

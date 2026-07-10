@@ -75,7 +75,7 @@ export const orderLogic = {
       }
     }
 
-    const cacheKey = `${ORDER_CACHE_PREFIX}${id}`
+    const cacheKey = `${ORDER_CACHE_PREFIX}${organizationId}:${id}`
     const cached = await redisClient.get<typeof order.$inferSelect>(cacheKey)
     if (cached) {
       return { status: "success", code: HTTP_STATUS_CODES.OK, data: cached }
@@ -202,7 +202,7 @@ export const orderLogic = {
     }
 
     try {
-      await redisClient.delPattern(`${ORDER_CACHE_PREFIX}*:${organizationId}`)
+      await redisClient.delPattern(`${ORDER_CACHE_PREFIX}all:${organizationId}`)
     } catch (err) {
       console.error("Failed to invalidate order cache", err)
     }
@@ -301,8 +301,8 @@ export const orderLogic = {
         )
     }
 
-    await redisClient.del(`${ORDER_CACHE_PREFIX}${body.id}`)
-    await redisClient.delPattern(`${ORDER_CACHE_PREFIX}*:${organizationId}`)
+    await redisClient.del(`${ORDER_CACHE_PREFIX}${organizationId}:${body.id}`)
+    await redisClient.delPattern(`${ORDER_CACHE_PREFIX}all:${organizationId}`)
 
     orderEmitter.emit(`orders:${organizationId}`, {
       type: "updated",
@@ -376,8 +376,8 @@ export const orderLogic = {
         )
     }
 
-    await redisClient.del(`${ORDER_CACHE_PREFIX}${id}`)
-    await redisClient.delPattern(`${ORDER_CACHE_PREFIX}*:${organizationId}`)
+    await redisClient.del(`${ORDER_CACHE_PREFIX}${organizationId}:${id}`)
+    await redisClient.delPattern(`${ORDER_CACHE_PREFIX}all:${organizationId}`)
 
     orderEmitter.emit(`orders:${organizationId}`, {
       type: "updated",
@@ -423,8 +423,8 @@ export const orderLogic = {
       .delete(order)
       .where(and(eq(order.id, id), eq(order.organizationId, organizationId)))
 
-    await redisClient.del(`${ORDER_CACHE_PREFIX}${id}`)
-    await redisClient.delPattern(`${ORDER_CACHE_PREFIX}*:${organizationId}`)
+    await redisClient.del(`${ORDER_CACHE_PREFIX}${organizationId}:${id}`)
+    await redisClient.delPattern(`${ORDER_CACHE_PREFIX}all:${organizationId}`)
 
     orderEmitter.emit(`orders:${organizationId}`, {
       type: "deleted",

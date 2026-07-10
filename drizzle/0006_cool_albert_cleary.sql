@@ -1,0 +1,1 @@
+ALTER TABLE "order" DROP CONSTRAINT "order_invoice_number_unique";

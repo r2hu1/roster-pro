@@ -6,14 +6,25 @@ import { polarClient } from "../../core/polar/client.js"
 import { polar, checkout, portal, webhooks } from "@polar-sh/better-auth"
 import { user as userSchema } from "../../core/db/schemas/auth.js"
 import { eq } from "drizzle-orm"
+import { redisClient } from "../../core/redis/client.js"
 
 export const auth = betterAuth({
   basePath: "/v1/auth",
-  trustedOrigins: [
-    process.env.BETTER_AUTH_URL!,
-    "http://localhost:3000",
-    "http://localhost:3001",
-  ],
+  trustedOrigins: ["*"],
+  // session: {
+  //   cookieCache: {
+  //     enabled: true,
+  //     refreshCache: true,
+  //   }
+  // },
+  secondaryStorage: {
+    get: async (key) => redisClient.get(key),
+    set: async(key, value, ttl) =>
+      ttl ? await redisClient.set(key, value, ttl) : await redisClient.set(key, value),
+    delete: async (key) => {
+      await redisClient.del(key)
+    },
+  },
   database: drizzleAdapter(db, {
     provider: "pg",
   }),

@@ -36,7 +36,7 @@ export default function MenusPageView() {
         }
       />
       {menusLoading && <Skeleton className="h-100 w-full" />}
-      {!menusLoading && !menus && (
+      {!menusLoading && menus?.length === 0 && (
         <EmptyData
           title="No menu added yet."
           description="Start by creating your first menu, click the button below to get started."
