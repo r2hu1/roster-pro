@@ -19,8 +19,10 @@ export const auth = betterAuth({
   // },
   secondaryStorage: {
     get: async (key) => redisClient.get(key),
-    set: async(key, value, ttl) =>
-      ttl ? await redisClient.set(key, value, ttl) : await redisClient.set(key, value),
+    set: async (key, value, ttl) =>
+      ttl
+        ? await redisClient.set(key, value, ttl)
+        : await redisClient.set(key, value),
     delete: async (key) => {
       await redisClient.del(key)
     },

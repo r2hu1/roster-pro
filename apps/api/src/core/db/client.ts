@@ -24,7 +24,11 @@ const pool =
 if (!global._pgPool) {
   pool.on("error", (err) => {
     console.error(
-      JSON.stringify({ level: "error", msg: "pg_pool_error", error: err.message })
+      JSON.stringify({
+        level: "error",
+        msg: "pg_pool_error",
+        error: err.message,
+      })
     )
   })
   global._pgPool = pool

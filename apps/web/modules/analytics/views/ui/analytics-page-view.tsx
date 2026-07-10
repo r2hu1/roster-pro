@@ -119,8 +119,7 @@ export function AnalyticsPageView() {
   const hasChanges =
     pendingRange.from.getTime() !== from.getTime() ||
     pendingRange.to.getTime() !== to.getTime()
-  const isSingleDate =
-    pendingRange.from.getTime() === pendingRange.to.getTime()
+  const isSingleDate = pendingRange.from.getTime() === pendingRange.to.getTime()
 
   return (
     <div>
@@ -133,9 +132,7 @@ export function AnalyticsPageView() {
               render={
                 <Button disabled={isFetching}>
                   <IconCalendar className="size-4" />
-                  <span className="flex sm:hidden">
-                    Filter
-                  </span>
+                  <span className="flex sm:hidden">Filter</span>
                   <span className="hidden sm:flex">
                     {formatDateRange(from, to)}
                   </span>
@@ -151,7 +148,10 @@ export function AnalyticsPageView() {
                   numberOfMonths={1}
                   defaultMonth={pendingRange.from}
                 />
-                <Button onClick={handleApply} disabled={!hasChanges || isSingleDate}>
+                <Button
+                  onClick={handleApply}
+                  disabled={!hasChanges || isSingleDate}
+                >
                   Apply
                 </Button>
               </div>
@@ -232,19 +232,17 @@ export function AnalyticsPageView() {
             </Card>
           </div>
 
-            <OrdersRevenueChart
-              chartData={data.revenue.daily}
-              timeRange={formatDateRange(from, to)}
-            />
+          <OrdersRevenueChart
+            chartData={data.revenue.daily}
+            timeRange={formatDateRange(from, to)}
+          />
           <div className="grid md:grid-cols-2 gap-4">
             <PeakHourBusiestTableChart
               hourlyData={data.revenue.hourly}
               peakHour={data.summary.peakHour}
               busiestTable={data.summary.busiestTable}
             />
-            <HourlyRevenuePieChart
-              hourlyData={data.revenue.hourly}
-            />
+            <HourlyRevenuePieChart hourlyData={data.revenue.hourly} />
           </div>
           <div className="grid md:grid-cols-2 gap-4">
             <TopItemsList items={data.topItems} />

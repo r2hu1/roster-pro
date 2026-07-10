@@ -19,7 +19,7 @@ interface SessionContextProps {
 const SessionContext = createContext<SessionContextProps | null>(null)
 
 export function SessionProvider({ children }: { children: React.ReactNode }) {
-  const router = useRouter();
+  const router = useRouter()
 
   const { data: sessionData, isPending: sessionIsPending } =
     authClient.useSession()
@@ -31,18 +31,24 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
       return data.data
     },
     staleTime: 5 * 50 * 1000,
-    gcTime:10*5*1000
+    gcTime: 10 * 5 * 1000,
   })
 
-  const isLoading = sessionIsPending || organizationsIsPending;
+  const isLoading = sessionIsPending || organizationsIsPending
 
   useEffect(() => {
-    if (sessionIsPending) return;
+    if (sessionIsPending) return
     if (!sessionData) {
-      router.push("/");
+      router.push("/")
     }
-    if (organizationsIsPending) return;
-  }, [sessionData,sessionIsPending,organizations,organizationsIsPending,router]);
+    if (organizationsIsPending) return
+  }, [
+    sessionData,
+    sessionIsPending,
+    organizations,
+    organizationsIsPending,
+    router,
+  ])
 
   return (
     <SessionContext.Provider

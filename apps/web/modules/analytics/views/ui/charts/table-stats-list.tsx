@@ -28,7 +28,12 @@ export function TableStatsList({ stats }: { stats: TableStat[] }) {
       <CardHeader className="gap-1">
         <CardTitle>Table Stats</CardTitle>
         <CardDescription>
-          Total {stats.length} table{stats.length !== 1 ? "s" : ""} and {stats.reduce((acc, stat) => acc + stat.orderCount, 0)} orders with {stats.reduce((acc, stat) => acc + stat.totalSpent, 0).toLocaleString()}₹ in total
+          Total {stats.length} table{stats.length !== 1 ? "s" : ""} and{" "}
+          {stats.reduce((acc, stat) => acc + stat.orderCount, 0)} orders with{" "}
+          {stats
+            .reduce((acc, stat) => acc + stat.totalSpent, 0)
+            .toLocaleString()}
+          ₹ in total
         </CardDescription>
       </CardHeader>
       <CardContent>

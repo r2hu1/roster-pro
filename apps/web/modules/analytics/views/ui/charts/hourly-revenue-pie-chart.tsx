@@ -1,6 +1,13 @@
 "use client"
 
-import { Legend, Pie, PieChart, Cell, ResponsiveContainer, Tooltip } from "recharts"
+import {
+  Legend,
+  Pie,
+  PieChart,
+  Cell,
+  ResponsiveContainer,
+  Tooltip,
+} from "recharts"
 
 import {
   Card,
@@ -51,15 +58,11 @@ export function HourlyRevenuePieChart({
         <CardHeader className="flex items-center gap-2 space-y-0 py-5 sm:flex-row">
           <div className="grid gap-1">
             <CardTitle>Revenue</CardTitle>
-            <CardDescription>
-              Revenue by time of day
-            </CardDescription>
+            <CardDescription>Revenue by time of day</CardDescription>
           </div>
         </CardHeader>
         <CardContent>
-          <p className="text-muted-foreground">
-            No revenue in this period
-          </p>
+          <p className="text-muted-foreground">No revenue in this period</p>
         </CardContent>
       </Card>
     )
@@ -70,9 +73,7 @@ export function HourlyRevenuePieChart({
       <CardHeader className="flex items-center gap-2 space-y-0 py-5 sm:flex-row">
         <div className="grid gap-1">
           <CardTitle>Revenue</CardTitle>
-          <CardDescription>
-            Revenue by time of day
-          </CardDescription>
+          <CardDescription>Revenue by time of day</CardDescription>
         </div>
       </CardHeader>
       <CardContent className="px-2 pt-4 sm:px-6 sm:pt-6">
@@ -100,10 +101,7 @@ export function HourlyRevenuePieChart({
                 content={() => (
                   <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 pt-2">
                     {periods.map((p) => (
-                      <div
-                        key={p.label}
-                        className="flex items-center gap-1.5"
-                      >
+                      <div key={p.label} className="flex items-center gap-1.5">
                         <span
                           className="size-2 shrink-0 rounded-[2px]"
                           style={{

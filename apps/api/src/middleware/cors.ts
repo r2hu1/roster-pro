@@ -24,7 +24,12 @@ export const corsMiddleware = cors({
     return null
   },
   allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
-  allowHeaders: ["Content-Type", "Authorization", "X-Requested-With", "X-API-KEY"],
+  allowHeaders: [
+    "Content-Type",
+    "Authorization",
+    "X-Requested-With",
+    "X-API-KEY",
+  ],
   credentials: true,
   maxAge: 86400,
 })

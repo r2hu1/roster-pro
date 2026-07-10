@@ -38,7 +38,7 @@ export function OrderCard({ order }: { order: Order }) {
               </p>
             </div>
 
-            <IconInfoCircle className="size-4 text-muted-foreground transition opacity-0 group-hover:opacity-100"/>
+            <IconInfoCircle className="size-4 text-muted-foreground transition opacity-0 group-hover:opacity-100" />
           </div>
 
           {order.customerName && (
