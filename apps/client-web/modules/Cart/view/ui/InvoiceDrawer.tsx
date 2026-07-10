@@ -14,19 +14,22 @@ import {
 import { Button } from "@workspace/ui/components/button";
 import FormatPrice from "@/util/FormatPrice";
 import { CartItemType } from "../../view/ui/ItemCard";
-import { ShoppingCart } from "lucide-react";
+import { Loader2, ShoppingCart } from "lucide-react";
 import { toast } from "sonner";
 import Tost from "@/components/Tost";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@workspace/ui/components/dialog";
 import { useRouter } from "next/navigation";
 
 import "../style/style.css";
+import { useContextValue } from "@/components/ContextProvide";
+import { CreateOrderDto } from "@workspace/shared";
+import axios from "axios";
 
 // Adjust to your org's actual applicable rates (or pull from org settings)
 const CGST_RATE = 0.025; // 2.5%
 const SGST_RATE = 0.025; // 2.5%
 
-const orderId = "ORD-123";
+// const orderId = "ORD-123";
 
 interface InvoiceDrawerProps {
     cartItem: CartItemType[];
@@ -46,6 +49,10 @@ interface InvoiceDrawerProps {
 export default function InvoiceDrawer({ cartItem, tableNumber, discount = 0, onPlaceOrder }: InvoiceDrawerProps) {
     const [isOpen, setIsOpen] = useState(false);
     const [isOrderSuccessful, setIsOrderSuccessful] = useState(false);
+    const [orderId, setOrderId] = useState<string | null>(null);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
+    const { cache } = useContextValue();
 
     const router = useRouter();
 
@@ -71,61 +78,107 @@ export default function InvoiceDrawer({ cartItem, tableNumber, discount = 0, onP
 
     const orderDate = new Date();
 
-    function handleSubmit() {
-        const orderData = {
-            // You'll get this from your auth/session later
-            organizationId: "YOUR_ORGANIZATION_ID",
+    async function handleSubmit() {
+        // Prevent duplicate clicks
+        if (isSubmitting) return;
 
-            // Customer details (not available yet)
-            customerName: null,
-            customerPhone: null,
-            customerEmail: null,
+        try {
+            setIsSubmitting(true);
 
-            // Table
-            tableNumber,
+            // Cache validation
+            if (!cache) {
+                throw new Error("Restaurant data not found.");
+            }
 
-            // These will probably come from your backend defaults
-            status: undefined,
-            paymentStatus: undefined,
-            paymentMethod: null,
+            if (!cache.table?.orgId) {
+                throw new Error("Organization ID is missing.");
+            }
 
-            // Convert cart items into order items
-            items: cartItem.map((item) => ({
-                // Include whatever your CreateOrderItemSchema expects
-                menuItemId: item.id,
-                name: item.name,
-                size: item.size,
-                quantity: item.quantity,
-                unitPrice: item.unitPrice,
-                totalPrice: item.unitPrice * item.quantity,
-            })),
+            // Cart validation
+            if (!cartItem.length) {
+                throw new Error("Your cart is empty.");
+            }
 
-            // Invoice values
-            subtotal: invoice.subtotal,
-            discount: invoice.discount,
-            taxableAmount: invoice.taxableAmount,
-            cgstAmount: invoice.cgstAmount,
-            sgstAmount: invoice.sgstAmount,
-            igstAmount: 0,
-            roundOff: invoice.roundOff,
-            grandTotal: invoice.grandTotal,
+            // Table validation
+            if (!tableNumber?.trim()) {
+                throw new Error("Invalid table number.");
+            }
 
-            // Optional notes
-            notes: null,
-        };
+            // Invoice validation
+            if (invoice.grandTotal <= 0) {
+                throw new Error("Invalid order amount.");
+            }
 
-        console.log("Order Data:", orderData);
+            const orderData: CreateOrderDto = {
+                organizationId: cache.table.orgId,
 
-        setIsOpen(false);
-        setIsOrderSuccessful(true);
+                customerName: null,
+                customerPhone: null,
+                customerEmail: null,
 
-        // toast("Order placed successfully", { position: "top-center", description: `ordered ${orderData.items.length} items` })
-        // Tost.success({
-        //     heading: "Order placed successfully",
-        //     description: `ordered ${orderData.items.length} items`,
-        // });
+                tableNumber,
 
-        // onPlaceOrder(invoice);
+                status: undefined,
+                paymentStatus: undefined,
+                paymentMethod: null,
+
+                items: cartItem.map((item) => ({
+                    menuItemId: item.id,
+                    name: item.name,
+                    variant: item.size as "half" | "full",
+                    quantity: item.quantity,
+                    unitPrice: item.unitPrice,
+                    logo: item.image ?? null,
+                })),
+
+                subtotal: invoice.subtotal,
+                discount: invoice.discount,
+                taxableAmount: invoice.taxableAmount,
+                cgstAmount: invoice.cgstAmount,
+                sgstAmount: invoice.sgstAmount,
+                igstAmount: 0,
+                roundOff: invoice.roundOff,
+                grandTotal: invoice.grandTotal,
+
+                notes: null,
+            };
+
+            console.log("Order Data:", orderData);
+
+            const res = await axios.post("/api/organization/orders", orderData);
+
+            if (res.status !== 200 && res.status !== 201) {
+                throw new Error("Failed to place order.");
+            }
+
+            console.log("Order placed:", res.data);
+
+            setOrderId(res.data.data.invoiceNumber);
+
+            // Clear cart if required
+            // clearCart();
+            setIsOpen(false);
+            setIsOrderSuccessful(true);
+
+            // toast.success("Order placed successfully");
+        } catch (error) {
+            console.error(error);
+
+            if (axios.isAxiosError(error)) {
+                const message = error.response?.data?.message ?? error.message ?? "Something went wrong.";
+
+                // toast.error(message);
+                alert(message);
+            } else if (error instanceof Error) {
+                // toast.error(error.message);
+                alert(error.message);
+            } else {
+                // toast.error("Unexpected error");
+                alert("Unexpected error occurred.");
+            }
+        } finally {
+            setIsSubmitting(false);
+        }
     }
     return (
         <>
@@ -218,17 +271,20 @@ export default function InvoiceDrawer({ cartItem, tableNumber, discount = 0, onP
                     <DrawerFooter>
                         <div className="flex items-center gap-3 pt-1">
                             <DrawerClose
+                                disabled={isSubmitting}
                                 type="button"
                                 className="flex flex-1 items-center justify-center gap-1.5 rounded-full border border-border bg-background px-4 py-2.5 text-sm font-semibold text-foreground transition-colors hover:bg-muted"
                             >
                                 Cancel
                             </DrawerClose>
                             <button
+                                disabled={isSubmitting}
                                 type="button"
                                 onClick={handleSubmit}
-                                className="flex-1 rounded-full bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
+                                className={`flex items-center justify-center gap-1 flex-1 rounded-full ${isSubmitting ? "bg-primary/50" : "bg-primary"} px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90`}
                             >
-                                Order now
+                                {isSubmitting && <Loader2 className="ml-2 h-4 w-4 animate-spin" />}
+                                {isSubmitting ? "Placing order..." : "Order now"}
                             </button>
                         </div>
                     </DrawerFooter>
@@ -273,7 +329,7 @@ export default function InvoiceDrawer({ cartItem, tableNumber, discount = 0, onP
                     <Button
                         onClick={() => {
                             setIsOrderSuccessful(false);
-                            router.push("/");
+                            router.back();
                         }}
                         className="w-full rounded-full py-6 text-base font-semibold"
                     >
