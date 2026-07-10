@@ -78,7 +78,11 @@ export default function MenuItemInfo({
               </div>
             )}
 
-            {item.preparationTime && <Badge variant="outline" className="bg-transparent!">Preparation Time - {item.preparationTime} minutes</Badge>}
+            {item.preparationTime && (
+              <Badge variant="outline" className="bg-transparent!">
+                Preparation Time - {item.preparationTime} minutes
+              </Badge>
+            )}
 
             {!item.description ? (
               <p className="text-muted-foreground mt-4! text-sm">

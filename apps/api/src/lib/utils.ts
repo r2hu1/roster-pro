@@ -19,6 +19,7 @@ export const zvalidator = <
   schema: T
 ) =>
   zValidator(target, schema, (result, c) => {
+    // console.log("result", result)    // ignore this
     if (!result.success) {
       return c.json(
         {

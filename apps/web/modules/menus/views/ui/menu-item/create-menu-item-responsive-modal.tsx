@@ -43,8 +43,8 @@ export default function CreateMenuItemModal({
   const [isVegetarian, setIsVegetarian] = useState(false)
   const [isAvailable, setIsAvailable] = useState(true)
   const [description, setDescription] = useState("")
-  const [image, setImage] = useState<File | null>(null);
-  const [preparationTime, setPreparationTime] = useState("");
+  const [image, setImage] = useState<File | null>(null)
+  const [preparationTime, setPreparationTime] = useState("")
 
   const qc = useQueryClient()
   const params = useParams<{ menuId: string }>()
@@ -102,7 +102,8 @@ export default function CreateMenuItemModal({
       formData.append("price_full", fullPrice)
       formData.append("isAvailable", String(isAvailable))
       formData.append("isVegetarian", String(isVegetarian))
-      if (preparationTime) formData.append("preparationTime", String(preparationTime))
+      if (preparationTime)
+        formData.append("preparationTime", String(preparationTime))
 
       if (image) formData.append("image", image)
 
@@ -204,7 +205,10 @@ export default function CreateMenuItemModal({
             </InputGroup>
           </div>
 
-          <Label htmlFor="name">Preparation Time <span className="text-xs text-foreground/80">minutes</span></Label>
+          <Label htmlFor="name">
+            Preparation Time{" "}
+            <span className="text-xs text-foreground/80">minutes</span>
+          </Label>
           <Input
             id="preparationTime"
             type="number"

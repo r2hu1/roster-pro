@@ -11,6 +11,40 @@ import type {
 import { EventEmitter } from "node:events"
 import { organization } from "../../../core/db/schemas/auth.js"
 import { analyticsEmitter } from "../analytics/analytics.logic.js"
+import { tableEmitter } from "../table/table.logic.js"
+
+const TABLE_CACHE_PREFIX = "table:"
+
+async function emitTableStatus(organizationId: string, tableNumber: string) {
+  const [table] = await db
+    .select({
+      id: tableSchema.id,
+      number: tableSchema.number,
+      name: tableSchema.name,
+      status: tableSchema.status,
+      updatedAt: tableSchema.updatedAt,
+    })
+    .from(tableSchema)
+    .where(
+      and(
+        eq(tableSchema.number, Number(tableNumber)),
+        eq(tableSchema.organizationId, organizationId)
+      )
+    )
+
+  if (table) {
+    tableEmitter.emit(`table:${organizationId}`, {
+      type: "status",
+      data: table,
+    })
+  }
+
+  try {
+    await redisClient.delPattern(`${TABLE_CACHE_PREFIX}*:${organizationId}`)
+  } catch (err) {
+    console.error("Failed to invalidate table cache", err)
+  }
+}
 
 const ORDER_CACHE_PREFIX = "order:"
 const CACHE_TTL = 300
@@ -193,6 +227,8 @@ export const orderLogic = {
       return result
     })
 
+    await emitTableStatus(organizationId, body.tableNumber)
+
     if (!created) {
       return {
         status: "error",
@@ -299,6 +335,8 @@ export const orderLogic = {
             eq(tableSchema.organizationId, organizationId)
           )
         )
+
+      await emitTableStatus(organizationId, updated.tableNumber)
     }
 
     await redisClient.del(`${ORDER_CACHE_PREFIX}${organizationId}:${body.id}`)
@@ -375,6 +413,8 @@ export const orderLogic = {
           )
         )
     }
+
+    await emitTableStatus(organizationId, updated.tableNumber)
 
     await redisClient.del(`${ORDER_CACHE_PREFIX}${organizationId}:${id}`)
     await redisClient.delPattern(`${ORDER_CACHE_PREFIX}all:${organizationId}`)

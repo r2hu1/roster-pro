@@ -65,7 +65,11 @@ export default function TablesPageView() {
           </div>
         ) : (
           <>
-            <TableStats total={total} occupied={occupied} available={available} />
+            <TableStats
+              total={total}
+              occupied={occupied}
+              available={available}
+            />
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
               {sorted.map((table) => (
                 <UpdateTableModal key={table.id} table={table}>

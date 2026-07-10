@@ -2,8 +2,9 @@ import { Geist, Geist_Mono, Instrument_Sans } from "next/font/google"
 
 import "@workspace/ui/globals.css"
 import { cn } from "@workspace/ui/lib/utils"
-import ReactQueryProvider from "@/components/ReactQueryProvider"
+import ReactQueryProvider from "@/modules/providers/react-query-provider"
 import { Toaster } from "sonner"
+import { ContextProvider } from "@/modules/providers/context-provider"
 
 const instrumentSans = Instrument_Sans({
   subsets: ["latin"],
@@ -32,7 +33,9 @@ export default function RootLayout({
       )}
     >
       <body>
-        <ReactQueryProvider>{children}</ReactQueryProvider>
+        <ReactQueryProvider>
+          <ContextProvider>{children}</ContextProvider>
+        </ReactQueryProvider>
         <Toaster
           toastOptions={{
             classNames: {

@@ -6,8 +6,11 @@ export async function GET(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  console.log("at next js server") // ye console log print nhi hoo rha terminal me
   const { id } = await params
   const { searchParams } = new URL(request.url)
+  // console.log(`SSR req at = "/api/organization/orders/${id}/stream?${searchParams}"`);
+
   const backendUrl = `${API_URL}/v1/organization/orders/${id}/stream?${searchParams}`
 
   const backendRes = await fetch(backendUrl, {

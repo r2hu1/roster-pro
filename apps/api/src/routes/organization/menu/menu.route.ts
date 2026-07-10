@@ -67,23 +67,28 @@ menuRouter.post(
   }
 )
 
-menuRouter.put("/", sessionMiddleware, zvalidator("json", updateMenuSchema), async (c) => {
-  const organizationId = c.get("organizationId")
-  if (!organizationId) {
-    return c.json(
-      {
-        status: "error",
-        code: HTTP_STATUS_CODES.UNAUTHORIZED,
-        message: "Organization not found",
-      },
-      HTTP_STATUS_CODES.UNAUTHORIZED
-    )
-  }
+menuRouter.put(
+  "/",
+  sessionMiddleware,
+  zvalidator("json", updateMenuSchema),
+  async (c) => {
+    const organizationId = c.get("organizationId")
+    if (!organizationId) {
+      return c.json(
+        {
+          status: "error",
+          code: HTTP_STATUS_CODES.UNAUTHORIZED,
+          message: "Organization not found",
+        },
+        HTTP_STATUS_CODES.UNAUTHORIZED
+      )
+    }
 
-  const body = c.req.valid("json")
-  const result = await menuLogic.update(body, organizationId)
-  return c.json(result, result.code)
-})
+    const body = c.req.valid("json")
+    const result = await menuLogic.update(body, organizationId)
+    return c.json(result, result.code)
+  }
+)
 
 menuRouter.post(
   "/all",
