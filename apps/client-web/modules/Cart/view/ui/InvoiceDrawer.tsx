@@ -14,16 +14,12 @@ import {
 import { Button } from "@workspace/ui/components/button";
 import FormatPrice from "@/util/FormatPrice";
 import { CartItemType } from "../../view/ui/ItemCard";
-import { Loader2, ShoppingCart } from "lucide-react";
-import { toast } from "sonner";
-import Tost from "@/components/Tost";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@workspace/ui/components/dialog";
-import { useRouter } from "next/navigation";
+import { Loader2 } from "lucide-react";
 
 import "../style/style.css";
-import { useContextValue } from "@/components/ContextProvide";
 import { CreateOrderDto } from "@workspace/shared";
 import axios from "axios";
+import SuccessDialog from "./SuccessDialog";
 
 // Adjust to your org's actual applicable rates (or pull from org settings)
 const CGST_RATE = 0.025; // 2.5%
@@ -49,12 +45,9 @@ interface InvoiceDrawerProps {
 export default function InvoiceDrawer({ cartItem, tableNumber, discount = 0, onPlaceOrder }: InvoiceDrawerProps) {
     const [isOpen, setIsOpen] = useState(false);
     const [isOrderSuccessful, setIsOrderSuccessful] = useState(false);
-    const [orderId, setOrderId] = useState<string | null>(null);
+    const [orderId, setOrderId] = useState<string | undefined>(undefined);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-    const { cache } = useContextValue();
-
-    const router = useRouter();
 
     const invoice = useMemo(() => {
         const subtotal = cartItem.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0);
@@ -82,17 +75,15 @@ export default function InvoiceDrawer({ cartItem, tableNumber, discount = 0, onP
         // Prevent duplicate clicks
         if (isSubmitting) return;
 
+        const orgId = sessionStorage.getItem("ORG_ID");
+
+        if(!orgId) {
+            throw new Error("Organization ID is missing.");
+        }
+
         try {
             setIsSubmitting(true);
 
-            // Cache validation
-            if (!cache) {
-                throw new Error("Restaurant data not found.");
-            }
-
-            if (!cache.table?.orgId) {
-                throw new Error("Organization ID is missing.");
-            }
 
             // Cart validation
             if (!cartItem.length) {
@@ -110,7 +101,7 @@ export default function InvoiceDrawer({ cartItem, tableNumber, discount = 0, onP
             }
 
             const orderData: CreateOrderDto = {
-                organizationId: cache.table.orgId,
+                organizationId: orgId,
 
                 customerName: null,
                 customerPhone: null,
@@ -145,15 +136,16 @@ export default function InvoiceDrawer({ cartItem, tableNumber, discount = 0, onP
 
             console.log("Order Data:", orderData);
 
-            const res = await axios.post("/api/organization/orders", orderData);
+            // const res = await axios.post("/api/organization/orders", orderData);
 
-            if (res.status !== 200 && res.status !== 201) {
-                throw new Error("Failed to place order.");
-            }
+            // if (res.status !== 200 && res.status !== 201) {
+            //     throw new Error("Failed to place order.");
+            // }
 
-            console.log("Order placed:", res.data);
+            // console.log("Order placed:", res.data);
 
-            setOrderId(res.data.data.invoiceNumber);
+            setOrderId("ORD-123");
+            // setOrderId(res.data.data.invoiceNumber);
 
             // Clear cart if required
             // clearCart();
@@ -290,53 +282,12 @@ export default function InvoiceDrawer({ cartItem, tableNumber, discount = 0, onP
                     </DrawerFooter>
                 </DrawerContent>
             </Drawer>
-            <Dialog open={isOrderSuccessful} onOpenChange={setIsOrderSuccessful}>
-                <DialogContent showCloseButton={false} className="flex flex-col gap-6 pt-10">
-                    <div className="relative flex items-center justify-center">
-                        {/* Ring 1 */}
-                        <div className="absolute h-34 w-34 rounded-full bg-primary/30 animate-ripple" />
-                        {/* Ring 2 */}
-                        <div className="absolute h-38 w-38 rounded-full bg-primary/50 animate-ripple" style={{ animationDelay: "-0.5s" }} />
-                        {/* Logo */}
-                        <img src="/order-successful-logo.png" alt="Order Successful" className="relative z-10 h-30 aspect-square" />
-                    </div>
-
-                    <DialogHeader className="gap-2">
-                        <DialogTitle className="text-center text-2xl font-bold text-foreground">
-                            Order <span className="text-primary">placed!</span>
-                        </DialogTitle>
-                        <DialogDescription className="text-center text-base text-muted-foreground">
-                            Our chefs are getting started — we'll bring it out fresh, as quickly as we can.
-                        </DialogDescription>
-                    </DialogHeader>
-
-                    {(tableNumber || orderId) && (
-                        <div className="flex items-center justify-center gap-2 rounded-full bg-muted px-4 py-2 text-sm">
-                            {tableNumber && (
-                                <span className="text-muted-foreground">
-                                    Table <span className="font-semibold text-foreground">{tableNumber}</span>
-                                </span>
-                            )}
-                            {tableNumber && orderId && <span className="text-border">|</span>}
-                            {orderId && (
-                                <span className="text-muted-foreground">
-                                    Order <span className="font-semibold text-foreground">#{orderId}</span>
-                                </span>
-                            )}
-                        </div>
-                    )}
-
-                    <Button
-                        onClick={() => {
-                            setIsOrderSuccessful(false);
-                            router.back();
-                        }}
-                        className="w-full rounded-full py-6 text-base font-semibold"
-                    >
-                        Done
-                    </Button>
-                </DialogContent>
-            </Dialog>
+            <SuccessDialog
+                isOrderSuccessful={isOrderSuccessful}
+                setIsOrderSuccessful={setIsOrderSuccessful}
+                tableNumber={tableNumber}
+                orderId={orderId}
+            />
         </>
     );
 }

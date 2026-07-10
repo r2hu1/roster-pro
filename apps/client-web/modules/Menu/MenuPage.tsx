@@ -29,6 +29,12 @@ export default function MenuPage({ id }: { id: string }) {
         queryFn: async () => await getTableData(id),
     });
 
+    useEffect(() => {
+        if (data?.table.orgId) {
+            sessionStorage.setItem("ORG_ID", data?.table.orgId);
+        }
+    }, [data]);
+
     console.log(data);
 
     const maxPrice = useMemo(() => {
@@ -80,8 +86,8 @@ export default function MenuPage({ id }: { id: string }) {
     if (isLoading) {
         return <SkeletonLoader />;
     }
-    if(isError) {
-        return <div>Error</div>
+    if (isError) {
+        return <div>Error</div>;
     }
 
     return (
@@ -98,7 +104,7 @@ export default function MenuPage({ id }: { id: string }) {
                 <SearchBar
                     value={searchQuery}
                     onChange={setSearchQuery}
-                    menus={[...data?.category ?? []]}
+                    menus={[...(data?.category ?? [])]}
                     filters={filters}
                     onFiltersChange={setFilters}
                     maxPrice={maxPrice}
