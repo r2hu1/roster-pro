@@ -42,10 +42,13 @@ export function ContextProvider({ children }: { children: React.ReactNode }) {
       }
 
       try {
+        // console.log(id)
         // Decode token
         const tableRes = await axios.get(
           `/api/organization/table/token/decode?token=${id}`
         )
+
+        // console.log(tableRes.data)
 
         if (tableRes.data?.code !== 200) {
           throw new Error(
@@ -61,6 +64,8 @@ export function ContextProvider({ children }: { children: React.ReactNode }) {
           tableId: tableRes.data.data.table.id,
           tableNumber: tableRes.data.data.table.number,
         }
+
+        // console.log(table)
 
         // Fetch menu
         const menuRes = await axios.post("/api/organization/menu/all", {
@@ -94,7 +99,9 @@ export function ContextProvider({ children }: { children: React.ReactNode }) {
           category: categories,
         }
 
+        
         setCache(result)
+        // console.log(result)
 
         return result
       } catch (error) {
