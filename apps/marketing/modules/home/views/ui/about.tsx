@@ -23,7 +23,7 @@ export function About() {
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="rounded-xl border border-border/60 bg-card p-5">
-              <p className="font-bold text-2xl text-primary">2023</p>
+              <p className="font-bold text-2xl text-primary">2026</p>
               <p className="mt-1 text-muted-foreground text-sm">Founded</p>
             </div>
             <div className="rounded-xl border border-border/60 bg-card p-5">
