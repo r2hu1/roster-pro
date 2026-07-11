@@ -16,6 +16,7 @@ export const CreateOrderSchema = z.object({
   discount: z.number().min(0).optional(),
   taxableAmount: z.number().positive("Taxable amount must be positive"),
   cgstAmount: z.number().min(0).optional(),
+  gstRate: z.number().min(0).optional(),
   sgstAmount: z.number().min(0).optional(),
   igstAmount: z.number().min(0).optional(),
   roundOff: z.number().optional(),

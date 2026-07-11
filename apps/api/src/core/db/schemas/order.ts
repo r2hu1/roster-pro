@@ -6,6 +6,7 @@ import {
   index,
   jsonb,
   primaryKey,
+  numeric,
 } from "drizzle-orm/pg-core"
 
 import { organization } from "./auth.js"
@@ -20,14 +21,16 @@ export type OrderItemJson = Omit<CreateOrderItemDto, "id" | "orderId">
 export const order = pgTable(
   "order",
   {
-    id: text("id").primaryKey().default(uuidv4()),
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => uuidv4()),
 
     organizationId: text("organization_id")
       .notNull()
       .references(() => organization.id, {
         onDelete: "cascade",
       }),
-    invoiceNumber: text("invoice_number").notNull().unique(),
+    invoiceNumber: text("invoice_number").notNull(),
     customerName: text("customer_name"),
     customerPhone: text("customer_phone"),
     customerEmail: text("customer_email"),
@@ -42,11 +45,46 @@ export const order = pgTable(
     subtotal: integer("subtotal").notNull(),
     discount: integer("discount").default(0).notNull(),
     taxableAmount: integer("taxable_amount").notNull(),
-    cgstAmount: integer("cgst_amount").default(0).notNull(),
-    sgstAmount: integer("sgst_amount").default(0).notNull(),
-    igstAmount: integer("igst_amount").default(0).notNull(),
-    roundOff: integer("round_off").default(0).notNull(),
-    grandTotal: integer("grand_total").notNull(),
+    gstRate: numeric("gst_rate", {
+      precision: 10,
+      scale: 2,
+      mode: "number",
+    })
+      .default(0)
+      .notNull(),
+    cgstAmount: numeric("cgst_amount", {
+      precision: 10,
+      scale: 2,
+      mode: "number",
+    })
+      .default(0)
+      .notNull(),
+    sgstAmount: numeric("sgst_amount", {
+      precision: 10,
+      scale: 2,
+      mode: "number",
+    })
+      .default(0)
+      .notNull(),
+    igstAmount: numeric("igst_amount", {
+      precision: 10,
+      scale: 2,
+      mode: "number",
+    })
+      .default(0)
+      .notNull(),
+    roundOff: numeric("round_off", {
+      precision: 10,
+      scale: 2,
+      mode: "number",
+    })
+      .default(0)
+      .notNull(),
+    grandTotal: numeric("grand_total", {
+      precision: 10,
+      scale: 2,
+      mode: "number",
+    }).notNull(),
     notes: text("notes"),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at")
@@ -68,7 +106,9 @@ export const order = pgTable(
 export const orderItem = pgTable(
   "order_item",
   {
-    id: text("id").primaryKey().default(uuidv4()),
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => uuidv4()),
     orderId: text("order_id")
       .notNull()
       .references(() => order.id, {

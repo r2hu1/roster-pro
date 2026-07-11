@@ -1,6 +1,7 @@
 import { and, eq, desc, like, sql } from "drizzle-orm"
 import { db } from "../../../core/db/client.js"
 import { order, orderCounter } from "../../../core/db/schemas/order.js"
+import { tableSchema } from "../../../core/db/schemas/table.js"
 import { redisClient } from "../../../core/redis/client.js"
 import { HTTP_STATUS_CODES } from "../../../lib/utils.js"
 import type {
@@ -10,6 +11,40 @@ import type {
 import { EventEmitter } from "node:events"
 import { organization } from "../../../core/db/schemas/auth.js"
 import { analyticsEmitter } from "../analytics/analytics.logic.js"
+import { tableEmitter } from "../table/table.logic.js"
+
+const TABLE_CACHE_PREFIX = "table:"
+
+async function emitTableStatus(organizationId: string, tableNumber: string) {
+  const [table] = await db
+    .select({
+      id: tableSchema.id,
+      number: tableSchema.number,
+      name: tableSchema.name,
+      status: tableSchema.status,
+      updatedAt: tableSchema.updatedAt,
+    })
+    .from(tableSchema)
+    .where(
+      and(
+        eq(tableSchema.number, Number(tableNumber)),
+        eq(tableSchema.organizationId, organizationId)
+      )
+    )
+
+  if (table) {
+    tableEmitter.emit(`table:${organizationId}`, {
+      type: "status",
+      data: table,
+    })
+  }
+
+  try {
+    await redisClient.delPattern(`${TABLE_CACHE_PREFIX}*:${organizationId}`)
+  } catch (err) {
+    console.error("Failed to invalidate table cache", err)
+  }
+}
 
 const ORDER_CACHE_PREFIX = "order:"
 const CACHE_TTL = 300
@@ -58,6 +93,7 @@ export const orderLogic = {
       .select()
       .from(order)
       .where(eq(order.organizationId, organizationId))
+      .orderBy(desc(order.createdAt))
 
     await redisClient.set(cacheKey, orders, CACHE_TTL)
 
@@ -73,7 +109,7 @@ export const orderLogic = {
       }
     }
 
-    const cacheKey = `${ORDER_CACHE_PREFIX}${id}`
+    const cacheKey = `${ORDER_CACHE_PREFIX}${organizationId}:${id}`
     const cached = await redisClient.get<typeof order.$inferSelect>(cacheKey)
     if (cached) {
       return { status: "success", code: HTTP_STATUS_CODES.OK, data: cached }
@@ -107,6 +143,18 @@ export const orderLogic = {
       }
     }
 
+    const [org] = await db
+      .select()
+      .from(organization)
+      .where(eq(organization.id, organizationId))
+    if (!org) {
+      return {
+        status: "error",
+        code: HTTP_STATUS_CODES.NOT_FOUND,
+        message: "Organization not found",
+      }
+    }
+
     const created = await db.transaction(async (tx) => {
       const year = new Date().getFullYear()
       const prefix = `INV-${year}-`
@@ -121,6 +169,24 @@ export const orderLogic = {
         .returning()
 
       const invoiceNumber = `${prefix}${counter.lastSequence.toString().padStart(6, "0")}`
+
+      const taxableAmount = Number(body.taxableAmount)
+      const gstRate = Number(org.gstRate ?? 5)
+
+      const halfRate = gstRate / 2
+
+      const cgstAmount = +((taxableAmount * halfRate) / 100).toFixed(2)
+      const sgstAmount = +((taxableAmount * halfRate) / 100).toFixed(2)
+      const igstAmount = 0
+
+      const totalGst = cgstAmount + sgstAmount
+
+      const roundOff = +(
+        Math.round(taxableAmount + totalGst) -
+        (taxableAmount + totalGst)
+      ).toFixed(2)
+
+      const grandTotal = +(taxableAmount + totalGst + roundOff).toFixed(2)
 
       const [result] = await tx
         .insert(order)
@@ -137,18 +203,31 @@ export const orderLogic = {
           items: body.items ?? [],
           subtotal: body.subtotal,
           discount: body.discount ?? 0,
-          taxableAmount: body.taxableAmount,
-          cgstAmount: body.cgstAmount ?? 0,
-          sgstAmount: body.sgstAmount ?? 0,
-          igstAmount: body.igstAmount ?? 0,
-          roundOff: body.roundOff ?? 0,
-          grandTotal: body.grandTotal,
+          taxableAmount,
+          gstRate,
+          cgstAmount,
+          sgstAmount,
+          igstAmount: 0,
+          roundOff,
+          grandTotal,
           notes: body.notes ?? null,
         })
         .returning()
 
+      await tx
+        .update(tableSchema)
+        .set({ status: "occupied" })
+        .where(
+          and(
+            eq(tableSchema.number, Number(body.tableNumber)),
+            eq(tableSchema.organizationId, organizationId)
+          )
+        )
+
       return result
     })
+
+    await emitTableStatus(organizationId, body.tableNumber)
 
     if (!created) {
       return {
@@ -159,7 +238,7 @@ export const orderLogic = {
     }
 
     try {
-      await redisClient.delPattern(`${ORDER_CACHE_PREFIX}*:${organizationId}`)
+      await redisClient.delPattern(`${ORDER_CACHE_PREFIX}all:${organizationId}`)
     } catch (err) {
       console.error("Failed to invalidate order cache", err)
     }
@@ -246,8 +325,99 @@ export const orderLogic = {
       )
       .returning()
 
-    await redisClient.del(`${ORDER_CACHE_PREFIX}${body.id}`)
-    await redisClient.delPattern(`${ORDER_CACHE_PREFIX}*:${organizationId}`)
+    if (updated.status === "completed" || updated.status === "cancelled") {
+      await db
+        .update(tableSchema)
+        .set({ status: "available" })
+        .where(
+          and(
+            eq(tableSchema.number, Number(updated.tableNumber)),
+            eq(tableSchema.organizationId, organizationId)
+          )
+        )
+
+      await emitTableStatus(organizationId, updated.tableNumber)
+    }
+
+    await redisClient.del(`${ORDER_CACHE_PREFIX}${organizationId}:${body.id}`)
+    await redisClient.delPattern(`${ORDER_CACHE_PREFIX}all:${organizationId}`)
+
+    orderEmitter.emit(`orders:${organizationId}`, {
+      type: "updated",
+      data: updated,
+    } satisfies OrderUpdatedEvent)
+
+    orderEmitter.emit(`order:${updated.id}`, {
+      type: "updated",
+      data: updated,
+    } satisfies OrderUpdatedEvent)
+
+    analyticsEmitter.emit(`analytics:${organizationId}`, {
+      type: "updated",
+      data: null,
+    })
+
+    return { status: "success", code: HTTP_STATUS_CODES.OK, data: updated }
+  },
+
+  updateStatus: async (
+    id: string,
+    status: (typeof order.$inferSelect)["status"],
+    organizationId: string
+  ) => {
+    if (!organizationId) {
+      return {
+        status: "error",
+        code: HTTP_STATUS_CODES.NOT_FOUND,
+        message: "Organization not found",
+      }
+    }
+
+    const [existing] = await db
+      .select()
+      .from(order)
+      .where(and(eq(order.id, id), eq(order.organizationId, organizationId)))
+
+    if (!existing) {
+      return {
+        status: "error",
+        code: HTTP_STATUS_CODES.NOT_FOUND,
+        message: "Order not found",
+      }
+    }
+
+    const [updated] = await db
+      .update(order)
+      .set({ status, updatedAt: new Date() })
+      .where(and(eq(order.id, id), eq(order.organizationId, organizationId)))
+      .returning()
+
+    if (status === "completed" || status === "cancelled") {
+      await db
+        .update(tableSchema)
+        .set({ status: "available" })
+        .where(
+          and(
+            eq(tableSchema.number, Number(updated.tableNumber)),
+            eq(tableSchema.organizationId, organizationId)
+          )
+        )
+    } else {
+      await db
+        .update(tableSchema)
+        .set({ status: "occupied" })
+        .where(
+          and(
+            eq(tableSchema.number, Number(updated.tableNumber)),
+            eq(tableSchema.organizationId, organizationId)
+          )
+        )
+    }
+
+    await emitTableStatus(organizationId, updated.tableNumber)
+
+    await redisClient.del(`${ORDER_CACHE_PREFIX}${organizationId}:${id}`)
+    await redisClient.delPattern(`${ORDER_CACHE_PREFIX}all:${organizationId}`)
 
     orderEmitter.emit(`orders:${organizationId}`, {
       type: "updated",
@@ -293,8 +463,8 @@ export const orderLogic = {
       .delete(order)
       .where(and(eq(order.id, id), eq(order.organizationId, organizationId)))
 
-    await redisClient.del(`${ORDER_CACHE_PREFIX}${id}`)
-    await redisClient.delPattern(`${ORDER_CACHE_PREFIX}*:${organizationId}`)
+    await redisClient.del(`${ORDER_CACHE_PREFIX}${organizationId}:${id}`)
+    await redisClient.delPattern(`${ORDER_CACHE_PREFIX}all:${organizationId}`)
 
     orderEmitter.emit(`orders:${organizationId}`, {
       type: "deleted",
@@ -356,6 +526,8 @@ export const orderLogic = {
           address: org.address,
           phone: org.phone,
           gstin: org.gstin,
+          hsnSac: org.hsnSac,
+          gstRate: org.gstRate,
         },
 
         customer: {
@@ -368,6 +540,7 @@ export const orderLogic = {
         items: existingOrder.items.map((item) => ({
           id: item.menuItemId,
           name: item.name,
+          logo: item.logo,
           quantity: item.quantity,
           unitPrice: item.unitPrice,
           total: item.quantity * item.unitPrice,
@@ -377,6 +550,7 @@ export const orderLogic = {
           subtotal: existingOrder.subtotal,
           discount: existingOrder.discount,
           taxableAmount: existingOrder.taxableAmount,
+          gstRate: org.gstRate,
           cgst: existingOrder.cgstAmount,
           sgst: existingOrder.sgstAmount,
           igst: existingOrder.igstAmount,

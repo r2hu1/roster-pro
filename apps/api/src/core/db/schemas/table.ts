@@ -13,7 +13,9 @@ import { v4 as uuidv4 } from "uuid"
 export const tableSchema = pgTable(
   "table",
   {
-    id: text("id").primaryKey().default(uuidv4()),
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => uuidv4()),
     number: integer().notNull(),
     name: text(),
     organizationId: text("organization_id")

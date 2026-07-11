@@ -1,60 +1,55 @@
 # Roster Pro
 
-A B2B SaaS for restaurants.
+B2B SaaS for restaurants. End-to-end type-safe monorepo.
 
-## Structure
+## Apps
 
-- `apps/api`: The hono API server
-- `apps/web`: The main restaurant dashboard
-- `apps/marketing`: The landing page
-- `apps/client-web`: The site where restaurant clients can view their menu, and order (renders dynamically based on id/slug)
-
-### Folder & Structure To Follow
-
-Make sure every page is server rendered (no "use client" in pages) use client components sparingly.
-
-e.g:
-To make a client page, don't directly convert a page to a client page. Instead, use a client component within the page.
-
-```tsx
-// modules/views/ui/interactive-page.tsx
-"use client";
-import { Button } from "@workspace/ui/components/button";
-
-export default function SomePage() {}
-```
-
-- in some/page.tsx
-
-```tsx
-import InteractivePage from "@workspace/views/ui/interactive-page";
-
-export default function SomePage() {
-  return (
-    <div>
-      <InteractivePage />
-    </div>
-  );
-}
-```
-
-### Folder Structure
-
-Use modules to organize code by feature.
-
-- modules/
-  - views/
-    - ui/
-      - interactive-page.tsx
-  - server/
-    - functions.ts
-  - utils/
-    - some-utility-fn.ts
-  - types/
-    - some-types.ts
+| App | Directory | Stack | Purpose |
+|-----|-----------|-------|---------|
+| **api** | `apps/api` | Hono, Drizzle ORM, Postgres, Bun | Backend API. Better-Auth, Upstash Redis, SSE realtime. |
+| **web** | `apps/web` | Next.js 16, React 19, TanStack Query | Restaurant owner dashboard. Analytics, menus, orders, tables. |
+| **client-web** | `apps/client-web` | Next.js 16, React 19 | Customer-facing menu & ordering per restaurant. |
+| **marketing** | `apps/marketing` | Next.js 16, React 19 | Public landing page. |
 
 ## Packages
 
-- `@workspace/ui`: Shared UI components (import using `@workspace/ui/[component_name]`)
-  e.g. `import { Button } from "@workspace/ui/components/button"`
-- `@workspace/shared`: Shared utility functions and types
+| Package | Purpose |
+|---------|---------|
+| `@workspace/shared` | Zod schemas, types, enums, constants — single source of truth for API contracts. |
+| `@workspace/ui` | Shared shadcn/ui components, hooks, globals.css. Import via `@workspace/ui/components/*`. |
+| `@workspace/eslint-config` | ESLint flat config presets. |
+| `@workspace/typescript-config` | TS config presets. |
+
+## Tech Stack
+
+- **Runtime**: Bun 1.x (package manager + scripts)
+- **Monorepo**: Turborepo v2
+- **Backend**: Hono, Drizzle ORM, Postgres, Upstash Redis
+- **Auth**: Better Auth (Google OAuth), Polar.sh payments
+- **Frontend**: Next.js 16, React 19, Tailwind v4, shadcn/ui
+- **Data Fetching**: TanStack React Query v5, Axios
+- **Linting**: Biome v2, ESLint 9
+
+## Structure Conventions
+
+- **Pages are server components.** Client interactivity via `"use client"` subcomponents in `modules/{feature}/ui/`.
+- **Feature-organized modules**:
+  ```
+  modules/
+    views/ui/          # Client components
+    server/            # Server logic
+    utils/             # Utilities
+    types/             # Types
+  ```
+- **API 3-file pattern** per feature: `{feature}.route.ts` → `{feature}.logic.ts` → `{feature}.validation.ts`.
+- **`@workspace/shared`** is the single source of truth — never duplicate schemas or types.
+- **SSE** for realtime updates (orders, table status).
+
+## Getting Started
+
+```sh
+bun install
+bun run dev
+```
+
+Requires Postgres, Upstash Redis, and env vars (see `.env.example` in each app).

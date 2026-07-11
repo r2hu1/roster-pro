@@ -1,53 +1,60 @@
 "use client"
 
-import {
-  IconCirclePlusFilled,
-  IconMail,
-  IconReceiptRupee,
-  IconSearch,
-  type Icon,
-} from "@tabler/icons-react"
-
-import { Button } from "@workspace/ui/components/button"
-import {
-  InputGroup,
-  InputGroupAddon,
-  InputGroupInput,
-} from "@workspace/ui/components/input-group"
+import type { Icon } from "@tabler/icons-react"
 import {
   SidebarGroup,
   SidebarGroupContent,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  useSidebar,
 } from "@workspace/ui/components/sidebar"
 import { cn } from "@workspace/ui/lib/utils"
+import Link from "next/link"
+import { usePathname } from "next/navigation"
 
-export function NavMain({
-  items,
-}: {
+interface NavMainProps {
   items: {
     title: string
     url: string
     icon?: Icon
   }[]
-}) {
+  orgId?: string
+}
+
+export function NavMain({ items, orgId }: NavMainProps) {
+  const pathname = usePathname()
+
   return (
-    <SidebarGroup className={"p-2"}>
+    <SidebarGroup className="p-2">
       <SidebarGroupContent className="flex flex-col gap-4">
-        <SidebarMenu className="space-y-2 mt-4">
-          {items.map((item) => (
-            <SidebarMenuItem key={item.title}>
-              <SidebarMenuButton
-                className="h-11 text-[14.5px] px-3 bg-background shadow-sm"
-                tooltip={item.title}
-              >
-                {item.icon && <item.icon />}
-                <span>{item.title}</span>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          ))}
+        <SidebarMenu className="mt-4 space-y-2">
+          {items.map((item) => {
+            const href = orgId ? `/${orgId}${item.url}` : item.url
+
+            const isActive =
+              item.url === "/"
+                ? pathname === `/${orgId}` || pathname === `/${orgId}/`
+                : pathname === href || pathname.startsWith(`${href}/`)
+
+            return (
+              <SidebarMenuItem key={item.title}>
+                <SidebarMenuButton
+                  asChild
+                  tooltip={item.title}
+                  className={cn(
+                    "h-11 bg-background px-3 text-[14.5px] shadow-sm transition-all",
+                    isActive &&
+                      "bg-linear-to-b from-primary to-chart-4 text-primary-foreground hover:opacity-85 hover:text-primary-foreground"
+                  )}
+                >
+                  <Link href={href}>
+                    {item.icon && <item.icon />}
+                    <span>{item.title}</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            )
+          })}
         </SidebarMenu>
       </SidebarGroupContent>
     </SidebarGroup>

@@ -11,6 +11,7 @@ import { redisClient } from "../../../../core/redis/client.js"
 import { HTTP_STATUS_CODES } from "../../../../lib/utils.js"
 
 const MENU_ITEMS_CACHE_PREFIX = "menu_items:"
+const MENU_CACHE_PREFIX = "menu:"
 const CACHE_TTL = 300
 
 export const menuItemLogic = {
@@ -139,6 +140,7 @@ export const menuItemLogic = {
       .returning()
 
     await redisClient.delPattern(`${MENU_ITEMS_CACHE_PREFIX}*:${body.menuId}`)
+    await redisClient.delPattern(`${MENU_CACHE_PREFIX}*:${organizationId}`)
 
     return { status: "success", code: HTTP_STATUS_CODES.CREATED, data: created }
   },
@@ -221,6 +223,7 @@ export const menuItemLogic = {
     await redisClient.delPattern(
       `${MENU_ITEMS_CACHE_PREFIX}all:${existing.menuId}`
     )
+    await redisClient.delPattern(`${MENU_CACHE_PREFIX}*:${organizationId}`)
 
     return { status: "success", code: HTTP_STATUS_CODES.OK, data: updated }
   },
@@ -259,6 +262,7 @@ export const menuItemLogic = {
     await redisClient.delPattern(
       `${MENU_ITEMS_CACHE_PREFIX}all:${existing.menuId}`
     )
+    await redisClient.delPattern(`${MENU_CACHE_PREFIX}*:${organizationId}`)
 
     return { status: "success", code: HTTP_STATUS_CODES.NO_CONTENT }
   },

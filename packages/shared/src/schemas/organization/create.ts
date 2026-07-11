@@ -13,7 +13,9 @@ export const CreateOrganizationSchema = z.object({
   websiteId: z.string().nullable().optional(),
   address: z.string().nullable().optional(),
   gstin: z.string().nullable().optional(),
+  hsnSac: z.number().nullable().optional(),
   phone: z.string().nullable().optional(),
+  gstRate: z.number().nullable().optional(),
 })
 
 export type CreateOrganizationDto = z.infer<typeof CreateOrganizationSchema>

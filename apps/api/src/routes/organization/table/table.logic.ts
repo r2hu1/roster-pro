@@ -11,6 +11,7 @@ import type {
 } from "@workspace/shared/schemas/table/index"
 import { EventEmitter } from "node:events"
 import { cryptoUtil } from "../../../lib/crypto.js"
+import { organization } from "../../../core/db/schemas/auth.js"
 
 const TABLE_CACHE_PREFIX = "table:"
 const CACHE_TTL = 300
@@ -54,7 +55,7 @@ export const tableLogic = {
       }
     }
 
-    const cacheKey = `${TABLE_CACHE_PREFIX}${id}`
+    const cacheKey = `${TABLE_CACHE_PREFIX}${organizationId}:${id}`
     const cached =
       await redisClient.get<typeof tableSchema.$inferSelect>(cacheKey)
     if (cached) {
@@ -105,6 +106,17 @@ export const tableLogic = {
 
     await redisClient.delPattern(`${TABLE_CACHE_PREFIX}*:${organizationId}`)
 
+    tableEmitter.emit(`table:${organizationId}`, {
+      type: "status",
+      data: {
+        id: created.id,
+        number: created.number,
+        name: created.name,
+        status: created.status,
+        updatedAt: created.updatedAt,
+      },
+    })
+
     return { status: "success", code: HTTP_STATUS_CODES.CREATED, data: created }
   },
 
@@ -146,8 +158,19 @@ export const tableLogic = {
       .where(eq(tableSchema.id, body.id))
       .returning()
 
-    await redisClient.del(`${TABLE_CACHE_PREFIX}${body.id}`)
+    await redisClient.del(`${TABLE_CACHE_PREFIX}${organizationId}:${body.id}`)
     await redisClient.delPattern(`${TABLE_CACHE_PREFIX}all:${organizationId}`)
+
+    tableEmitter.emit(`table:${organizationId}`, {
+      type: "status",
+      data: {
+        id: updated.id,
+        number: updated.number,
+        name: updated.name,
+        status: updated.status,
+        updatedAt: updated.updatedAt,
+      },
+    })
 
     return { status: "success", code: HTTP_STATUS_CODES.OK, data: updated }
   },
@@ -181,8 +204,13 @@ export const tableLogic = {
 
     await db.delete(tableSchema).where(eq(tableSchema.id, id))
 
-    await redisClient.del(`${TABLE_CACHE_PREFIX}${id}`)
+    await redisClient.del(`${TABLE_CACHE_PREFIX}${organizationId}:${id}`)
     await redisClient.delPattern(`${TABLE_CACHE_PREFIX}all:${organizationId}`)
+
+    tableEmitter.emit(`table:${organizationId}`, {
+      type: "deleted",
+      data: { id },
+    })
 
     return { status: "success", code: HTTP_STATUS_CODES.NO_CONTENT }
   },
@@ -223,15 +251,18 @@ export const tableLogic = {
       .where(eq(tableSchema.id, body.id))
       .returning()
 
-    await redisClient.del(`${TABLE_CACHE_PREFIX}${body.id}`)
+    await redisClient.del(`${TABLE_CACHE_PREFIX}${organizationId}:${body.id}`)
     await redisClient.delPattern(`${TABLE_CACHE_PREFIX}all:${organizationId}`)
 
-    tableEmitter.emit(`status:${organizationId}`, {
-      id: updated.id,
-      number: updated.number,
-      name: updated.name,
-      status: updated.status,
-      updatedAt: updated.updatedAt,
+    tableEmitter.emit(`table:${organizationId}`, {
+      type: "status",
+      data: {
+        id: updated.id,
+        number: updated.number,
+        name: updated.name,
+        status: updated.status,
+        updatedAt: updated.updatedAt,
+      },
     })
 
     return { status: "success", code: HTTP_STATUS_CODES.OK, data: updated }
@@ -259,16 +290,32 @@ export const tableLogic = {
 
     return { status: "success", code: HTTP_STATUS_CODES.OK, data: tables }
   },
-  generateQrToken: async (
-    tableId: string,
-    organizationId: string,
-    tableNumber: string
-  ) => {
+  generateQrToken: async (tableId: string, organizationId: string) => {
+    const [existingToken] = await db
+      .select({ token: tableSchema.qrToken })
+      .from(tableSchema)
+      .where(
+        and(
+          eq(tableSchema.id, tableId),
+          eq(tableSchema.organizationId, organizationId)
+        )
+      )
+
+    if (existingToken?.token) {
+      return {
+        status: "success",
+        code: HTTP_STATUS_CODES.OK,
+        data: {
+          token: existingToken.token,
+        },
+      }
+    }
+
     const encryptedToken = cryptoUtil.encrypt({
       tableId,
-      tableNumber,
       organizationId,
     })
+
     if (!encryptedToken) {
       return {
         status: "error",
@@ -276,10 +323,85 @@ export const tableLogic = {
         message: "Failed to generate QR token",
       }
     }
+
+    await db
+      .update(tableSchema)
+      .set({ qrToken: encryptedToken })
+      .where(
+        and(
+          eq(tableSchema.id, tableId),
+          eq(tableSchema.organizationId, organizationId)
+        )
+      )
+
     return {
       status: "success",
       code: HTTP_STATUS_CODES.OK,
-      data: encryptedToken,
+      data: {
+        token: encryptedToken,
+      },
+    }
+  },
+  decodeQrToken: async (token: string) => {
+    const decryptedToken = cryptoUtil.decrypt<{
+      organizationId: string
+      tableId: string
+    }>(token)
+    if (!decryptedToken) {
+      return {
+        status: "error",
+        code: HTTP_STATUS_CODES.INTERNAL_SERVER_ERROR,
+        message: "Failed to decode QR token",
+      }
+    }
+    const [table] = await db
+      .select()
+      .from(tableSchema)
+      .where(
+        and(
+          eq(tableSchema.id, decryptedToken.tableId),
+          eq(tableSchema.organizationId, decryptedToken.organizationId)
+        )
+      )
+
+    if (!table) {
+      return {
+        status: "error",
+        code: HTTP_STATUS_CODES.NOT_FOUND,
+        message: "Invalid QR code, table not found.",
+      }
+    }
+    if (table.qrToken !== token) {
+      return {
+        status: "error",
+        code: HTTP_STATUS_CODES.UNAUTHORIZED,
+        message: "Invalid QR code.",
+      }
+    }
+
+    const [org] = await db
+      .select()
+      .from(organization)
+      .where(eq(organization.id, decryptedToken.organizationId))
+
+    return {
+      status: "success",
+      code: HTTP_STATUS_CODES.OK,
+      data: {
+        organization: {
+          id: org?.id,
+          name: org?.name,
+          logo: org?.logo,
+          phone: org?.phone,
+          address: org?.address,
+        },
+        table: {
+          id: decryptedToken.tableId,
+          name: table?.name,
+          status: table?.status,
+          number: table?.number,
+        },
+      },
     }
   },
 }

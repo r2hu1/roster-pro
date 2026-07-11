@@ -7,6 +7,15 @@ export {
   type DeleteOrderDto,
 } from "@workspace/shared/schemas/order/index"
 
+import { z } from "zod"
+import { OrderStatus } from "@workspace/shared/enums/index"
+
+export const updateOrderStatusSchema = z.object({
+  status: OrderStatus,
+})
+
+export type UpdateOrderStatusDto = z.infer<typeof updateOrderStatusSchema>
+
 export {
   CreateOrderItemSchema as createOrderItemSchema,
   UpdateOrderItemSchema as updateOrderItemSchema,

@@ -1,9 +1,8 @@
-import { SidebarInset, SidebarProvider } from "@workspace/ui/components/sidebar"
-import { AppSidebar } from "../../modules/sidebar/views/ui/sidebar"
-import { SessionProvider } from "@/modules/providers/session-provider"
+import { KitchenModeProvider } from "@/modules/providers/kitchen-mode"
 import { ReactQueryProvider } from "@/modules/providers/query-client"
+import { SessionProvider } from "@/modules/providers/session-provider"
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode
@@ -11,10 +10,7 @@ export default function RootLayout({
   return (
     <ReactQueryProvider>
       <SessionProvider>
-        <SidebarProvider>
-          <AppSidebar />
-          <SidebarInset>{children}</SidebarInset>
-        </SidebarProvider>
+        <KitchenModeProvider>{children}</KitchenModeProvider>
       </SessionProvider>
     </ReactQueryProvider>
   )

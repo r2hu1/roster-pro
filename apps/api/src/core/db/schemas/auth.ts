@@ -115,6 +115,7 @@ export const organization = pgTable(
     createdAt: timestamp("created_at").notNull(),
     metadata: text("metadata"),
     websiteId: text("website"),
+    gstRate: integer("gst_rate").default(5),
     gstin: text("gstin"),
     phone: text("number"),
     hsnSac: integer("hsn_sac").default(996331),

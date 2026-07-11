@@ -4,6 +4,8 @@ export const OrderItemSchema = z.object({
   id: z.string(),
   orderId: z.string(),
   menuItemId: z.string(),
+  name: z.string(),
+  logo: z.string().nullable(),
   variant: z.enum(["half", "full"]),
   quantity: z.number(),
   unitPrice: z.number(),

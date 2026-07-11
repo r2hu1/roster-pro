@@ -2,13 +2,19 @@ import { useRef, useState, useCallback } from "react"
 
 interface UseImageUploadProps {
   onChange?: (file: File | null) => void
+  defaultPreview?: string | null
 }
 
-export function useImageUpload({ onChange }: UseImageUploadProps = {}) {
+export function useImageUpload({
+  onChange,
+  defaultPreview,
+}: UseImageUploadProps = {}) {
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const [file, setFile] = useState<File | null>(null)
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
+  const [previewUrl, setPreviewUrl] = useState<string | null>(
+    defaultPreview ?? null
+  )
 
   const handleThumbnailClick = () => {
     fileInputRef.current?.click()

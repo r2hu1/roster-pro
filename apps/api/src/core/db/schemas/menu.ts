@@ -13,7 +13,9 @@ import { v4 as uuidv4 } from "uuid"
 export const menu = pgTable(
   "menu",
   {
-    id: text("id").primaryKey().default(uuidv4()),
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => uuidv4()),
     organizationId: text("organization_id")
       .notNull()
       .references(() => organization.id, {
@@ -42,7 +44,9 @@ export type Price = {
 export const menuItem = pgTable(
   "menu_item",
   {
-    id: text("id").primaryKey().default(uuidv4()),
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => uuidv4()),
     menuId: text("menu_id")
       .notNull()
       .references(() => menu.id, {

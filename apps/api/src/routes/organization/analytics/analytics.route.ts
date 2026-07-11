@@ -117,12 +117,16 @@ analyticsRouter.get("/stream", sessionMiddleware, async (c) => {
 
     analyticsEmitter.on(`analytics:${organizationId}`, listener)
 
-    stream.onAbort(() => {
-      analyticsEmitter.off(`analytics:${organizationId}`, listener)
-    })
+    const heartbeat = setInterval(() => {
+      stream.writeSSE({ event: "ping", data: "" }).catch(() => {})
+    }, 30000)
 
     await new Promise<void>((resolve) => {
-      stream.onAbort(() => resolve())
+      stream.onAbort(() => {
+        analyticsEmitter.off(`analytics:${organizationId}`, listener)
+        clearInterval(heartbeat)
+        resolve()
+      })
     })
   })
 })

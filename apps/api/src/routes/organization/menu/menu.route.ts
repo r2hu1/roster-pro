@@ -5,12 +5,11 @@ import { sessionMiddleware } from "../../../middleware/session.js"
 import { menuLogic } from "./menu.logic.js"
 import { createMenuSchema, updateMenuSchema } from "./menu.validation.js"
 import type { ContentfulStatusCode } from "hono/utils/http-status"
+import { z } from "zod"
 
 export const menuRouter = new Hono<AppEnv>()
 
-menuRouter.use(sessionMiddleware)
-
-menuRouter.get("/", async (c) => {
+menuRouter.get("/", sessionMiddleware, async (c) => {
   const organizationId = c.get("organizationId")
   if (!organizationId) {
     return c.json(
@@ -27,7 +26,7 @@ menuRouter.get("/", async (c) => {
   return c.json(result, result.code)
 })
 
-menuRouter.get("/:id", async (c) => {
+menuRouter.get("/:id", sessionMiddleware, async (c) => {
   const organizationId = c.get("organizationId")
   if (!organizationId) {
     return c.json(
@@ -41,11 +40,67 @@ menuRouter.get("/:id", async (c) => {
   }
 
   const id = c.req.param("id")
-  const result = await menuLogic.getById(id, organizationId)
+  const result = await menuLogic.getById(id!, organizationId)
   return c.json(result, result.code)
 })
 
-menuRouter.post("/", zvalidator("json", createMenuSchema), async (c) => {
+menuRouter.post(
+  "/",
+  sessionMiddleware,
+  zvalidator("json", createMenuSchema),
+  async (c) => {
+    const organizationId = c.get("organizationId")
+    if (!organizationId) {
+      return c.json(
+        {
+          status: "error",
+          code: HTTP_STATUS_CODES.UNAUTHORIZED,
+          message: "Organization not found",
+        },
+        HTTP_STATUS_CODES.UNAUTHORIZED
+      )
+    }
+
+    const body = c.req.valid("json")
+    const result = await menuLogic.create(body, organizationId)
+    return c.json(result, result.code)
+  }
+)
+
+menuRouter.put(
+  "/",
+  sessionMiddleware,
+  zvalidator("json", updateMenuSchema),
+  async (c) => {
+    const organizationId = c.get("organizationId")
+    if (!organizationId) {
+      return c.json(
+        {
+          status: "error",
+          code: HTTP_STATUS_CODES.UNAUTHORIZED,
+          message: "Organization not found",
+        },
+        HTTP_STATUS_CODES.UNAUTHORIZED
+      )
+    }
+
+    const body = c.req.valid("json")
+    const result = await menuLogic.update(body, organizationId)
+    return c.json(result, result.code)
+  }
+)
+
+menuRouter.post(
+  "/all",
+  zvalidator("json", z.object({ organizationId: z.string().min(1) })),
+  async (c) => {
+    const { organizationId } = c.req.valid("json")
+    const result = await menuLogic.getAllWithItems(organizationId)
+    return c.json(result, result.code)
+  }
+)
+
+menuRouter.delete("/:id", sessionMiddleware, async (c) => {
   const organizationId = c.get("organizationId")
   if (!organizationId) {
     return c.json(
@@ -58,43 +113,7 @@ menuRouter.post("/", zvalidator("json", createMenuSchema), async (c) => {
     )
   }
 
-  const body = c.req.valid("json")
-  const result = await menuLogic.create(body, organizationId)
-  return c.json(result, result.code)
-})
-
-menuRouter.put("/", zvalidator("json", updateMenuSchema), async (c) => {
-  const organizationId = c.get("organizationId")
-  if (!organizationId) {
-    return c.json(
-      {
-        status: "error",
-        code: HTTP_STATUS_CODES.UNAUTHORIZED,
-        message: "Organization not found",
-      },
-      HTTP_STATUS_CODES.UNAUTHORIZED
-    )
-  }
-
-  const body = c.req.valid("json")
-  const result = await menuLogic.update(body, organizationId)
-  return c.json(result, result.code)
-})
-
-menuRouter.delete("/:id", async (c) => {
-  const organizationId = c.get("organizationId")
-  if (!organizationId) {
-    return c.json(
-      {
-        status: "error",
-        code: HTTP_STATUS_CODES.UNAUTHORIZED,
-        message: "Organization not found",
-      },
-      HTTP_STATUS_CODES.UNAUTHORIZED
-    )
-  }
-
-  const id = c.req.param("id")
+  const id = c.req.param("id")!
   const result = await menuLogic.delete(id, organizationId)
   return c.json(result, result.code as ContentfulStatusCode)
 })

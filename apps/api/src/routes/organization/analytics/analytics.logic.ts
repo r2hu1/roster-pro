@@ -1,10 +1,19 @@
-import { and, eq, sql, count } from "drizzle-orm"
+import { and, eq, gte, lt, sql, count } from "drizzle-orm"
 import { db } from "../../../core/db/client.js"
 import { order } from "../../../core/db/schemas/order.js"
 import { tableSchema } from "../../../core/db/schemas/table.js"
 import { HTTP_STATUS_CODES } from "../../../lib/utils.js"
 import { EventEmitter } from "node:events"
-import type { AnalyticsQueryDto } from "./analytics.validation.js"
+import type {
+  AnalyticsQueryDto,
+  AnalyticsResponse,
+  HourlyData,
+  DailyData,
+  TopItem,
+  TableStat,
+  StatusBreakdown,
+  PaymentBreakdown,
+} from "@workspace/shared/schemas/analytics/index"
 
 export const analyticsEmitter = new EventEmitter()
 analyticsEmitter.setMaxListeners(100)
@@ -15,69 +24,6 @@ type AnalyticsUpdatedEvent = {
 }
 
 export type AnalyticsEvent = AnalyticsUpdatedEvent
-
-export type HourlyData = {
-  hour: number
-  orderCount: number
-  revenue: number
-}
-
-export type DailyData = {
-  date: string
-  orderCount: number
-  revenue: number
-}
-
-export type TopItem = {
-  name: string
-  quantity: number
-  revenue: number
-}
-
-export type TableStat = {
-  tableNumber: string
-  orderCount: number
-  totalSpent: number
-}
-
-export type StatusBreakdown = {
-  status: string
-  count: number
-}
-
-export type PaymentBreakdown = {
-  method: string
-  count: number
-  total: number
-}
-
-export type AnalyticsResponse = {
-  summary: {
-    totalOrders: number
-    totalRevenue: number
-    averageOrderValue: number
-    averageOrdersPerTable: number
-    totalDiscount: number
-    totalTax: number
-    cancelledOrders: number
-    completedOrders: number
-    pendingOrders: number
-    averageItemsPerOrder: number
-    peakHour: number | null
-    busiestTable: string | null
-  }
-  revenue: {
-    daily: DailyData[]
-    hourly: HourlyData[]
-  }
-  orders: {
-    byStatus: StatusBreakdown[]
-    byPaymentMethod: PaymentBreakdown[]
-    byPaymentStatus: StatusBreakdown[]
-  }
-  topItems: TopItem[]
-  tableStats: TableStat[]
-}
 
 function emptyAnalytics(): AnalyticsResponse {
   return {
@@ -126,6 +72,7 @@ export const analyticsLogic = {
     try {
       const fromDate = new Date(query.from)
       const toDate = new Date(query.to)
+      toDate.setDate(toDate.getDate() + 1)
 
       const orders = await db
         .select()
@@ -133,8 +80,8 @@ export const analyticsLogic = {
         .where(
           and(
             eq(order.organizationId, organizationId),
-            sql`${order.createdAt} >= ${fromDate}`,
-            sql`${order.createdAt} <= ${toDate}`
+            gte(order.createdAt, fromDate),
+            lt(order.createdAt, toDate)
           )
         )
 
@@ -207,9 +154,17 @@ export const analyticsLogic = {
         entry.revenue += o.grandTotal
         dailyMap.set(dateKey, entry)
       }
-      const daily: DailyData[] = Array.from(dailyMap.entries())
-        .sort(([a], [b]) => a.localeCompare(b))
-        .map(([date, data]) => ({ date, ...data }))
+      const daily: DailyData[] = []
+      const cursor = new Date(fromDate)
+      while (cursor < toDate) {
+        const dateKey = cursor.toISOString().split("T")[0]
+        const entry = dailyMap.get(dateKey) ?? {
+          orderCount: 0,
+          revenue: 0,
+        }
+        daily.push({ date: dateKey, ...entry })
+        cursor.setDate(cursor.getDate() + 1)
+      }
 
       const statusMap = new Map<string, number>()
       for (const o of orders) {

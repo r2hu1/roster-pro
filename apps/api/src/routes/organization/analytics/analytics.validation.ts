@@ -1,17 +1,14 @@
-import { z } from "zod"
+import { AnalyticsQuerySchema } from "@workspace/shared/schemas/analytics/index"
+import type { AnalyticsQueryDto } from "@workspace/shared/schemas/analytics/index"
+export type { AnalyticsQueryDto }
 
-export const analyticsQuerySchema = z
-  .object({
-    from: z.string().min(1, "'from' is required"),
-    to: z.string().min(1, "'to' is required"),
-  })
-  .refine(
-    (data) => {
-      const from = new Date(data.from)
-      return !Number.isNaN(from.getTime())
-    },
-    { message: "Invalid 'from' date", path: ["from"] }
-  )
+export const analyticsQuerySchema = AnalyticsQuerySchema.refine(
+  (data) => {
+    const from = new Date(data.from)
+    return !Number.isNaN(from.getTime())
+  },
+  { message: "Invalid 'from' date", path: ["from"] }
+)
   .refine(
     (data) => {
       const to = new Date(data.to)
@@ -27,5 +24,3 @@ export const analyticsQuerySchema = z
     },
     { message: "'from' must be before 'to'", path: ["from"] }
   )
-
-export type AnalyticsQueryDto = z.infer<typeof analyticsQuerySchema>
