@@ -16,21 +16,22 @@ import {
   ResponsiveModalBody,
 } from "@workspace/ui/components/responsive-modal"
 import { Button } from "@workspace/ui/components/button"
-import {
-  ButtonGroup,
-} from "@workspace/ui/components/button-group"
+import { ButtonGroup } from "@workspace/ui/components/button-group"
 import { Badge } from "@workspace/ui/components/badge"
-import { IconCircleCheck, IconMinus, IconPlus, IconShoppingCartPlus } from "@tabler/icons-react"
+import {
+  IconCircleCheck,
+  IconMinus,
+  IconPlus,
+  IconShoppingCartPlus,
+} from "@tabler/icons-react"
+import { toast } from "sonner"
 
 interface Props {
   item: MenuItemResponse
   children: React.ReactNode
 }
 
-export default function ResponsiveItemModal({
-  item,
-  children,
-}: Props) {
+export default function ResponsiveItemModal({ item, children }: Props) {
   const { addToCart } = useCart()
   const [open, setOpen] = useState(false)
   const [quantity, setQuantity] = useState(1)
@@ -102,26 +103,26 @@ export default function ResponsiveItemModal({
                   </span>
                 )}
               </div>
-              <div className="bg-primary/10 text-primary flex w-fit items-center gap-0 rounded-full text-sm font-medium overflow-hidden">
+              <ButtonGroup>
                 <Button
                   type="button"
-                  variant={variant === "half" ? "default" : "ghost"}
+                  variant={variant === "half" ? "default" : "secondary"}
                   size="sm"
                   onClick={() => setVariant("half")}
-                  className="rounded-full! rounded-r-none! px-3"
                 >
-                  {variant === "half" && <IconCircleCheck/>} Half ₹{item.price.half}
+                  {variant === "half" && <IconCircleCheck />} Half ₹
+                  {item.price.half}
                 </Button>
                 <Button
                   type="button"
-                  variant={variant === "full" ? "default" : "ghost"}
+                  variant={variant === "full" ? "default" : "secondary"}
                   size="sm"
                   onClick={() => setVariant("full")}
-                  className="rounded-full! rounded-l-none! px-3"
                 >
-                  {variant === "full" && <IconCircleCheck/>} Full ₹{item.price.full}
+                  {variant === "full" && <IconCircleCheck />} Full ₹
+                  {item.price.full}
                 </Button>
-              </div>
+              </ButtonGroup>
             </div>
 
             {item.description && (
@@ -176,9 +177,10 @@ export default function ResponsiveItemModal({
                 addToCart(item, variant, quantity)
                 setOpen(false)
                 reset()
+                toast.success("Item added to cart")
               }}
             >
-              Add to Cart <IconShoppingCartPlus/>
+              Add to Cart <IconShoppingCartPlus />
             </Button>
           </div>
         </ResponsiveModalFooter>

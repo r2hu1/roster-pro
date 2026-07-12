@@ -35,7 +35,7 @@ function useColumns() {
 }
 
 export default function MenuPageView() {
-  const { data, isPending, error } = useTableContext();
+  const { data, isPending, error } = useTableContext()
   const {
     data: menus,
     isPending: menusPending,
@@ -151,8 +151,7 @@ export default function MenuPageView() {
     window.scrollTo({ top, behavior: "smooth" })
   }
 
-  if (isPending || menusPending)
-    return <Preloader/>
+  if (isPending || menusPending) return <Preloader />
   if (menusError) return <div>Error: {menusError.message}</div>
 
   return (

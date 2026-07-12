@@ -7,7 +7,10 @@ import {
   useState,
   useCallback,
   useMemo,
+  useEffect,
+  useRef,
 } from "react"
+import { useTableContext } from "./table-provider"
 
 export type CartItemVariant = "half" | "full"
 
@@ -23,13 +26,30 @@ export interface CartItem {
   prepTime: number | null
 }
 
+function loadCart(orgId: string): CartItem[] {
+  try {
+    const raw = localStorage.getItem(`cart-${orgId}`)
+    return raw ? (JSON.parse(raw) as CartItem[]) : []
+  } catch {
+    return []
+  }
+}
+
+function saveCart(orgId: string, items: CartItem[]) {
+  try {
+    localStorage.setItem(`cart-${orgId}`, JSON.stringify(items))
+  } catch {
+    /* noop */
+  }
+}
+
 interface CartContextProps {
   items: CartItem[]
   addToCart: (
     item: MenuItemResponse,
     variant: CartItemVariant,
     quantity?: number,
-    notes?: string,
+    notes?: string
   ) => void
   removeFromCart: (id: string) => void
   updateQuantity: (id: string, quantity: number) => void
@@ -42,28 +62,46 @@ interface CartContextProps {
 const CartContext = createContext<CartContextProps | null>(null)
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
-  const [items, setItems] = useState<CartItem[]>([])
+  const { data: tableData } = useTableContext()
+  const orgId = tableData?.organization.id
+  const prevOrgId = useRef(orgId)
+
+  const [items, setItems] = useState<CartItem[]>(() =>
+    loadCart(orgId ?? "default")
+  )
+
+  useEffect(() => {
+    if (!orgId) return
+    if (prevOrgId.current !== orgId) {
+      setItems(loadCart(orgId))
+      prevOrgId.current = orgId
+    }
+  }, [orgId])
+
+  useEffect(() => {
+    if (!orgId) return
+    saveCart(orgId, items)
+  }, [orgId, items])
 
   const addToCart = useCallback(
     (
       item: MenuItemResponse,
       variant: CartItemVariant,
       quantity = 1,
-      notes?: string,
+      notes?: string
     ) => {
-      const unitPrice =
-        variant === "half" ? item.price.half : item.price.full
+      const unitPrice = variant === "half" ? item.price.half : item.price.full
 
       setItems((prev) => {
         const existing = prev.find(
-          (i) => i.menuItemId === item.id && i.variant === variant,
+          (i) => i.menuItemId === item.id && i.variant === variant
         )
 
         if (existing) {
           return prev.map((i) =>
             i.menuItemId === item.id && i.variant === variant
               ? { ...i, quantity: i.quantity + quantity }
-              : i,
+              : i
           )
         }
 
@@ -83,7 +121,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         ]
       })
     },
-    [],
+    []
   )
 
   const removeFromCart = useCallback((id: string) => {
@@ -91,9 +129,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   const updateQuantity = useCallback((id: string, quantity: number) => {
-    setItems((prev) =>
-      prev.map((i) => (i.id === id ? { ...i, quantity } : i)),
-    )
+    setItems((prev) => prev.map((i) => (i.id === id ? { ...i, quantity } : i)))
   }, [])
 
   const clearCart = useCallback(() => {
@@ -102,19 +138,16 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   const totalItems = useMemo(
     () => items.reduce((sum, i) => sum + i.quantity, 0),
-    [items],
+    [items]
   )
 
   const totalPrice = useMemo(
     () => items.reduce((sum, i) => sum + i.unitPrice * i.quantity, 0),
-    [items],
+    [items]
   )
 
   const estimateTime = useMemo(() => {
-    const maxPrep = items.reduce(
-      (max, i) => Math.max(max, i.prepTime ?? 0),
-      0,
-    )
+    const maxPrep = items.reduce((max, i) => Math.max(max, i.prepTime ?? 0), 0)
     return maxPrep
   }, [items])
 
@@ -138,7 +171,6 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
 export const useCart = () => {
   const context = useContext(CartContext)
-  if (!context)
-    throw new Error("useCart must be used within a CartProvider")
+  if (!context) throw new Error("useCart must be used within a CartProvider")
   return context
 }

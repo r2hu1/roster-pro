@@ -110,7 +110,11 @@ const ResponsiveModalContent = ({
   const ContentComponent = isDesktop ? DialogContent : DrawerContent
 
   return (
-    <ContentComponent handleClassName={thumbClassName} className={className} {...props}>
+    <ContentComponent
+      handleClassName={thumbClassName}
+      className={className}
+      {...props}
+    >
       {children}
     </ContentComponent>
   )
