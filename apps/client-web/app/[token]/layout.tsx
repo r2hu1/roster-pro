@@ -1,5 +1,6 @@
 import Footer from "@/components/footer"
 import Header from "@/components/header"
+import { CartProvider } from "@/modules/providers/cart-provider"
 import { ReactQueryProvider } from "@/modules/providers/query-client"
 import { TableProvider } from "@/modules/providers/table-provider"
 import { Toaster } from "sonner"
@@ -41,12 +42,14 @@ export default function Layout({ children }: LayoutProps) {
   return (
     <ReactQueryProvider>
       <TableProvider>
+        <CartProvider>
         <main>
           <Header />
           {children}
           <Footer />
           <Toaster />
         </main>
+        </CartProvider>
       </TableProvider>
     </ReactQueryProvider>
   )

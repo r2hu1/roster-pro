@@ -1,8 +1,10 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useCallback } from "react"
 import Image from "next/image"
 import type { MenuItemResponse } from "@workspace/shared/schemas/menu/menu-item/response"
+import type { CartItemVariant } from "@/modules/providers/cart-provider"
+import { useCart } from "@/modules/providers/cart-provider"
 import {
   ResponsiveModal,
   ResponsiveModalTrigger,
@@ -18,24 +20,25 @@ import {
   ButtonGroup,
 } from "@workspace/ui/components/button-group"
 import { Badge } from "@workspace/ui/components/badge"
-import { IconMinus, IconPlus, IconShoppingCartPlus } from "@tabler/icons-react"
+import { IconCircleCheck, IconMinus, IconPlus, IconShoppingCartPlus } from "@tabler/icons-react"
 
 interface Props {
   item: MenuItemResponse
   children: React.ReactNode
-  onAddToCart?: (item: MenuItemResponse, quantity: number) => void
 }
 
 export default function ResponsiveItemModal({
   item,
   children,
-  onAddToCart,
 }: Props) {
+  const { addToCart } = useCart()
   const [open, setOpen] = useState(false)
   const [quantity, setQuantity] = useState(1)
+  const [variant, setVariant] = useState<CartItemVariant>("full")
 
   function reset() {
     setQuantity(1)
+    setVariant("full")
   }
 
   return (
@@ -99,16 +102,25 @@ export default function ResponsiveItemModal({
                   </span>
                 )}
               </div>
-              <div className="bg-primary/10 text-primary flex w-fit items-center gap-2 rounded-full px-3 py-1.5 text-sm font-medium">
-                <span>
-                  <span className="text-muted-foreground">Half</span> ₹
-                  {item.price.half}
-                </span>
-                <span className="bg-primary/25 h-4 w-px" />
-                <span>
-                  <span className="text-muted-foreground">Full</span> ₹
-                  {item.price.full}
-                </span>
+              <div className="bg-primary/10 text-primary flex w-fit items-center gap-0 rounded-full text-sm font-medium overflow-hidden">
+                <Button
+                  type="button"
+                  variant={variant === "half" ? "default" : "ghost"}
+                  size="sm"
+                  onClick={() => setVariant("half")}
+                  className="rounded-full! rounded-r-none! px-3"
+                >
+                  {variant === "half" && <IconCircleCheck/>} Half ₹{item.price.half}
+                </Button>
+                <Button
+                  type="button"
+                  variant={variant === "full" ? "default" : "ghost"}
+                  size="sm"
+                  onClick={() => setVariant("full")}
+                  className="rounded-full! rounded-l-none! px-3"
+                >
+                  {variant === "full" && <IconCircleCheck/>} Full ₹{item.price.full}
+                </Button>
               </div>
             </div>
 
@@ -161,7 +173,7 @@ export default function ResponsiveItemModal({
               className="flex-1"
               size="icon-lg"
               onClick={() => {
-                onAddToCart?.(item, quantity)
+                addToCart(item, variant, quantity)
                 setOpen(false)
                 reset()
               }}
