@@ -15,14 +15,9 @@ export default function MenuCard({ item }: { item: MenuItemResponse }) {
           height={50}
           className="aspect-video object-cover rounded-b-none size-full rounded-md"
         />
-        <div
-            className="absolute z-10 bottom-0 left-0 right-0 p-2 flex items-center justify-between"
-        >
+        <div className="absolute z-10 bottom-0 left-0 right-0 p-2 flex items-center justify-between">
           {item.preparationTime && <Badge>{item.preparationTime} min</Badge>}
-          <Badge
-            variant="secondary"
-            className="border-border"
-          >
+          <Badge variant="secondary" className="border-border">
             {item.isVegetarian ? "Vegetarian" : "Non-Vegetarian"}
             <span
               className={
@@ -61,7 +56,9 @@ export default function MenuCard({ item }: { item: MenuItemResponse }) {
               {item.price?.full}
             </span>
           </div>
-          <Button size="sm">View <IconArrowUpRight/></Button>
+          <Button size="sm">
+            View <IconArrowUpRight />
+          </Button>
         </div>
       </div>
     </div>

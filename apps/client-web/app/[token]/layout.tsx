@@ -2,11 +2,15 @@ import Header from "@/components/header"
 import { ReactQueryProvider } from "@/modules/providers/query-client"
 import { TableProvider } from "@/modules/providers/table-provider"
 
-export const generateMetadata = async ({params}: Promise<{ token: string }>) => {
-  const { token } = await params;
+export const generateMetadata = async ({
+  params,
+}: Promise<{ token: string }>) => {
+  const { token } = await params
   try {
-    const req = await fetch(`${process.env.API_URL}/v1/organization/table/token/decode?token=${token}`);
-    const data = await req.json();
+    const req = await fetch(
+      `${process.env.API_URL}/v1/organization/table/token/decode?token=${token}`
+    )
+    const data = await req.json()
 
     return {
       title: {
@@ -34,7 +38,7 @@ export default function Layout({ children, params }: LayoutProps) {
   return (
     <ReactQueryProvider>
       <TableProvider>
-        <main className="px-6">
+        <main>
           <Header />
           {children}
         </main>
