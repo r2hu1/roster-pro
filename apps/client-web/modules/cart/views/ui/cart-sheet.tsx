@@ -66,7 +66,7 @@ export default function CartSheet({ children, open, onOpenChange }: Props) {
                 {items.map((item) => (
                   <div key={item.id}>
                     <div className="flex gap-3">
-                      <div className="relative size-16 shrink-0 overflow-hidden rounded-md bg-muted">
+                      <div className="relative size-19 shrink-0 overflow-hidden rounded-md bg-muted">
                         {item.image && (
                           <Image
                             src={item.image}
@@ -78,8 +78,8 @@ export default function CartSheet({ children, open, onOpenChange }: Props) {
                       </div>
 
                       <div className="flex min-w-0 flex-1 flex-col gap-1">
-                        <div className="flex items-start justify-between gap-2">
-                          <p className="truncate text-sm font-medium">
+                        <div className="flex items-center justify-between gap-4">
+                          <p className="truncate text-sm font-medium w-auto">
                             {item.name}
                           </p>
                           <button
