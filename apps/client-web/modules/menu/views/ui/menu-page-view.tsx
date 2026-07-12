@@ -6,6 +6,7 @@ import { useMenus } from "@/hooks/use-menus"
 import { useTableContext } from "@/modules/providers/table-provider"
 import MenuFilterBar from "@/modules/menu/views/ui/menu-filter-bar"
 import MenuVirtualRow from "@/modules/menu/views/ui/menu-virtual-row"
+import { Skeleton } from "@workspace/ui/components/skeleton"
 
 const STICKY_HEADER_HEIGHT = 96
 
@@ -43,13 +44,13 @@ export default function MenuPageView() {
   const buttonsRef = useRef<Map<string, HTMLButtonElement>>(new Map())
   const tabsContainerRef = useRef<HTMLDivElement>(null)
   const listRef = useRef<HTMLDivElement>(null)
-  const [scrollMargin, setScrollMargin] = useState(0)
+  const [scrollMargin, setScrollMargin] = useState(100)
 
-  useLayoutEffect(() => {
-    if (listRef.current) {
-      setScrollMargin(listRef.current.offsetTop)
-    }
-  }, [menus])
+  // useLayoutEffect(() => {
+  //   if (listRef.current) {
+  //     setScrollMargin(listRef.current.getBoundingClientRect().top)
+  //   }
+  // }, [menus])
 
   const filteredMenus = useMemo(() => {
     if (!menus) return []
@@ -145,11 +146,11 @@ export default function MenuPageView() {
     window.scrollTo({ top, behavior: "smooth" })
   }
 
-  if (isPending || menusPending) return <div>Loading...</div>
+  if (isPending || menusPending) return <div className="p-6"><Skeleton className="h-screen w-full"/></div>
   if (menusError) return <div>Error: {menusError.message}</div>
 
   return (
-    <div className="space-y-6 max-w-2xl">
+    <div className="space-y-6">
       {menus && (
         <MenuFilterBar
           menus={filteredMenus}

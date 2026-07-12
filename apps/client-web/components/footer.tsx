@@ -11,7 +11,7 @@ export default function Footer() {
   const { data } = useTableContext();
 
   return (
-    <footer className="py-6 mt-10 space-y-4 px-6 max-w-2xl bg-secondary/40">
+    <footer className="py-6 mt-10 space-y-4 px-6 bg-secondary/40">
       <div className="space-y-2">
         <div className="flex items-center gap-2">
           <Image src={data?.organization.logo ?? "/assets/menu-item-placeholder.png"} height={100} width={100} alt="Logo" className="size-9 rounded-full" />

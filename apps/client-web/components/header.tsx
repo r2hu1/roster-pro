@@ -7,7 +7,7 @@ import Image from "next/image"
 export default function Header() {
   const { data } = useTableContext()
   return (
-    <header className="pt-5 px-6 max-w-2xl flex items-center justify-between gap-2">
+    <header className="pt-5 px-6 flex items-center justify-between gap-2">
       <div className="flex items-center gap-2">
         <Image
           className="size-14 rounded-xl"
