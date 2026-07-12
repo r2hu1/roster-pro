@@ -44,7 +44,7 @@ export default function OrdersPageView() {
   const [search, setSearch] = useState("")
   const clock = useClock()
 
-  const totalOrders = orders.length
+  const totalOrders = orders.length ?? [];
   const pendingCount = orders.filter((o) => o.status === "pending").length
   const readyCount = orders.filter((o) => o.status === "ready").length
   const completedCount = orders.filter((o) => o.status === "completed").length
