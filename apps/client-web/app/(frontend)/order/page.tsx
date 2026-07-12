@@ -1,6 +1,6 @@
-import OrderPageView from "@/modules/order/views/ui/order-page-view"
+import InvoicePage from "@/modules/order/view/ui/Invoice-page"
 import React from "react"
 
 export default function page() {
-  return <OrderPageView />
+  return <InvoicePage />
 }
