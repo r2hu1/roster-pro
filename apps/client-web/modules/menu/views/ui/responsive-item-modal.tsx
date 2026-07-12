@@ -16,11 +16,9 @@ import {
 import { Button } from "@workspace/ui/components/button"
 import {
   ButtonGroup,
-  ButtonGroupSeparator,
-  ButtonGroupText,
 } from "@workspace/ui/components/button-group"
 import { Badge } from "@workspace/ui/components/badge"
-import { IconMinus, IconPlus } from "@tabler/icons-react"
+import { IconMinus, IconPlus, IconShoppingCartPlus } from "@tabler/icons-react"
 
 interface Props {
   item: MenuItemResponse
@@ -50,7 +48,7 @@ export default function ResponsiveItemModal({
     >
       <ResponsiveModalTrigger asChild>{children}</ResponsiveModalTrigger>
 
-      <ResponsiveModalContent>
+      <ResponsiveModalContent thumbClassName="mt-1">
         <ResponsiveModalHeader>
           <ResponsiveModalTitle>{item.name}</ResponsiveModalTitle>
           {item.description && (
@@ -132,7 +130,7 @@ export default function ResponsiveItemModal({
         </ResponsiveModalBody>
 
         <ResponsiveModalFooter>
-          <div className="flex w-full items-center gap-3">
+          <div className="flex w-full items-center gap-2">
             <ButtonGroup>
               <Button
                 size="icon-lg"
@@ -168,7 +166,7 @@ export default function ResponsiveItemModal({
                 reset()
               }}
             >
-              Add to Cart
+              Add to Cart <IconShoppingCartPlus/>
             </Button>
           </div>
         </ResponsiveModalFooter>

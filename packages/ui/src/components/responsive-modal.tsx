@@ -43,6 +43,7 @@ interface ResponsiveProps extends BaseProps {
 interface ResponsiveContentProps extends ResponsiveProps {
   onPointerDownOutside?: (event: unknown) => void
   onInteractOutside?: (event: unknown) => void
+  thumbClassName?: string
 }
 
 const ResponsiveContext = React.createContext<{
@@ -102,13 +103,14 @@ const ResponsiveModalClose = ({
 const ResponsiveModalContent = ({
   className,
   children,
+  thumbClassName,
   ...props
 }: ResponsiveContentProps) => {
   const { isDesktop } = useResponsiveContext()
   const ContentComponent = isDesktop ? DialogContent : DrawerContent
 
   return (
-    <ContentComponent className={className} {...props}>
+    <ContentComponent handleClassName={thumbClassName} className={className} {...props}>
       {children}
     </ContentComponent>
   )

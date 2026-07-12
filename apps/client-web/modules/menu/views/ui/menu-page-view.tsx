@@ -8,6 +8,7 @@ import MenuFilterBar from "@/modules/menu/views/ui/menu-filter-bar"
 import MenuVirtualRow from "@/modules/menu/views/ui/menu-virtual-row"
 import { Skeleton } from "@workspace/ui/components/skeleton"
 import { useViewType } from "../providers/view-type"
+import Preloader from "@/components/preloader"
 
 const STICKY_HEADER_HEIGHT = 96
 
@@ -34,7 +35,7 @@ function useColumns() {
 }
 
 export default function MenuPageView() {
-  const { data, isPending, error } = useTableContext()
+  const { data, isPending, error } = useTableContext();
   const {
     data: menus,
     isPending: menusPending,
@@ -151,11 +152,7 @@ export default function MenuPageView() {
   }
 
   if (isPending || menusPending)
-    return (
-      <div className="p-6">
-        <Skeleton className="h-screen w-full" />
-      </div>
-    )
+    return <Preloader/>
   if (menusError) return <div>Error: {menusError.message}</div>
 
   return (
