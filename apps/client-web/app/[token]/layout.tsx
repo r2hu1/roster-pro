@@ -45,7 +45,7 @@ export default function Layout({ children }: LayoutProps) {
           <Header />
           {children}
           <Footer />
-          <Toaster/>
+          <Toaster />
         </main>
       </TableProvider>
     </ReactQueryProvider>

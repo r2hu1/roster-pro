@@ -43,9 +43,9 @@ export default function AboutPage() {
           <Glow variant="top" className="-z-10" />
           <div className="relative z-10 mx-auto max-w-5xl text-center">
             <h1 className="text-balance text-4xl font-semibold leading-tight md:text-5xl lg:text-6xl">
-              Know more about the {" "}
+              Know more about the{" "}
               <span className="relative inline-block border-2 border-primary px-4 py-1 bg-primary/10 text-primary rounded-md">
-                RosterPro & Background  
+                RosterPro & Background
                 <div className="absolute -top-1.5 -left-1.5 w-3 h-3 bg-white border-2 border-primary" />
                 <div className="absolute -top-1.5 -right-1.5 w-3 h-3 bg-white border-2 border-primary" />
                 <div className="absolute -bottom-1.5 -left-1.5 w-3 h-3 bg-white border-2 border-primary" />
@@ -70,14 +70,14 @@ export default function AboutPage() {
                 Built from real kitchen experience
               </h2>
               <p className="text-muted-foreground leading-relaxed">
-                RosterPro was born in the back of a busy restaurant. Our founders
-                spent years managing front-of-house and back-of-house operations,
-                struggling with disconnected systems that made simple tasks
-                unnecessarily complex.
+                RosterPro was born in the back of a busy restaurant. Our
+                founders spent years managing front-of-house and back-of-house
+                operations, struggling with disconnected systems that made
+                simple tasks unnecessarily complex.
               </p>
               <p className="text-muted-foreground leading-relaxed">
-                We built RosterPro to connect every part of a restaurant —
-                from the QR code on the table to the kitchen display, from the
+                We built RosterPro to connect every part of a restaurant — from
+                the QR code on the table to the kitchen display, from the
                 billing counter to the analytics dashboard. One platform. One
                 source of truth.
               </p>

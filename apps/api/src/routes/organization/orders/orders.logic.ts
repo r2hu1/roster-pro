@@ -161,7 +161,7 @@ export const orderLogic = {
           eq(order.organizationId, organizationId),
           eq(order.tableNumber, tableNumber),
           inArray(order.status, ACTIVE_ORDER_STATUSES),
-          gte(order.createdAt, oneAndHalfHoursAgo),
+          gte(order.createdAt, oneAndHalfHoursAgo)
         )
       )
       .orderBy(desc(order.createdAt))

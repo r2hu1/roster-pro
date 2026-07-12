@@ -7,6 +7,7 @@ import { useTableContext } from "@/modules/providers/table-provider"
 import MenuFilterBar from "@/modules/menu/views/ui/menu-filter-bar"
 import MenuVirtualRow from "@/modules/menu/views/ui/menu-virtual-row"
 import { Skeleton } from "@workspace/ui/components/skeleton"
+import { useViewType } from "../providers/view-type"
 
 const STICKY_HEADER_HEIGHT = 96
 
@@ -15,19 +16,20 @@ type Row =
   | { type: "items"; menuId: string; items: any[] }
 
 function useColumns() {
+  const { viewType } = useViewType()
   const [columns, setColumns] = useState(1)
   useEffect(() => {
     function update() {
       const w = window.innerWidth
-      if (w >= 1024) setColumns(5)
-      else if (w >= 768) setColumns(4)
-      else if (w >= 640) setColumns(2)
-      else setColumns(1)
+      if (w >= 1024) setColumns(3)
+      else if (w >= 768) setColumns(3)
+      else if (w >= 640) setColumns(3)
+      else setColumns(viewType == "list" ? 1 : 2)
     }
     update()
     window.addEventListener("resize", update)
     return () => window.removeEventListener("resize", update)
-  }, [])
+  }, [viewType])
   return columns
 }
 
@@ -62,7 +64,7 @@ export default function MenuPageView() {
         items: m.items.filter(
           (i: any) =>
             i.name?.toLowerCase().includes(q) ||
-            i.description?.toLowerCase().includes(q),
+            i.description?.toLowerCase().includes(q)
         ),
       }))
       .filter((m) => m.items.length)
@@ -71,17 +73,16 @@ export default function MenuPageView() {
   const rows: Row[] = useMemo(() => {
     if (!filteredMenus) return []
     const list: Row[] = []
-    filteredMenus
-      .forEach((menu) => {
-        list.push({ type: "header", menuId: String(menu.id), title: menu.menu })
-        for (let i = 0; i < menu.items.length; i += columns) {
-          list.push({
-            type: "items",
-            menuId: String(menu.id),
-            items: menu.items.slice(i, i + columns),
-          })
-        }
-      })
+    filteredMenus.forEach((menu) => {
+      list.push({ type: "header", menuId: String(menu.id), title: menu.menu })
+      for (let i = 0; i < menu.items.length; i += columns) {
+        list.push({
+          type: "items",
+          menuId: String(menu.id),
+          items: menu.items.slice(i, i + columns),
+        })
+      }
+    })
     return list
   }, [filteredMenus, columns])
 
@@ -137,20 +138,28 @@ export default function MenuPageView() {
 
   function scrollToMenu(menuId: string) {
     const rowIndex = rows.findIndex(
-      (r) => r.type === "header" && r.menuId === menuId,
+      (r) => r.type === "header" && r.menuId === menuId
     )
     if (rowIndex === -1) return
     const measured = virtualizer.measurementsCache[rowIndex]
-    const start = measured?.start ?? virtualizer.getOffsetForIndex(rowIndex, "start")?.[0] ?? 0
+    const start =
+      measured?.start ??
+      virtualizer.getOffsetForIndex(rowIndex, "start")?.[0] ??
+      0
     const top = start + scrollMargin - STICKY_HEADER_HEIGHT
     window.scrollTo({ top, behavior: "smooth" })
   }
 
-  if (isPending || menusPending) return <div className="p-6"><Skeleton className="h-screen w-full"/></div>
+  if (isPending || menusPending)
+    return (
+      <div className="p-6">
+        <Skeleton className="h-screen w-full" />
+      </div>
+    )
   if (menusError) return <div>Error: {menusError.message}</div>
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       {menus && (
         <MenuFilterBar
           menus={filteredMenus}

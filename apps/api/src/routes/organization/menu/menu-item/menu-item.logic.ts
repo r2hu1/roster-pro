@@ -210,8 +210,7 @@ export const menuItemLogic = {
           body.category !== undefined ? body.category : existing.category,
         isAvailable: body.isAvailable ?? existing.isAvailable,
         isVegetarian: body.isVegetarian ?? existing.isVegetarian,
-        preparationTime:
-          body.preparationTime ?? existing.preparationTime,
+        preparationTime: body.preparationTime ?? existing.preparationTime,
         updatedAt: new Date(),
       })
       .where(eq(menuItem.id, body.id))

@@ -1,7 +1,14 @@
 "use client"
 
 import { Button } from "@workspace/ui/components/button"
-import { ArrowUpRight, Mail, UserCheck, Settings, HeadphonesIcon, ChevronDown } from "lucide-react"
+import {
+  ArrowUpRight,
+  Mail,
+  UserCheck,
+  Settings,
+  HeadphonesIcon,
+  ChevronDown,
+} from "lucide-react"
 import Link from "next/link"
 import { useState } from "react"
 

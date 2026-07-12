@@ -23,7 +23,7 @@ interface Props {
 
 export default function MenuVirtualRow({ row, columns }: Props) {
   if (row.type === "header") {
-    return <h2 className="text-xs font-medium py-2">{row.title}</h2>
+    return <h2 className="text-xs font-medium py-3.5">{row.title}</h2>
   }
 
   return (

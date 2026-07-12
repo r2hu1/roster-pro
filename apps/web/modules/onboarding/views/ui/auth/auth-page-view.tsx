@@ -85,11 +85,17 @@ export default function LoginPageView() {
 
             <p className="mt-6 text-center text-xs text-muted-foreground">
               By continuing, you agree to our{" "}
-              <a href="/terms&cond" className="text-foreground underline underline-offset-2">
+              <a
+                href="/terms&cond"
+                className="text-foreground underline underline-offset-2"
+              >
                 Terms
               </a>{" "}
               and{" "}
-              <a href="/privacy_policy" className="text-foreground underline underline-offset-2">
+              <a
+                href="/privacy_policy"
+                className="text-foreground underline underline-offset-2"
+              >
                 Privacy Policy
               </a>
               .
