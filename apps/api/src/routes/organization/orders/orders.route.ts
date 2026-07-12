@@ -80,6 +80,92 @@ orderRouter.get("/stream", sessionMiddleware, async (c) => {
   })
 })
 
+orderRouter.get("/table/:tableId/active", async (c) => {
+  const organizationId = c.req.query("organizationId")
+  if (!organizationId) {
+    return c.json(
+      {
+        status: "error",
+        code: HTTP_STATUS_CODES.BAD_REQUEST,
+        message: "organizationId query parameter is required",
+      },
+      HTTP_STATUS_CODES.BAD_REQUEST
+    )
+  }
+
+  const tableId = c.req.param("tableId")!
+  const result = await orderLogic.getActiveByTableId(tableId, organizationId)
+  return c.json(result, result.code)
+})
+
+orderRouter.get("/table/:tableId/active/stream", async (c) => {
+  const organizationId = c.req.query("organizationId")
+  if (!organizationId) {
+    return c.json(
+      {
+        status: "error",
+        code: HTTP_STATUS_CODES.BAD_REQUEST,
+        message: "organizationId query parameter is required",
+      },
+      HTTP_STATUS_CODES.BAD_REQUEST
+    )
+  }
+
+  const tableId = c.req.param("tableId")!
+  const initial = await orderLogic.getActiveByTableId(tableId, organizationId)
+  if (initial.status === "error") {
+    return c.json(initial, initial.code as 404)
+  }
+
+  // Resolved once at connect; events are filtered against this number.
+  const tableNumber = initial.tableNumber
+
+  const isActive = (status: string) =>
+    status !== "completed" && status !== "cancelled"
+
+  return streamSSE(c, async (stream) => {
+    await stream.writeSSE({
+      event: "init",
+      data: JSON.stringify(initial.data),
+    })
+
+    // Single subscription to the org-wide order channel; filter to this table.
+    // No DB reads after init — every delta is derived from the emitted event.
+    const listener = (event: {
+      type: string
+      data: OrderResponse | { id: string }
+    }) => {
+      if (event.type === "deleted") {
+        stream.writeSSE({ event: "remove", data: JSON.stringify(event.data) })
+        return
+      }
+
+      const o = event.data as OrderResponse
+      if (o.tableNumber === tableNumber && isActive(o.status)) {
+        // relevant + still active → client upserts
+        stream.writeSSE({ event: "upsert", data: JSON.stringify(o) })
+      } else {
+        // wrong table or moved to completed/cancelled → client drops it
+        stream.writeSSE({ event: "remove", data: JSON.stringify({ id: o.id }) })
+      }
+    }
+
+    orderEmitter.on(`orders:${organizationId}`, listener)
+
+    const heartbeat = setInterval(() => {
+      stream.writeSSE({ event: "ping", data: "" }).catch(() => {})
+    }, 30000)
+
+    await new Promise<void>((resolve) => {
+      stream.onAbort(() => {
+        orderEmitter.off(`orders:${organizationId}`, listener)
+        clearInterval(heartbeat)
+        resolve()
+      })
+    })
+  })
+})
+
 orderRouter.get("/:id/stream", async (c) => {
   const organizationId = c.req.query("organizationId")
   if (!organizationId) {

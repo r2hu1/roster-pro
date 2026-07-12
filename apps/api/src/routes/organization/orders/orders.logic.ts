@@ -1,4 +1,4 @@
-import { and, eq, desc, like, sql } from "drizzle-orm"
+import { and, eq, desc, like, sql, inArray } from "drizzle-orm"
 import { db } from "../../../core/db/client.js"
 import { order, orderCounter } from "../../../core/db/schemas/order.js"
 import { tableSchema } from "../../../core/db/schemas/table.js"
@@ -50,7 +50,9 @@ const ORDER_CACHE_PREFIX = "order:"
 const CACHE_TTL = 300
 
 export const orderEmitter = new EventEmitter()
-orderEmitter.setMaxListeners(100)
+// One listener per open SSE connection (dashboard streams + per-table streams).
+// Raise the ceiling so many concurrent tables don't trip the leak warning.
+orderEmitter.setMaxListeners(1000)
 
 type OrderCreatedEvent = {
   type: "created"
@@ -98,6 +100,75 @@ export const orderLogic = {
     await redisClient.set(cacheKey, orders, CACHE_TTL)
 
     return { status: "success", code: HTTP_STATUS_CODES.OK, data: orders }
+  },
+
+  // Resolve a table's number from its id (orders are keyed by tableNumber).
+  resolveTableNumber: async (
+    tableId: string,
+    organizationId: string
+  ): Promise<string | null> => {
+    const [t] = await db
+      .select({ number: tableSchema.number })
+      .from(tableSchema)
+      .where(
+        and(
+          eq(tableSchema.id, tableId),
+          eq(tableSchema.organizationId, organizationId)
+        )
+      )
+    return t ? String(t.number) : null
+  },
+
+  // Active orders for a table = orders placed during the table's current
+  // occupied session. Completed/cancelled orders free the table, so filtering
+  // them out excludes any previous session's orders for the same table.
+  getActiveByTableId: async (tableId: string, organizationId: string) => {
+    if (!organizationId) {
+      return {
+        status: "error" as const,
+        code: HTTP_STATUS_CODES.NOT_FOUND,
+        message: "Organization not found",
+      }
+    }
+
+    const tableNumber = await orderLogic.resolveTableNumber(
+      tableId,
+      organizationId
+    )
+    if (tableNumber === null) {
+      return {
+        status: "error" as const,
+        code: HTTP_STATUS_CODES.NOT_FOUND,
+        message: "Table not found",
+      }
+    }
+
+    const activeStatuses: (typeof order.$inferSelect)["status"][] = [
+      "pending",
+      "confirmed",
+      "preparing",
+      "ready",
+      "served",
+    ]
+
+    const orders = await db
+      .select()
+      .from(order)
+      .where(
+        and(
+          eq(order.organizationId, organizationId),
+          eq(order.tableNumber, tableNumber),
+          inArray(order.status, activeStatuses)
+        )
+      )
+      .orderBy(desc(order.createdAt))
+
+    return {
+      status: "success" as const,
+      code: HTTP_STATUS_CODES.OK,
+      data: orders,
+      tableNumber,
+    }
   },
 
   getById: async (id: string, organizationId: string) => {
