@@ -139,7 +139,6 @@ export const orderLogic = {
         message: "Organization not found",
       }
     }
-
     const tableNumber = await orderLogic.resolveTableNumber(
       tableId,
       organizationId
@@ -152,6 +151,8 @@ export const orderLogic = {
       }
     }
 
+    const oneAndHalfHoursAgo = new Date(Date.now() - 90 * 60 * 1000)
+
     const orders = await db
       .select()
       .from(order)
@@ -159,7 +160,8 @@ export const orderLogic = {
         and(
           eq(order.organizationId, organizationId),
           eq(order.tableNumber, tableNumber),
-          inArray(order.status, ACTIVE_ORDER_STATUSES)
+          inArray(order.status, ACTIVE_ORDER_STATUSES),
+          gte(order.createdAt, oneAndHalfHoursAgo),
         )
       )
       .orderBy(desc(order.createdAt))
