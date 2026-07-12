@@ -90,11 +90,20 @@ menuRouter.put(
   }
 )
 
-menuRouter.post(
-  "/all",
-  zvalidator("json", z.object({ organizationId: z.string().min(1) })),
+menuRouter.get(
+  "/all/:organizationId",
   async (c) => {
-    const { organizationId } = c.req.valid("json")
+    const organizationId = c.req.param("organizationId")
+    if (!organizationId) {
+      return c.json(
+        {
+          status: "error",
+          code: HTTP_STATUS_CODES.BAD_REQUEST,
+          message: "Organization ID is required",
+        },
+        HTTP_STATUS_CODES.BAD_REQUEST
+      )
+    }
     const result = await menuLogic.getAllWithItems(organizationId)
     return c.json(result, result.code)
   }

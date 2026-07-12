@@ -148,6 +148,7 @@ menuItemRouter.put("/", sessionMiddleware, async (c) => {
       },
       isAvailable: formData.isAvailable === "true",
       isVegetarian: formData.isVegetarian === "true",
+      preparationTime: Number(formData.preparationTime) || 20,
     }
   } else {
     body = await c.req.json()

@@ -1,6 +1,10 @@
-import { and, eq, desc, like, sql, inArray } from "drizzle-orm"
+import { and, eq, desc, like, sql, inArray, gte } from "drizzle-orm"
 import { db } from "../../../core/db/client.js"
-import { order, orderCounter } from "../../../core/db/schemas/order.js"
+import {
+  order,
+  orderCounter,
+  type OrderItemJson,
+} from "../../../core/db/schemas/order.js"
 import { tableSchema } from "../../../core/db/schemas/table.js"
 import { redisClient } from "../../../core/redis/client.js"
 import { HTTP_STATUS_CODES } from "../../../lib/utils.js"
@@ -8,6 +12,7 @@ import type {
   CreateOrderDto,
   UpdateOrderDto,
 } from "@workspace/shared/schemas/order/index"
+import type { CreateTableOrderDto } from "./orders.validation.js"
 import { EventEmitter } from "node:events"
 import { organization } from "../../../core/db/schemas/auth.js"
 import { analyticsEmitter } from "../analytics/analytics.logic.js"
@@ -49,9 +54,17 @@ async function emitTableStatus(organizationId: string, tableNumber: string) {
 const ORDER_CACHE_PREFIX = "order:"
 const CACHE_TTL = 300
 
+const ACTIVE_ORDER_WINDOW_MS = 2 * 60 * 60 * 1000
+
+const ACTIVE_ORDER_STATUSES: (typeof order.$inferSelect)["status"][] = [
+  "pending",
+  "confirmed",
+  "preparing",
+  "ready",
+  "served",
+]
+
 export const orderEmitter = new EventEmitter()
-// One listener per open SSE connection (dashboard streams + per-table streams).
-// Raise the ceiling so many concurrent tables don't trip the leak warning.
 orderEmitter.setMaxListeners(1000)
 
 type OrderCreatedEvent = {
@@ -102,7 +115,6 @@ export const orderLogic = {
     return { status: "success", code: HTTP_STATUS_CODES.OK, data: orders }
   },
 
-  // Resolve a table's number from its id (orders are keyed by tableNumber).
   resolveTableNumber: async (
     tableId: string,
     organizationId: string
@@ -119,9 +131,6 @@ export const orderLogic = {
     return t ? String(t.number) : null
   },
 
-  // Active orders for a table = orders placed during the table's current
-  // occupied session. Completed/cancelled orders free the table, so filtering
-  // them out excludes any previous session's orders for the same table.
   getActiveByTableId: async (tableId: string, organizationId: string) => {
     if (!organizationId) {
       return {
@@ -143,14 +152,6 @@ export const orderLogic = {
       }
     }
 
-    const activeStatuses: (typeof order.$inferSelect)["status"][] = [
-      "pending",
-      "confirmed",
-      "preparing",
-      "ready",
-      "served",
-    ]
-
     const orders = await db
       .select()
       .from(order)
@@ -158,7 +159,7 @@ export const orderLogic = {
         and(
           eq(order.organizationId, organizationId),
           eq(order.tableNumber, tableNumber),
-          inArray(order.status, activeStatuses)
+          inArray(order.status, ACTIVE_ORDER_STATUSES)
         )
       )
       .orderBy(desc(order.createdAt))
@@ -333,6 +334,152 @@ export const orderLogic = {
 
     return { status: "success", code: HTTP_STATUS_CODES.CREATED, data: created }
   },
+
+  createOrAppend: async (tableId: string, body: CreateTableOrderDto) => {
+    const organizationId = body.organizationId
+    if (!organizationId) {
+      return {
+        status: "error" as const,
+        code: HTTP_STATUS_CODES.NOT_FOUND,
+        message: "Organization not found",
+      }
+    }
+
+    const [org] = await db
+      .select()
+      .from(organization)
+      .where(eq(organization.id, organizationId))
+    if (!org) {
+      return {
+        status: "error" as const,
+        code: HTTP_STATUS_CODES.NOT_FOUND,
+        message: "Organization not found",
+      }
+    }
+
+    const tableNumber = await orderLogic.resolveTableNumber(
+      tableId,
+      organizationId
+    )
+    if (tableNumber === null) {
+      return {
+        status: "error" as const,
+        code: HTTP_STATUS_CODES.NOT_FOUND,
+        message: "Table not found",
+      }
+    }
+
+    const windowStart = new Date(Date.now() - ACTIVE_ORDER_WINDOW_MS)
+    const [active] = await db
+      .select()
+      .from(order)
+      .where(
+        and(
+          eq(order.organizationId, organizationId),
+          eq(order.tableNumber, tableNumber),
+          inArray(order.status, ACTIVE_ORDER_STATUSES),
+          gte(order.createdAt, windowStart)
+        )
+      )
+      .orderBy(desc(order.createdAt))
+      .limit(1)
+
+    if (!active) {
+      return orderLogic.create({ ...body, tableNumber })
+    }
+
+    const merged: OrderItemJson[] = active.items.map((it) => ({ ...it }))
+    for (const incoming of body.items ?? []) {
+      const idx = merged.findIndex(
+        (it) =>
+          it.menuItemId === incoming.menuItemId &&
+          it.variant === incoming.variant
+      )
+      if (idx >= 0) {
+        merged[idx] = {
+          ...merged[idx],
+          quantity: merged[idx].quantity + incoming.quantity,
+        }
+      } else {
+        merged.push({
+          menuItemId: incoming.menuItemId,
+          name: incoming.name,
+          variant: incoming.variant,
+          quantity: incoming.quantity,
+          unitPrice: incoming.unitPrice,
+          logo: incoming.logo ?? null,
+          notes: incoming.notes ?? null,
+        })
+      }
+    }
+
+    const subtotal = active.subtotal + body.subtotal
+    const discount = active.discount + (body.discount ?? 0)
+    const taxableAmount = active.taxableAmount + body.taxableAmount
+
+    const gstRate = active.gstRate
+    const halfRate = gstRate / 2
+    const cgstAmount = +((taxableAmount * halfRate) / 100).toFixed(2)
+    const sgstAmount = +((taxableAmount * halfRate) / 100).toFixed(2)
+    const totalGst = cgstAmount + sgstAmount
+    const roundOff = +(
+      Math.round(taxableAmount + totalGst) -
+      (taxableAmount + totalGst)
+    ).toFixed(2)
+    const grandTotal = +(taxableAmount + totalGst + roundOff).toFixed(2)
+
+    const [updated] = await db
+      .update(order)
+      .set({
+        items: merged,
+        subtotal,
+        discount,
+        taxableAmount,
+        cgstAmount,
+        sgstAmount,
+        roundOff,
+        grandTotal,
+        updatedAt: new Date(),
+      })
+      .where(
+        and(eq(order.id, active.id), eq(order.organizationId, organizationId))
+      )
+      .returning()
+
+    try {
+      await redisClient.del(
+        `${ORDER_CACHE_PREFIX}${organizationId}:${active.id}`
+      )
+      await redisClient.delPattern(`${ORDER_CACHE_PREFIX}all:${organizationId}`)
+    } catch (err) {
+      console.error("Failed to invalidate order cache", err)
+    }
+
+    try {
+      orderEmitter.emit(`orders:${organizationId}`, {
+        type: "updated",
+        data: updated,
+      } satisfies OrderUpdatedEvent)
+      orderEmitter.emit(`order:${updated.id}`, {
+        type: "updated",
+        data: updated,
+      } satisfies OrderUpdatedEvent)
+      analyticsEmitter.emit(`analytics:${organizationId}`, {
+        type: "updated",
+        data: null,
+      })
+    } catch (err) {
+      console.error("Failed to emit order events", err)
+    }
+
+    return {
+      status: "success" as const,
+      code: HTTP_STATUS_CODES.OK,
+      data: updated,
+      appended: true,
+    }
+  },
+
   update: async (body: UpdateOrderDto, organizationId: string) => {
     if (!organizationId) {
       return {

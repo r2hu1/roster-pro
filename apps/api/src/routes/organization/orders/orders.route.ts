@@ -7,6 +7,7 @@ import { sessionMiddleware } from "../../../middleware/session.js"
 import { orderLogic, orderEmitter } from "./orders.logic.js"
 import {
   createOrderSchema,
+  createTableOrderSchema,
   updateOrderSchema,
   updateOrderStatusSchema,
 } from "./orders.validation.js"
@@ -80,6 +81,17 @@ orderRouter.get("/stream", sessionMiddleware, async (c) => {
   })
 })
 
+orderRouter.post(
+  "/table/:tableId",
+  zvalidator("json", createTableOrderSchema),
+  async (c) => {
+    const tableId = c.req.param("tableId")!
+    const body = c.req.valid("json")
+    const result = await orderLogic.createOrAppend(tableId, body)
+    return c.json(result, result.code)
+  }
+)
+
 orderRouter.get("/table/:tableId/active", async (c) => {
   const organizationId = c.req.query("organizationId")
   if (!organizationId) {
@@ -117,7 +129,6 @@ orderRouter.get("/table/:tableId/active/stream", async (c) => {
     return c.json(initial, initial.code as 404)
   }
 
-  // Resolved once at connect; events are filtered against this number.
   const tableNumber = initial.tableNumber
 
   const isActive = (status: string) =>
@@ -129,8 +140,6 @@ orderRouter.get("/table/:tableId/active/stream", async (c) => {
       data: JSON.stringify(initial.data),
     })
 
-    // Single subscription to the org-wide order channel; filter to this table.
-    // No DB reads after init — every delta is derived from the emitted event.
     const listener = (event: {
       type: string
       data: OrderResponse | { id: string }
@@ -142,10 +151,8 @@ orderRouter.get("/table/:tableId/active/stream", async (c) => {
 
       const o = event.data as OrderResponse
       if (o.tableNumber === tableNumber && isActive(o.status)) {
-        // relevant + still active → client upserts
         stream.writeSSE({ event: "upsert", data: JSON.stringify(o) })
       } else {
-        // wrong table or moved to completed/cancelled → client drops it
         stream.writeSSE({ event: "remove", data: JSON.stringify({ id: o.id }) })
       }
     }
