@@ -1,6 +1,8 @@
+import Footer from "@/components/footer"
 import Header from "@/components/header"
 import { ReactQueryProvider } from "@/modules/providers/query-client"
 import { TableProvider } from "@/modules/providers/table-provider"
+import { Toaster } from "sonner"
 
 export const generateMetadata = async ({
   params,
@@ -42,6 +44,8 @@ export default function Layout({ children }: LayoutProps) {
         <main>
           <Header />
           {children}
+          <Footer />
+          <Toaster/>
         </main>
       </TableProvider>
     </ReactQueryProvider>
