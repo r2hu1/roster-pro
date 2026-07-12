@@ -9,7 +9,7 @@ import {
   useEffect,
   useRef,
 } from "react"
-import { useTableContext } from "./table-provider"
+import { useTableContext } from "../../../providers/table-provider"
 
 export type CartItemVariant = "half" | "full"
 
@@ -21,6 +21,7 @@ export interface CartItem {
   variant: CartItemVariant
   quantity: number
   unitPrice: number
+  price: { half: number; full: number }
   notes: string | null
   prepTime: number | null
 }
@@ -54,6 +55,7 @@ interface CartContextProps {
   ) => void
   removeFromCart: (id: string) => void
   updateQuantity: (id: string, quantity: number) => void
+  changeVariant: (itemId: string, newVariant: CartItemVariant) => void
   clearCart: () => void
   totalItems: number
   totalPrice: number
@@ -98,7 +100,6 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       quantity = 1,
       notes?: string
     ) => {
-      const unitPrice = variant === "half" ? item.price.half : item.price.full
       setItems((prev) => {
         const existing = prev.find(
           (i) => i.menuItemId === item.id && i.variant === variant
@@ -110,6 +111,8 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
               : i
           )
         }
+        const unitPrice =
+          variant === "half" ? item.price.half : item.price.full
         return [
           ...prev,
           {
@@ -120,6 +123,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
             variant,
             quantity,
             unitPrice,
+            price: { half: item.price.half, full: item.price.full },
             notes: notes ?? null,
             prepTime: item.preparationTime,
           },
@@ -140,6 +144,43 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         : prev.map((i) => (i.id === id ? { ...i, quantity } : i))
     )
   }, [])
+
+  const changeVariant = useCallback(
+    (itemId: string, newVariant: CartItemVariant) => {
+      setItems((prev) => {
+        const item = prev.find((i) => i.id === itemId)
+        if (!item || item.variant === newVariant) return prev
+
+        const newId = `${item.menuItemId}-${newVariant}`
+        const existing = prev.find(
+          (i) => i.menuItemId === item.menuItemId && i.variant === newVariant
+        )
+
+        if (existing) {
+          return prev
+            .filter((i) => i.id !== itemId)
+            .map((i) =>
+              i.id === existing.id
+                ? { ...i, quantity: i.quantity + item.quantity }
+                : i
+            )
+        }
+
+        return prev.map((i) =>
+          i.id === itemId
+            ? {
+                ...i,
+                id: newId,
+                variant: newVariant,
+                unitPrice:
+                  newVariant === "half" ? item.price.half : item.price.full,
+              }
+            : i
+        )
+      })
+    },
+    []
+  )
 
   const clearCart = useCallback(() => {
     setItems([])
@@ -167,6 +208,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         addToCart,
         removeFromCart,
         updateQuantity,
+        changeVariant,
         clearCart,
         totalItems,
         totalPrice,

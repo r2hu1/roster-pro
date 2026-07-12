@@ -3,8 +3,8 @@
 import { useState, useCallback } from "react"
 import Image from "next/image"
 import type { MenuItemResponse } from "@workspace/shared/schemas/menu/menu-item/response"
-import type { CartItemVariant } from "@/modules/providers/cart-provider"
-import { useCart } from "@/modules/providers/cart-provider"
+import type { CartItemVariant } from "@/modules/cart/views/provider/cart-provider"
+import { useCart } from "@/modules/cart/views/provider/cart-provider"
 import {
   ResponsiveModal,
   ResponsiveModalTrigger,
