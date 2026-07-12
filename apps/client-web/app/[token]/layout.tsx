@@ -4,7 +4,9 @@ import { TableProvider } from "@/modules/providers/table-provider"
 
 export const generateMetadata = async ({
   params,
-}: Promise<{ token: string }>) => {
+}: {
+  params: Promise<{ token: string }>
+}) => {
   const { token } = await params
   try {
     const req = await fetch(
@@ -31,10 +33,9 @@ export const generateMetadata = async ({
 
 export interface LayoutProps {
   children: React.ReactNode
-  params: Promise<{ token: string }>
 }
 
-export default function Layout({ children, params }: LayoutProps) {
+export default function Layout({ children }: LayoutProps) {
   return (
     <ReactQueryProvider>
       <TableProvider>

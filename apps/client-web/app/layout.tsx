@@ -10,9 +10,7 @@ const geist = Geist({
 })
 
 export const metadata: Metadata = {
-  title: {
-    default: "A RosterPro Partner",
-  },
+  title: "A RosterPro Partner",
   description: "This is a RosterPro partner website.",
   icons: ["/assets/roster-pro-logo.jpeg"],
 }

@@ -3,15 +3,9 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react"
 import { useWindowVirtualizer } from "@tanstack/react-virtual"
 import { useMenus } from "@/hooks/use-menus"
-import MenuCard from "@/modules/menu/views/ui/manu-card"
 import { useTableContext } from "@/modules/providers/table-provider"
-import { IconSearch } from "@tabler/icons-react"
-import { Button } from "@workspace/ui/components/button"
-import {
-  InputGroup,
-  InputGroupAddon,
-  InputGroupInput,
-} from "@workspace/ui/components/input-group"
+import MenuFilterBar from "@/modules/menu/views/ui/menu-filter-bar"
+import MenuVirtualRow from "@/modules/menu/views/ui/menu-virtual-row"
 
 const STICKY_HEADER_HEIGHT = 96
 
@@ -44,6 +38,7 @@ export default function MenuPageView() {
     error: menusError,
   } = useMenus(data?.organization.id)
 
+  const [searchQuery, setSearchQuery] = useState("")
   const columns = useColumns()
   const buttonsRef = useRef<Map<string, HTMLButtonElement>>(new Map())
   const tabsContainerRef = useRef<HTMLDivElement>(null)
@@ -56,11 +51,26 @@ export default function MenuPageView() {
     }
   }, [menus])
 
-  const rows: Row[] = useMemo(() => {
+  const filteredMenus = useMemo(() => {
     if (!menus) return []
+    if (!searchQuery) return menus.filter((m) => m.items.length)
+    const q = searchQuery.toLowerCase()
+    return menus
+      .map((m) => ({
+        ...m,
+        items: m.items.filter(
+          (i: any) =>
+            i.name?.toLowerCase().includes(q) ||
+            i.description?.toLowerCase().includes(q),
+        ),
+      }))
+      .filter((m) => m.items.length)
+  }, [menus, searchQuery])
+
+  const rows: Row[] = useMemo(() => {
+    if (!filteredMenus) return []
     const list: Row[] = []
-    menus
-      .filter((menu) => menu.items.length)
+    filteredMenus
       .forEach((menu) => {
         list.push({ type: "header", menuId: String(menu.id), title: menu.menu })
         for (let i = 0; i < menu.items.length; i += columns) {
@@ -72,7 +82,7 @@ export default function MenuPageView() {
         }
       })
     return list
-  }, [menus, columns])
+  }, [filteredMenus, columns])
 
   const virtualizer = useWindowVirtualizer({
     count: rows.length,
@@ -89,10 +99,11 @@ export default function MenuPageView() {
     const measurements = virtualizer.measurementsCache
     let best: string | null = null
     for (let i = 0; i < rows.length; i++) {
-      if (rows[i].type !== "header") continue
+      const row = rows[i]
+      if (!row || row.type !== "header") continue
       const start = measurements[i]?.start ?? 0
       if (start - scrollMargin <= threshold + STICKY_HEADER_HEIGHT + 10) {
-        best = rows[i].menuId
+        best = row.menuId
       } else break
     }
     if (!best) best = rows.find((r) => r.type === "header")?.menuId ?? null
@@ -139,35 +150,17 @@ export default function MenuPageView() {
 
   return (
     <div className="space-y-6 max-w-2xl">
-      <div className="space-y-3 px-6 sticky top-0 bg-background z-20 py-4">
-        <InputGroup>
-          <InputGroupInput placeholder="Search..." />
-          <InputGroupAddon>
-            <IconSearch />
-          </InputGroupAddon>
-        </InputGroup>
-        <div
-          ref={tabsContainerRef}
-          className="flex gap-2 items-center overflow-x-scroll no-scrollbar"
-        >
-          {menus
-            ?.filter((menu) => menu.items.length)
-            .map((menu) => (
-              <Button
-                key={menu.id}
-                ref={(el) => {
-                  if (el) buttonsRef.current.set(String(menu.id), el)
-                  else buttonsRef.current.delete(String(menu.id))
-                }}
-                className="rounded-full border-border!"
-                variant={activeMenuId === String(menu.id) ? "default" : "outline"}
-                onClick={() => scrollToMenu(String(menu.id))}
-              >
-                {menu.menu}
-              </Button>
-            ))}
-        </div>
-      </div>
+      {menus && (
+        <MenuFilterBar
+          menus={filteredMenus}
+          activeMenuId={activeMenuId}
+          onMenuClick={scrollToMenu}
+          buttonsRef={buttonsRef}
+          tabsContainerRef={tabsContainerRef}
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+        />
+      )}
 
       <div ref={listRef} className="px-6">
         <div
@@ -194,25 +187,7 @@ export default function MenuPageView() {
                   transform: `translateY(${virtualRow.start - scrollMargin}px)`,
                 }}
               >
-                {row.type === "header" ? (
-                  <h2 className="text-xs font-medium py-2">{row.title}</h2>
-                ) : (
-                  <div
-                    className="grid gap-4 pb-4"
-                    style={{
-                      gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))`,
-                    }}
-                  >
-                    {row.items.map((item) => (
-                      <div
-                        key={item.id}
-                        className="break-inside-avoid inline-block w-full"
-                      >
-                        <MenuCard item={item} />
-                      </div>
-                    ))}
-                  </div>
-                )}
+                <MenuVirtualRow row={row} columns={columns} />
               </div>
             )
           })}

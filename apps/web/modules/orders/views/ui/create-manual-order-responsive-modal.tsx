@@ -81,9 +81,7 @@ export default function CreateManualOrderModal({
   const { data: menuItems = [] } = useQuery<MenuItem[]>({
     queryKey: ["menu-items", organization?.id],
     queryFn: async () => {
-      const res = await api.post("/organization/menu/all", {
-        organizationId: organization?.id,
-      })
+      const res = await api.get(`/organization/menu/all/${organization?.id}`)
       const items: MenuItem[] = (res.data.data || []).flatMap(
         (menu: { items: MenuItem[] }) => menu.items || []
       )
