@@ -111,7 +111,7 @@ const ResponsiveModalContent = ({
 
   return (
     <ContentComponent
-      handleClassName={thumbClassName}
+      handleclassname={thumbClassName}
       className={className}
       {...props}
     >

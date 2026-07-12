@@ -4,7 +4,7 @@ import Preloader from "@/components/preloader"
 import { useDecodeToken } from "@/hooks/use-decode-token"
 import { DecodedToken } from "@workspace/shared/types/organization/table/token/types"
 import { useParams } from "next/navigation"
-import { createContext, useContext } from "react"
+import { createContext, useContext, useEffect } from "react"
 
 interface TableContextProps {
   data: DecodedToken | undefined
@@ -16,7 +16,11 @@ const TableContext = createContext<TableContextProps | null>(null)
 
 export function TableProvider({ children }: { children: React.ReactNode }) {
   const { token } = useParams<{ token: string }>()
-  const { data: decodedToken, isPending, error } = useDecodeToken(token)
+  const { data: decodedToken, isPending, error } = useDecodeToken(token);
+
+  useEffect(() => {
+    localStorage.setItem("last-visited", token);
+  },[token])
 
   return (
     <TableContext.Provider value={{ data: decodedToken, isPending, error }}>

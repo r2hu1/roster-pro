@@ -1,5 +1,4 @@
 "use client"
-
 import type { MenuItemResponse } from "@workspace/shared/schemas/menu/menu-item/response"
 import {
   createContext,
@@ -27,6 +26,7 @@ export interface CartItem {
 }
 
 function loadCart(orgId: string): CartItem[] {
+  if (typeof window === "undefined") return []
   try {
     const raw = localStorage.getItem(`cart-${orgId}`)
     return raw ? (JSON.parse(raw) as CartItem[]) : []
@@ -36,6 +36,7 @@ function loadCart(orgId: string): CartItem[] {
 }
 
 function saveCart(orgId: string, items: CartItem[]) {
+  if (typeof window === "undefined") return
   try {
     localStorage.setItem(`cart-${orgId}`, JSON.stringify(items))
   } catch {
@@ -64,7 +65,9 @@ const CartContext = createContext<CartContextProps | null>(null)
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const { data: tableData } = useTableContext()
   const orgId = tableData?.organization.id
+
   const prevOrgId = useRef(orgId)
+  const skipNextSave = useRef(false)
 
   const [items, setItems] = useState<CartItem[]>(() =>
     loadCart(orgId ?? "default")
@@ -73,6 +76,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (!orgId) return
     if (prevOrgId.current !== orgId) {
+      skipNextSave.current = true
       setItems(loadCart(orgId))
       prevOrgId.current = orgId
     }
@@ -80,6 +84,10 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (!orgId) return
+    if (skipNextSave.current) {
+      skipNextSave.current = false
+      return
+    }
     saveCart(orgId, items)
   }, [orgId, items])
 
@@ -91,12 +99,10 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       notes?: string
     ) => {
       const unitPrice = variant === "half" ? item.price.half : item.price.full
-
       setItems((prev) => {
         const existing = prev.find(
           (i) => i.menuItemId === item.id && i.variant === variant
         )
-
         if (existing) {
           return prev.map((i) =>
             i.menuItemId === item.id && i.variant === variant
@@ -104,7 +110,6 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
               : i
           )
         }
-
         return [
           ...prev,
           {
@@ -129,7 +134,11 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   const updateQuantity = useCallback((id: string, quantity: number) => {
-    setItems((prev) => prev.map((i) => (i.id === id ? { ...i, quantity } : i)))
+    setItems((prev) =>
+      quantity <= 0
+        ? prev.filter((i) => i.id !== id)
+        : prev.map((i) => (i.id === id ? { ...i, quantity } : i))
+    )
   }, [])
 
   const clearCart = useCallback(() => {

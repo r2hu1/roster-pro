@@ -180,7 +180,7 @@ export default function ResponsiveItemModal({ item, children }: Props) {
                 toast.success("Item added to cart")
               }}
             >
-              Add to Cart <IconShoppingCartPlus />
+              Add to Cart <IconShoppingCartPlus className="ml-2"/>
             </Button>
           </div>
         </ResponsiveModalFooter>

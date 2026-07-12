@@ -48,10 +48,10 @@ function DrawerOverlay({
 function DrawerContent({
   className,
   children,
-  handleClassName,
+  handleclassname,
   ...props
 }: React.ComponentProps<typeof DrawerPrimitive.Content> & {
-  handleClassName?: string
+  handleclassname?: string
 }) {
   return (
     <DrawerPortal data-slot="drawer-portal">
@@ -67,7 +67,7 @@ function DrawerContent({
         <div
           className={cn(
             "mx-auto mt-4 hidden h-1.5 w-[100px] shrink-0 rounded-full bg-muted group-data-[vaul-drawer-direction=bottom]/drawer-content:block",
-            handleClassName
+            handleclassname
           )}
         />
         {children}
