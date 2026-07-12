@@ -11,10 +11,6 @@ type UpdateOrderResponse =
   | { status: "success"; code: number; data: OrderResponse }
   | { status: "error"; code: number; message: string }
 
-/**
- * Update an order (PUT /organization/orders, body carries `id`).
- * Requires an authenticated session — the axios instance attaches the token.
- */
 export function useUpdateOrder() {
   const queryClient = useQueryClient()
 

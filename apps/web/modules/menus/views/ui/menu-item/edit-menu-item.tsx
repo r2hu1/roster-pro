@@ -40,6 +40,7 @@ export default function EditMenuItem({
   prevVegetarian,
   prevIngredients,
   prevDescription,
+  prevPreparationTime,
 }: {
   open: boolean
   onOpenChange: (open: boolean) => void
@@ -51,6 +52,7 @@ export default function EditMenuItem({
   prevVegetarian: boolean
   prevIngredients: string[]
   prevDescription: string
+  prevPreparationTime: number | null
 }) {
   const [pending, setPending] = useState(false)
   const [name, setName] = useState(prevName)
@@ -62,6 +64,9 @@ export default function EditMenuItem({
   const [isAvailable, setIsAvailable] = useState(prevAvailable)
   const [isVegetarian, setIsVegetarian] = useState(prevVegetarian)
   const [description, setDescription] = useState(prevDescription)
+  const [preparationTime, setPreparationTime] = useState(
+    prevPreparationTime?.toString() ?? 20
+  )
   const [image, setImage] = useState<File | null>(null)
 
   const qc = useQueryClient()
@@ -74,6 +79,7 @@ export default function EditMenuItem({
     setIngredientsText(prevIngredients.join(", "))
     setIsAvailable(prevAvailable)
     setIsVegetarian(prevVegetarian)
+    setPreparationTime(prevPreparationTime ?? 20)
     setDescription(prevDescription)
     setImage(null)
   }
@@ -95,6 +101,7 @@ export default function EditMenuItem({
       },
       isAvailable,
       isVegetarian,
+      preparationTime: Number(preparationTime) || 20,
     })
 
     if (!parsed.success) {
@@ -114,6 +121,7 @@ export default function EditMenuItem({
       formData.append("price_full", fullPrice)
       formData.append("isAvailable", String(isAvailable))
       formData.append("isVegetarian", String(isVegetarian))
+      formData.append("preparationTime", String(preparationTime))
       if (image) formData.append("image", image)
 
       const res = await api.put("/organization/menu/item", formData)
@@ -207,6 +215,21 @@ export default function EditMenuItem({
               </InputGroup>
             </div>
           </div>
+
+          <Label htmlFor="name">
+            Preparation Time{" "}
+            <span className="text-xs text-foreground/80">minutes</span>
+          </Label>
+          <Input
+            id="preparationTime"
+            type="number"
+            step="any"
+            min="0"
+            placeholder="30"
+            value={preparationTime}
+            onChange={(e) => setPreparationTime(e.target.value)}
+            required
+          />
 
           <Label htmlFor="description">Description</Label>
           <Textarea

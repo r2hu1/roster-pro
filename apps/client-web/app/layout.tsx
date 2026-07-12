@@ -1,20 +1,21 @@
-import { Geist, Geist_Mono, Instrument_Sans } from "next/font/google"
-
+import { Geist } from "next/font/google"
 import "@workspace/ui/globals.css"
 import { cn } from "@workspace/ui/lib/utils"
-import ReactQueryProvider from "@/modules/providers/react-query-provider"
-import { Toaster } from "sonner"
-import { ContextProvider } from "@/modules/providers/context-provider"
+import { Metadata } from "next"
 
-const instrumentSans = Instrument_Sans({
+const geist = Geist({
   subsets: ["latin"],
-  variable: "--font-sans",
+  variable: "--font-geist",
+  weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"],
 })
 
-const fontMono = Geist_Mono({
-  subsets: ["latin"],
-  variable: "--font-mono",
-})
+export const metadata: Metadata = {
+  title: {
+    default: "A RosterPro Partner",
+  },
+  description: "This is a RosterPro partner website.",
+  icons: ["/assets/roster-pro-logo.jpeg"],
+}
 
 export default function RootLayout({
   children,
@@ -25,26 +26,9 @@ export default function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
-      className={cn(
-        "antialiased ",
-        fontMono.variable,
-        "font-sans",
-        instrumentSans.variable
-      )}
+      className={cn("antialiased ", geist.className)}
     >
-      <body>
-        <ReactQueryProvider>
-          <ContextProvider>{children}</ContextProvider>
-        </ReactQueryProvider>
-        <Toaster
-          toastOptions={{
-            classNames: {
-              cancelButton:
-                "rounded-full! bg-transparent! text-muted-foreground! text-xl! hover:bg-red-600 px-2",
-            },
-          }}
-        />
-      </body>
+      <body>{children}</body>
     </html>
   )
 }
