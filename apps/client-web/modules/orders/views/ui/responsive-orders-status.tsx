@@ -20,6 +20,8 @@ import { useTableContext } from "@/modules/providers/table-provider"
 import { useActiveOrdersStream } from "@/hooks/use-active-orders-stream"
 import { motion } from "motion/react"
 import { RippleButton } from "./ripple-button"
+import { useActiveOrders } from "@/hooks/use-active-orders"
+import { Skeleton } from "@workspace/ui/components/skeleton"
 
 const statusLabel: Record<string, { label: string; variant: "default" | "secondary" | "outline" | "destructive" }> = {
   pending: { label: "Pending", variant: "secondary" },
@@ -47,7 +49,7 @@ export default function ResponsiveOrdersStatus() {
   const tableId = tableData?.table.id
   const organizationId = tableData?.organization.id
 
-  const { orders, connected, error } = useActiveOrdersStream(
+  const { data: orders,error,refetch,isPending } = useActiveOrders(
     tableId,
     organizationId
   )
@@ -67,22 +69,18 @@ export default function ResponsiveOrdersStatus() {
       <ResponsiveModalContent thumbClassName="mt-1">
         <ResponsiveModalHeader>
           <ResponsiveModalTitle>Your Orders</ResponsiveModalTitle>
-          <ResponsiveModalDescription>
-            {connected
-              ? `${orders.length} active order${orders.length === 1 ? "" : "s"}`
-              : error ?? "Connecting…"}
-          </ResponsiveModalDescription>
         </ResponsiveModalHeader>
 
         <ResponsiveModalBody className="pb-4">
-          {orders.length === 0 ? (
+          {isPending && <Skeleton className="h-24 w-full"/>}
+          {!isPending && orders?.length === 0 ? (
             <div className="flex flex-col items-center justify-center gap-2 py-12 text-muted-foreground">
               <IconShoppingBag className="size-10" />
               <p className="text-sm text-center">Order something,<br/> you will see it here.</p>
             </div>
           ) : (
             <div className="space-y-3">
-              {orders.map((order) => {
+              {orders?.map((order) => {
                 const est = orderEstimate(order)
                 return (
                 <div
@@ -150,11 +148,12 @@ export default function ResponsiveOrdersStatus() {
             </div>
           )}
         </ResponsiveModalBody>
-        {/*<ResponsiveModalFooter>
-          <ResponsiveModalClose asChild>
-            <Button size="lg">Okay</Button>
-          </ResponsiveModalClose>
-        </ResponsiveModalFooter>*/}
+        <ResponsiveModalFooter>
+          <Button onClick={() => refetch()} size="lg">Refresh</Button>
+          {/*<ResponsiveModalClose asChild>
+            <Button>Close</Button>
+          </ResponsiveModalClose>*/}
+        </ResponsiveModalFooter>
       </ResponsiveModalContent>
     </ResponsiveModal>
   )

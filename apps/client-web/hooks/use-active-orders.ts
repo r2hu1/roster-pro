@@ -8,11 +8,6 @@ type ActiveOrdersResponse =
   | { status: "success"; code: number; data: OrderResponse[] }
   | { status: "error"; code: number; message: string }
 
-/**
- * Active orders for a table = orders placed during the table's current
- * occupied session. Completed/cancelled orders are excluded server-side, so
- * previous sessions' orders for the same table never show up.
- */
 export function useActiveOrders(
   tableId?: string | null,
   organizationId?: string | null
