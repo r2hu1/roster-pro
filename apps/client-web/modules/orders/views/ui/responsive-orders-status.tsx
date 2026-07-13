@@ -74,11 +74,11 @@ export default function ResponsiveOrdersStatus() {
           </ResponsiveModalDescription>
         </ResponsiveModalHeader>
 
-        <ResponsiveModalBody>
+        <ResponsiveModalBody className="pb-4">
           {orders.length === 0 ? (
             <div className="flex flex-col items-center justify-center gap-2 py-12 text-muted-foreground">
               <IconShoppingBag className="size-10" />
-              <p className="text-sm">No active orders</p>
+              <p className="text-sm text-center">Order something,<br/> you will see it here.</p>
             </div>
           ) : (
             <div className="space-y-3">
@@ -150,11 +150,11 @@ export default function ResponsiveOrdersStatus() {
             </div>
           )}
         </ResponsiveModalBody>
-        <ResponsiveModalFooter>
+        {/*<ResponsiveModalFooter>
           <ResponsiveModalClose asChild>
-            <Button size="lg">Done</Button>
+            <Button size="lg">Okay</Button>
           </ResponsiveModalClose>
-        </ResponsiveModalFooter>
+        </ResponsiveModalFooter>*/}
       </ResponsiveModalContent>
     </ResponsiveModal>
   )
