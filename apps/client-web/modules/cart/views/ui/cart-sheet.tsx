@@ -49,8 +49,8 @@ export default function CartSheet({ children, open, onOpenChange }: Props) {
     updateQuantity,
     changeVariant,
     clearCart,
-  } = useCart();
-  const { token } = useTableContext();
+  } = useCart()
+  const { token } = useTableContext()
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -59,7 +59,10 @@ export default function CartSheet({ children, open, onOpenChange }: Props) {
       <SheetContent side="right" className="flex flex-col w-full sm:max-w-md">
         <SheetHeader>
           <SheetTitle asChild>
-            <Link href={`/${token}/cart`} className="flex items-center gap-2 text-xs">
+            <Link
+              href={`/${token}/cart`}
+              className="flex items-center gap-2 text-xs"
+            >
               <IconMaximize className="size-4" />
               Full Screen
             </Link>

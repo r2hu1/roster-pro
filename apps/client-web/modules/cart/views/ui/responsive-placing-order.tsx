@@ -32,7 +32,10 @@ type Phase = "confirm" | "placing" | "success" | "error"
 const CONFETTI_COLORS = ["#d99007", "#fd8bbc", "#eca184", "#f8deb1"]
 const CONFETTI_DURATION_MS = 3000
 
-export default function ResponsivePlacingOrder({ children, orderNotes }: Props) {
+export default function ResponsivePlacingOrder({
+  children,
+  orderNotes,
+}: Props) {
   const [open, setOpen] = useState(false)
   const [phase, setPhase] = useState<Phase>("confirm")
   const [errorMsg, setErrorMsg] = useState<string | null>(null)

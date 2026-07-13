@@ -24,7 +24,9 @@ export function TableProvider({ children }: { children: React.ReactNode }) {
   }, [token])
 
   return (
-    <TableContext.Provider value={{ data: decodedToken, isPending, error,token }}>
+    <TableContext.Provider
+      value={{ data: decodedToken, isPending, error, token }}
+    >
       {children}
       {isPending && <Preloader />}
     </TableContext.Provider>
