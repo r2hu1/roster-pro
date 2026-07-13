@@ -17,6 +17,7 @@ import { EventEmitter } from "node:events"
 import { organization } from "../../../core/db/schemas/auth.js"
 import { analyticsEmitter } from "../analytics/analytics.logic.js"
 import { tableEmitter } from "../table/table.logic.js"
+import { menuItem, type Price } from "../../../core/db/schemas/menu.js"
 
 const TABLE_CACHE_PREFIX = "table:"
 
@@ -346,7 +347,6 @@ export const orderLogic = {
         message: "Organization not found",
       }
     }
-
     const [org] = await db
       .select()
       .from(organization)
@@ -358,7 +358,6 @@ export const orderLogic = {
         message: "Organization not found",
       }
     }
-
     const tableNumber = await orderLogic.resolveTableNumber(
       tableId,
       organizationId
@@ -369,6 +368,73 @@ export const orderLogic = {
         code: HTTP_STATUS_CODES.NOT_FOUND,
         message: "Table not found",
       }
+    }
+
+    const incomingItems = body.items ?? []
+    if (incomingItems.length === 0) {
+      return {
+        status: "error" as const,
+        code: HTTP_STATUS_CODES.BAD_REQUEST,
+        message: "At least one item is required",
+      }
+    }
+
+    const menuItemIds = [...new Set(incomingItems.map((it) => it.menuItemId))]
+    const menuItemRows = await db
+      .select()
+      .from(menuItem)
+      .where(
+        and(
+          inArray(menuItem.id, menuItemIds),
+          eq(menuItem.organizationId, organizationId)
+        )
+      )
+    const menuItemMap = new Map(menuItemRows.map((mi) => [mi.id, mi]))
+    const resolvePrice = (
+      price: Price,
+      variant?: string | null
+    ): number | null => {
+      if (variant === "half") return price.half
+      if (variant === "full") return price.full
+      if (price.full != null) return price.full
+      if (price.half != null) return price.half
+      return null
+    }
+
+    const resolvedIncoming: OrderItemJson[] = []
+    for (const incoming of incomingItems) {
+      const mi = menuItemMap.get(incoming.menuItemId)
+      if (!mi) {
+        return {
+          status: "error" as const,
+          code: HTTP_STATUS_CODES.BAD_REQUEST,
+          message: `Menu item ${incoming.menuItemId} not found`,
+        }
+      }
+      if (!mi.isAvailable) {
+        return {
+          status: "error" as const,
+          code: HTTP_STATUS_CODES.BAD_REQUEST,
+          message: `${mi.name} is currently unavailable`,
+        }
+      }
+      const unitPrice = resolvePrice(mi.price, incoming.variant)
+      if (unitPrice === null) {
+        return {
+          status: "error" as const,
+          code: HTTP_STATUS_CODES.BAD_REQUEST,
+          message: `Price not found for menu item ${incoming.menuItemId}`,
+        }
+      }
+      resolvedIncoming.push({
+        menuItemId: incoming.menuItemId,
+        name: mi.name,
+        variant: incoming.variant,
+        quantity: incoming.quantity,
+        unitPrice,
+        logo: mi.image ?? null,
+        notes: incoming.notes ?? null,
+      })
     }
 
     const windowStart = new Date(Date.now() - ACTIVE_ORDER_WINDOW_MS)
@@ -387,11 +453,11 @@ export const orderLogic = {
       .limit(1)
 
     if (!active) {
-      return orderLogic.create({ ...body, tableNumber })
+      return orderLogic.create({ ...body, items: resolvedIncoming, tableNumber })
     }
 
     const merged: OrderItemJson[] = active.items.map((it) => ({ ...it }))
-    for (const incoming of body.items ?? []) {
+    for (const incoming of resolvedIncoming) {
       const idx = merged.findIndex(
         (it) =>
           it.menuItemId === incoming.menuItemId &&
@@ -401,24 +467,20 @@ export const orderLogic = {
         merged[idx] = {
           ...merged[idx],
           quantity: merged[idx].quantity + incoming.quantity,
+          unitPrice: incoming.unitPrice,
         }
       } else {
-        merged.push({
-          menuItemId: incoming.menuItemId,
-          name: incoming.name,
-          variant: incoming.variant,
-          quantity: incoming.quantity,
-          unitPrice: incoming.unitPrice,
-          logo: incoming.logo ?? null,
-          notes: incoming.notes ?? null,
-        })
+        merged.push(incoming)
       }
     }
 
-    const subtotal = active.subtotal + body.subtotal
-    const discount = active.discount + (body.discount ?? 0)
-    const taxableAmount = active.taxableAmount + body.taxableAmount
+    const subtotal = +merged
+      .reduce((sum, it) => sum + it.unitPrice * it.quantity, 0)
+      .toFixed(2)
 
+    const discount = active.discount + (body.discount ?? 0)
+
+    const taxableAmount = +(subtotal - discount).toFixed(2)
     const gstRate = active.gstRate
     const halfRate = gstRate / 2
     const cgstAmount = +((taxableAmount * halfRate) / 100).toFixed(2)
@@ -449,14 +511,11 @@ export const orderLogic = {
       .returning()
 
     try {
-      await redisClient.del(
-        `${ORDER_CACHE_PREFIX}${organizationId}:${active.id}`
-      )
+      await redisClient.del(`${ORDER_CACHE_PREFIX}${organizationId}:${active.id}`)
       await redisClient.delPattern(`${ORDER_CACHE_PREFIX}all:${organizationId}`)
     } catch (err) {
       console.error("Failed to invalidate order cache", err)
     }
-
     try {
       orderEmitter.emit(`orders:${organizationId}`, {
         type: "updated",
@@ -473,7 +532,6 @@ export const orderLogic = {
     } catch (err) {
       console.error("Failed to emit order events", err)
     }
-
     return {
       status: "success" as const,
       code: HTTP_STATUS_CODES.OK,
