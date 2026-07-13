@@ -434,24 +434,16 @@ export const orderLogic = {
       }
     }
 
-    try {
-      await redisClient.delPattern(`${ORDER_CACHE_PREFIX}all:${organizationId}`)
-    } catch (err) {
-      console.error("Failed to invalidate order cache", err)
-    }
+    void redisClient.delPattern(`${ORDER_CACHE_PREFIX}all:${organizationId}`)
 
-    try {
-      const ordersChannel = channel(`orders:${organizationId}`)
-      const orderChannel = channel(`order:${created.id}`)
-      const analyticsChannel = channel(`analytics:${organizationId}`)
-      await Promise.all([
-        ordersChannel?.emit("order.created", created),
-        orderChannel?.emit("order.created", created),
-        analyticsChannel?.emit("analytics.updated", null),
-      ])
-    } catch (err) {
-      console.error("Failed to emit order events", err)
-    }
+    const ordersChannel = channel(`orders:${organizationId}`)
+    const orderChannel = channel(`order:${created.id}`)
+    const analyticsChannel = channel(`analytics:${organizationId}`)
+    void Promise.all([
+      ordersChannel?.emit("order.created", created),
+      orderChannel?.emit("order.created", created),
+      analyticsChannel?.emit("analytics.updated", null),
+    ])
 
     return { status: "success", code: HTTP_STATUS_CODES.CREATED, data: created }
   },
@@ -766,16 +758,16 @@ export const orderLogic = {
           )
         )
 
-      await emitTableStatus(organizationId, updated.tableNumber)
+      void emitTableStatus(organizationId, updated.tableNumber)
     }
 
-    await redisClient.del(`${ORDER_CACHE_PREFIX}${organizationId}:${body.id}`)
-    await redisClient.delPattern(`${ORDER_CACHE_PREFIX}all:${organizationId}`)
+    void redisClient.del(`${ORDER_CACHE_PREFIX}${organizationId}:${body.id}`)
+    void redisClient.delPattern(`${ORDER_CACHE_PREFIX}all:${organizationId}`)
 
     const ordersChannel = channel(`orders:${organizationId}`)
     const orderChannel = channel(`order:${updated.id}`)
     const analyticsChannel = channel(`analytics:${organizationId}`)
-    await Promise.all([
+    void Promise.all([
       ordersChannel?.emit("order.updated", updated),
       orderChannel?.emit("order.updated", updated),
       analyticsChannel?.emit("analytics.updated", null),
@@ -838,15 +830,15 @@ export const orderLogic = {
         )
     }
 
-    await emitTableStatus(organizationId, updated.tableNumber)
+    void emitTableStatus(organizationId, updated.tableNumber)
 
-    await redisClient.del(`${ORDER_CACHE_PREFIX}${organizationId}:${id}`)
-    await redisClient.delPattern(`${ORDER_CACHE_PREFIX}all:${organizationId}`)
+    void redisClient.del(`${ORDER_CACHE_PREFIX}${organizationId}:${id}`)
+    void redisClient.delPattern(`${ORDER_CACHE_PREFIX}all:${organizationId}`)
 
     const ordersChannel = channel(`orders:${organizationId}`)
     const orderChannel = channel(`order:${updated.id}`)
     const analyticsChannel = channel(`analytics:${organizationId}`)
-    await Promise.all([
+    void Promise.all([
       ordersChannel?.emit("order.updated", updated),
       orderChannel?.emit("order.updated", updated),
       analyticsChannel?.emit("analytics.updated", null),
@@ -881,13 +873,13 @@ export const orderLogic = {
       .delete(order)
       .where(and(eq(order.id, id), eq(order.organizationId, organizationId)))
 
-    await redisClient.del(`${ORDER_CACHE_PREFIX}${organizationId}:${id}`)
-    await redisClient.delPattern(`${ORDER_CACHE_PREFIX}all:${organizationId}`)
+    void redisClient.del(`${ORDER_CACHE_PREFIX}${organizationId}:${id}`)
+    void redisClient.delPattern(`${ORDER_CACHE_PREFIX}all:${organizationId}`)
 
     const ordersChannel = channel(`orders:${organizationId}`)
     const orderChannel = channel(`order:${id}`)
     const analyticsChannel = channel(`analytics:${organizationId}`)
-    await Promise.all([
+    void Promise.all([
       ordersChannel?.emit("order.deleted", { id }),
       orderChannel?.emit("order.deleted", { id }),
       analyticsChannel?.emit("analytics.updated", null),
