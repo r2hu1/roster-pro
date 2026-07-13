@@ -75,6 +75,7 @@ function LoadMoreSentinel({
 
 export default function OrdersPageView() {
   const { organization } = useSession()
+  const organizationId = organization?.id
   const { kitchenMode } = useKitchenMode()
   const [activeFilter, setActiveFilter] = useState<string>("All")
   const [search, setSearch] = useState("")
@@ -97,7 +98,7 @@ export default function OrdersPageView() {
     loadingInitial,
     loadingMore,
     loadMore,
-  } = useOrdersStream({ status: statusFilter, search: debouncedSearch })
+  } = useOrdersStream({ organizationId: organizationId!, status: statusFilter, search: debouncedSearch })
 
   const handleLoadMore = useCallback(() => {
     void loadMore()

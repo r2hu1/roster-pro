@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react"
 import type { OrderResponse } from "@workspace/shared/schemas/order/index"
+import { useRealtime } from "@/lib/realtime-client"
 
 type StreamState = {
   orders: OrderResponse[]
@@ -9,12 +10,15 @@ type StreamState = {
   error: string | null
 }
 
-/**
- * Realtime active orders for a table over SSE.
- *
- * Server sends `init` (full snapshot) then `upsert` / `remove` deltas derived
- * from order events. Manual reconnect with 3s delay on disconnect.
- */
+const isActive = (status: string) =>
+  status !== "completed" && status !== "cancelled"
+
+const sortOrders = (orders: OrderResponse[]) =>
+  orders.sort(
+    (a, b) =>
+      new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+  )
+
 export function useActiveOrdersStream(
   tableId?: string | null,
   organizationId?: string | null
@@ -23,6 +27,15 @@ export function useActiveOrdersStream(
   const [connected, setConnected] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const mapRef = useRef<Map<string, OrderResponse>>(new Map())
+  const tableRef = useRef<string | null>(null)
+
+  const sync = () =>
+    setOrders(
+      Array.from(mapRef.current.values()).sort(
+        (a, b) =>
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      )
+    )
 
   useEffect(() => {
     if (!tableId || !organizationId) return
@@ -32,61 +45,52 @@ export function useActiveOrdersStream(
     setError(null)
     setConnected(false)
 
-    const sync = () =>
-      setOrders(
-        Array.from(mapRef.current.values()).sort(
-          (a, b) =>
-            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-        )
-      )
-
-    let cancelled = false
-
-    const connect = () => {
-      if (cancelled) return
-
-      const url = `/api/organization/orders/table/${tableId}/active/stream?organizationId=${organizationId}`
-      const es = new EventSource(url)
-
-      es.addEventListener("init", (event) => {
-        if (cancelled) return
-        const list: OrderResponse[] = JSON.parse((event as MessageEvent).data)
-        mapRef.current = new Map(list.map((o) => [o.id, o]))
-        sync()
+    fetch(
+      `/api/organization/orders/table/${tableId}/active?organizationId=${organizationId}`
+    )
+      .then((res) => res.json())
+      .then((result) => {
+        if (result.status === "success") {
+          mapRef.current = new Map(
+            result.data.map((o: OrderResponse) => [o.id, o])
+          )
+          sync()
+          tableRef.current = result.tableNumber
+        }
       })
+      .catch(() => {})
+  }, [tableId, organizationId])
 
-      es.addEventListener("upsert", (event) => {
-        const o: OrderResponse = JSON.parse((event as MessageEvent).data)
+  const { status: connectionStatus } = useRealtime({
+    channels: organizationId ? [`orders:${organizationId}`] : [],
+    events: ["order.created", "order.updated", "order.deleted"],
+    onData({ event, data }) {
+      const sseEvent = event.split(".")[1]
+
+      if (sseEvent === "deleted") {
+        const { id } = data as { id: string }
+        if (mapRef.current.delete(id)) sync()
+        return
+      }
+
+      const o = data as OrderResponse
+      if (o.tableNumber === tableRef.current && isActive(o.status)) {
         mapRef.current.set(o.id, o)
         sync()
-      })
-
-      es.addEventListener("remove", (event) => {
-        const { id } = JSON.parse((event as MessageEvent).data) as { id: string }
-        if (mapRef.current.delete(id)) sync()
-      })
-
-      es.onopen = () => {
-        if (cancelled) return
-        setConnected(true)
-        setError(null)
+      } else if (mapRef.current.delete(o.id)) {
+        sync()
       }
+    },
+  })
 
-      es.onerror = () => {
-        if (cancelled) return
-        setConnected(false)
-        setError("Reconnecting…")
-        es.close()
-        setTimeout(() => connect(), 3000)
-      }
+  useEffect(() => {
+    setConnected(connectionStatus === "connected")
+    if (connectionStatus === "error") {
+      setError("Reconnecting\u2026")
+    } else if (connectionStatus === "connected") {
+      setError(null)
     }
-
-    connect()
-
-    return () => {
-      cancelled = true
-    }
-  }, [tableId, organizationId])
+  }, [connectionStatus])
 
   return { orders, connected, error }
 }

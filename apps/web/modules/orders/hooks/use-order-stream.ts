@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react"
 import type { OrderResponse } from "@workspace/shared/schemas/order/index"
+import { useRealtime } from "@/lib/realtime-client"
 
 type OrderEvent =
   | { type: "created"; data: OrderResponse }
@@ -14,42 +15,46 @@ export function useOrderStream(orderId: string, organizationId: string) {
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    if (!orderId || !organizationId) return
-
-    const es = new EventSource(
-      `/api/organization/orders/${orderId}/stream?organizationId=${organizationId}`
+    fetch(
+      `/api/organization/orders/${orderId}?organizationId=${organizationId}`
     )
+      .then((res) => res.json())
+      .then((result) => {
+        if (result.status === "success") {
+          setOrder(result.data)
+        }
+      })
+      .catch(() => {})
+  }, [orderId, organizationId])
 
-    es.addEventListener("init", (e) => {
-      setOrder(JSON.parse(e.data))
-      setConnected(true)
-      setError(null)
-    })
-
-    const handleEvent = (e: MessageEvent) => {
-      const event: OrderEvent = {
-        type: e.type as OrderEvent["type"],
-        data: JSON.parse(e.data),
+  const { status: connectionStatus } = useRealtime({
+    channels: [`order:${orderId}`],
+    events: ["order.created", "order.updated", "order.deleted"],
+    onData({ event, data }) {
+      const sseEvent = event.split(".")[1]
+      let payload: OrderEvent
+      if (sseEvent === "deleted") {
+        payload = { type: "deleted", data: data as { id: string } }
+      } else {
+        payload = { type: sseEvent as "created" | "updated", data: data as OrderResponse }
       }
 
-      if (event.type === "deleted") {
+      if (payload.type === "deleted") {
         setOrder(null)
       } else {
-        setOrder(event.data as OrderResponse)
+        setOrder(payload.data as OrderResponse)
       }
-    }
+    },
+  })
 
-    es.addEventListener("created", handleEvent)
-    es.addEventListener("updated", handleEvent)
-    es.addEventListener("deleted", handleEvent)
-
-    es.onerror = () => {
-      setConnected(false)
+  useEffect(() => {
+    setConnected(connectionStatus === "connected")
+    if (connectionStatus === "error") {
       setError("Connection lost")
+    } else if (connectionStatus === "connected") {
+      setError(null)
     }
-
-    return () => es.close()
-  }, [orderId, organizationId])
+  }, [connectionStatus])
 
   return { order, connected, error }
 }

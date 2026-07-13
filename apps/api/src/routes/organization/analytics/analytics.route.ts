@@ -3,7 +3,8 @@ import { streamSSE } from "hono/streaming"
 import type { AppEnv } from "../../../index.js"
 import { HTTP_STATUS_CODES } from "../../../lib/utils.js"
 import { sessionMiddleware } from "../../../middleware/session.js"
-import { analyticsLogic, analyticsEmitter } from "./analytics.logic.js"
+import { analyticsLogic } from "./analytics.logic.js"
+import { realtime } from "../../../lib/realtime.js"
 import { analyticsQuerySchema } from "./analytics.validation.js"
 
 export const analyticsRouter = new Hono<AppEnv>()
@@ -101,21 +102,23 @@ analyticsRouter.get("/stream", sessionMiddleware, async (c) => {
       data: JSON.stringify(initialData.data),
     })
 
-    const listener = async () => {
-      try {
-        const freshData = await analyticsLogic.get(organizationId, parsed.data)
-        if (freshData.status === "success") {
-          stream.writeSSE({
-            event: "updated",
-            data: JSON.stringify(freshData.data),
-          })
+    const channel = realtime.channel(`analytics:${organizationId}`)
+    const unsubscribe = await channel.subscribe({
+      events: ["analytics.updated"],
+      onData: async () => {
+        try {
+          const freshData = await analyticsLogic.get(organizationId, parsed.data)
+          if (freshData.status === "success") {
+            stream.writeSSE({
+              event: "updated",
+              data: JSON.stringify(freshData.data),
+            })
+          }
+        } catch (err) {
+          console.error("Failed to refresh analytics in SSE stream", err)
         }
-      } catch (err) {
-        console.error("Failed to refresh analytics in SSE stream", err)
-      }
-    }
-
-    analyticsEmitter.on(`analytics:${organizationId}`, listener)
+      },
+    })
 
     const heartbeat = setInterval(() => {
       stream.writeSSE({ event: "ping", data: "" }).catch(() => {})
@@ -123,7 +126,7 @@ analyticsRouter.get("/stream", sessionMiddleware, async (c) => {
 
     await new Promise<void>((resolve) => {
       stream.onAbort(() => {
-        analyticsEmitter.off(`analytics:${organizationId}`, listener)
+        unsubscribe()
         clearInterval(heartbeat)
         resolve()
       })

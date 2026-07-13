@@ -4,7 +4,8 @@ import type { AppEnv } from "../../../index.js"
 import type { OrderResponse } from "@workspace/shared/schemas/order/index"
 import { HTTP_STATUS_CODES, zvalidator } from "../../../lib/utils.js"
 import { sessionMiddleware } from "../../../middleware/session.js"
-import { orderLogic, orderEmitter } from "./orders.logic.js"
+import { orderLogic } from "./orders.logic.js"
+import { realtime } from "../../../lib/realtime.js"
 import {
   createOrderSchema,
   createTableOrderSchema,
@@ -70,17 +71,17 @@ orderRouter.get("/stream", sessionMiddleware, async (c) => {
   return streamSSE(c, async (stream) => {
     await stream.writeSSE({ event: "ready", data: "" })
 
-    const listener = (event: {
-      type: string
-      data: OrderResponse | { id: string }
-    }) => {
-      stream.writeSSE({
-        event: event.type,
-        data: JSON.stringify(event.data),
-      })
-    }
-
-    orderEmitter.on(`orders:${organizationId}`, listener)
+    const channel = realtime.channel(`orders:${organizationId}`)
+    const unsubscribe = await channel.subscribe({
+      events: ["order.created", "order.updated", "order.deleted"],
+      onData({ event, data }) {
+        const sseEvent = event.split(".")[1]
+        stream.writeSSE({
+          event: sseEvent,
+          data: JSON.stringify(data),
+        })
+      },
+    })
 
     const heartbeat = setInterval(() => {
       stream.writeSSE({ event: "ping", data: "" }).catch(() => {})
@@ -88,7 +89,7 @@ orderRouter.get("/stream", sessionMiddleware, async (c) => {
 
     await new Promise<void>((resolve) => {
       stream.onAbort(() => {
-        orderEmitter.off(`orders:${organizationId}`, listener)
+        unsubscribe()
         clearInterval(heartbeat)
         resolve()
       })
@@ -155,24 +156,25 @@ orderRouter.get("/table/:tableId/active/stream", async (c) => {
       data: JSON.stringify(initial.data),
     })
 
-    const listener = (event: {
-      type: string
-      data: OrderResponse | { id: string }
-    }) => {
-      if (event.type === "deleted") {
-        stream.writeSSE({ event: "remove", data: JSON.stringify(event.data) })
-        return
-      }
+    const channel = realtime.channel(`orders:${organizationId}`)
+    const unsubscribe = await channel.subscribe({
+      events: ["order.created", "order.updated", "order.deleted"],
+      onData({ event, data }) {
+        const sseEvent = event.split(".")[1]
 
-      const o = event.data as OrderResponse
-      if (o.tableNumber === tableNumber && isActive(o.status)) {
-        stream.writeSSE({ event: "upsert", data: JSON.stringify(o) })
-      } else {
-        stream.writeSSE({ event: "remove", data: JSON.stringify({ id: o.id }) })
-      }
-    }
+        if (sseEvent === "deleted") {
+          stream.writeSSE({ event: "remove", data: JSON.stringify(data) })
+          return
+        }
 
-    orderEmitter.on(`orders:${organizationId}`, listener)
+        const o = data as OrderResponse
+        if (o.tableNumber === tableNumber && isActive(o.status)) {
+          stream.writeSSE({ event: "upsert", data: JSON.stringify(o) })
+        } else {
+          stream.writeSSE({ event: "remove", data: JSON.stringify({ id: o.id }) })
+        }
+      },
+    })
 
     const heartbeat = setInterval(() => {
       stream.writeSSE({ event: "ping", data: "" }).catch(() => {})
@@ -180,7 +182,7 @@ orderRouter.get("/table/:tableId/active/stream", async (c) => {
 
     await new Promise<void>((resolve) => {
       stream.onAbort(() => {
-        orderEmitter.off(`orders:${organizationId}`, listener)
+        unsubscribe()
         clearInterval(heartbeat)
         resolve()
       })
@@ -213,17 +215,17 @@ orderRouter.get("/:id/stream", async (c) => {
       data: JSON.stringify(existing.data),
     })
 
-    const listener = (event: {
-      type: string
-      data: OrderResponse | { id: string }
-    }) => {
-      stream.writeSSE({
-        event: event.type,
-        data: JSON.stringify(event.data),
-      })
-    }
-
-    orderEmitter.on(`order:${id}`, listener)
+    const channel = realtime.channel(`order:${id}`)
+    const unsubscribe = await channel.subscribe({
+      events: ["order.created", "order.updated", "order.deleted"],
+      onData({ event, data }) {
+        const sseEvent = event.split(".")[1]
+        stream.writeSSE({
+          event: sseEvent,
+          data: JSON.stringify(data),
+        })
+      },
+    })
 
     const heartbeat = setInterval(() => {
       stream.writeSSE({ event: "ping", data: "" }).catch(() => {})
@@ -231,7 +233,7 @@ orderRouter.get("/:id/stream", async (c) => {
 
     await new Promise<void>((resolve) => {
       stream.onAbort(() => {
-        orderEmitter.off(`order:${id}`, listener)
+        unsubscribe()
         clearInterval(heartbeat)
         resolve()
       })

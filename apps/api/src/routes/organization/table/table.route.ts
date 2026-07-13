@@ -4,7 +4,8 @@ import type { AppEnv } from "../../../index.js"
 import type { TableStatusResponse } from "@workspace/shared/schemas/table/index"
 import { HTTP_STATUS_CODES, zvalidator } from "../../../lib/utils.js"
 import { sessionMiddleware } from "../../../middleware/session.js"
-import { tableLogic, tableEmitter } from "./table.logic.js"
+import { tableLogic } from "./table.logic.js"
+import { realtime } from "../../../lib/realtime.js"
 import {
   createTableSchema,
   updateTableSchema,
@@ -160,17 +161,17 @@ tableRouter.get("/status/stream", sessionMiddleware, async (c) => {
       data: JSON.stringify(initialStatus.data),
     })
 
-    const listener = (event: {
-      type: "status" | "deleted"
-      data: TableStatusResponse | { id: string }
-    }) => {
-      stream.writeSSE({
-        event: event.type,
-        data: JSON.stringify(event.data),
-      })
-    }
-
-    tableEmitter.on(`table:${organizationId}`, listener)
+    const channel = realtime.channel(`table:${organizationId}`)
+    const unsubscribe = await channel.subscribe({
+      events: ["table.status", "table.deleted"],
+      onData({ event, data }) {
+        const sseEvent = event.split(".")[1] as "status" | "deleted"
+        stream.writeSSE({
+          event: sseEvent,
+          data: JSON.stringify(data),
+        })
+      },
+    })
 
     const heartbeat = setInterval(() => {
       stream.writeSSE({ event: "ping", data: "" }).catch(() => {})
@@ -178,7 +179,7 @@ tableRouter.get("/status/stream", sessionMiddleware, async (c) => {
 
     await new Promise<void>((resolve) => {
       stream.onAbort(() => {
-        tableEmitter.off(`table:${organizationId}`, listener)
+        unsubscribe()
         clearInterval(heartbeat)
         resolve()
       })

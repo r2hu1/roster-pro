@@ -24,10 +24,8 @@ import type {
   UpdateOrderDto,
 } from "@workspace/shared/schemas/order/index"
 import type { CreateTableOrderDto } from "./orders.validation.js"
-import { EventEmitter } from "node:events"
 import { organization } from "../../../core/db/schemas/auth.js"
-import { analyticsEmitter } from "../analytics/analytics.logic.js"
-import { tableEmitter } from "../table/table.logic.js"
+import { realtime } from "../../../lib/realtime.js"
 import { menuItem, type Price } from "../../../core/db/schemas/menu.js"
 
 const TABLE_CACHE_PREFIX = "table:"
@@ -50,10 +48,8 @@ async function emitTableStatus(organizationId: string, tableNumber: string) {
     )
 
   if (table) {
-    tableEmitter.emit(`table:${organizationId}`, {
-      type: "status",
-      data: table,
-    })
+    const channel = realtime.channel(`table:${organizationId}`)
+    await channel.emit("table.status", table)
   }
 
   try {
@@ -75,9 +71,6 @@ const ACTIVE_ORDER_STATUSES: (typeof order.$inferSelect)["status"][] = [
   "ready",
   "served",
 ]
-
-export const orderEmitter = new EventEmitter()
-orderEmitter.setMaxListeners(1000)
 
 const DEFAULT_PAGE_SIZE = 20
 const MAX_PAGE_SIZE = 100
@@ -112,26 +105,6 @@ const EMPTY_STATS = {
   completed: 0,
   cancelled: 0,
 }
-
-type OrderCreatedEvent = {
-  type: "created"
-  data: typeof order.$inferSelect
-}
-
-type OrderUpdatedEvent = {
-  type: "updated"
-  data: typeof order.$inferSelect
-}
-
-type OrderDeletedEvent = {
-  type: "deleted"
-  data: { id: string }
-}
-
-export type OrderEvent =
-  | OrderCreatedEvent
-  | OrderUpdatedEvent
-  | OrderDeletedEvent
 
 export const orderLogic = {
   getAll: async (organizationId: string) => {
@@ -464,18 +437,14 @@ export const orderLogic = {
     }
 
     try {
-      orderEmitter.emit(`orders:${organizationId}`, {
-        type: "created",
-        data: created,
-      } satisfies OrderCreatedEvent)
-      orderEmitter.emit(`order:${created.id}`, {
-        type: "created",
-        data: created,
-      } satisfies OrderCreatedEvent)
-      analyticsEmitter.emit(`analytics:${organizationId}`, {
-        type: "updated",
-        data: null,
-      })
+      const ordersChannel = realtime.channel(`orders:${organizationId}`)
+      const orderChannel = realtime.channel(`order:${created.id}`)
+      const analyticsChannel = realtime.channel(`analytics:${organizationId}`)
+      await Promise.all([
+        ordersChannel.emit("order.created", created),
+        orderChannel.emit("order.created", created),
+        analyticsChannel.emit("analytics.updated", null),
+      ])
     } catch (err) {
       console.error("Failed to emit order events", err)
     }
@@ -700,18 +669,14 @@ export const orderLogic = {
       console.error("Failed to invalidate order cache", err)
     }
     try {
-      orderEmitter.emit(`orders:${organizationId}`, {
-        type: "updated",
-        data: updated,
-      } satisfies OrderUpdatedEvent)
-      orderEmitter.emit(`order:${updated.id}`, {
-        type: "updated",
-        data: updated,
-      } satisfies OrderUpdatedEvent)
-      analyticsEmitter.emit(`analytics:${organizationId}`, {
-        type: "updated",
-        data: null,
-      })
+      const ordersChannel = realtime.channel(`orders:${organizationId}`)
+      const orderChannel = realtime.channel(`order:${updated.id}`)
+      const analyticsChannel = realtime.channel(`analytics:${organizationId}`)
+      await Promise.all([
+        ordersChannel.emit("order.updated", updated),
+        orderChannel.emit("order.updated", updated),
+        analyticsChannel.emit("analytics.updated", null),
+      ])
     } catch (err) {
       console.error("Failed to emit order events", err)
     }
@@ -803,20 +768,14 @@ export const orderLogic = {
     await redisClient.del(`${ORDER_CACHE_PREFIX}${organizationId}:${body.id}`)
     await redisClient.delPattern(`${ORDER_CACHE_PREFIX}all:${organizationId}`)
 
-    orderEmitter.emit(`orders:${organizationId}`, {
-      type: "updated",
-      data: updated,
-    } satisfies OrderUpdatedEvent)
-
-    orderEmitter.emit(`order:${updated.id}`, {
-      type: "updated",
-      data: updated,
-    } satisfies OrderUpdatedEvent)
-
-    analyticsEmitter.emit(`analytics:${organizationId}`, {
-      type: "updated",
-      data: null,
-    })
+    const ordersChannel = realtime.channel(`orders:${organizationId}`)
+    const orderChannel = realtime.channel(`order:${updated.id}`)
+    const analyticsChannel = realtime.channel(`analytics:${organizationId}`)
+    await Promise.all([
+      ordersChannel.emit("order.updated", updated),
+      orderChannel.emit("order.updated", updated),
+      analyticsChannel.emit("analytics.updated", null),
+    ])
 
     return { status: "success", code: HTTP_STATUS_CODES.OK, data: updated }
   },
@@ -880,20 +839,14 @@ export const orderLogic = {
     await redisClient.del(`${ORDER_CACHE_PREFIX}${organizationId}:${id}`)
     await redisClient.delPattern(`${ORDER_CACHE_PREFIX}all:${organizationId}`)
 
-    orderEmitter.emit(`orders:${organizationId}`, {
-      type: "updated",
-      data: updated,
-    } satisfies OrderUpdatedEvent)
-
-    orderEmitter.emit(`order:${updated.id}`, {
-      type: "updated",
-      data: updated,
-    } satisfies OrderUpdatedEvent)
-
-    analyticsEmitter.emit(`analytics:${organizationId}`, {
-      type: "updated",
-      data: null,
-    })
+    const ordersChannel = realtime.channel(`orders:${organizationId}`)
+    const orderChannel = realtime.channel(`order:${updated.id}`)
+    const analyticsChannel = realtime.channel(`analytics:${organizationId}`)
+    await Promise.all([
+      ordersChannel.emit("order.updated", updated),
+      orderChannel.emit("order.updated", updated),
+      analyticsChannel.emit("analytics.updated", null),
+    ])
 
     return { status: "success", code: HTTP_STATUS_CODES.OK, data: updated }
   },
@@ -927,20 +880,14 @@ export const orderLogic = {
     await redisClient.del(`${ORDER_CACHE_PREFIX}${organizationId}:${id}`)
     await redisClient.delPattern(`${ORDER_CACHE_PREFIX}all:${organizationId}`)
 
-    orderEmitter.emit(`orders:${organizationId}`, {
-      type: "deleted",
-      data: { id },
-    } satisfies OrderDeletedEvent)
-
-    orderEmitter.emit(`order:${id}`, {
-      type: "deleted",
-      data: { id },
-    } satisfies OrderDeletedEvent)
-
-    analyticsEmitter.emit(`analytics:${organizationId}`, {
-      type: "updated",
-      data: null,
-    })
+    const ordersChannel = realtime.channel(`orders:${organizationId}`)
+    const orderChannel = realtime.channel(`order:${id}`)
+    const analyticsChannel = realtime.channel(`analytics:${organizationId}`)
+    await Promise.all([
+      ordersChannel.emit("order.deleted", { id }),
+      orderChannel.emit("order.deleted", { id }),
+      analyticsChannel.emit("analytics.updated", null),
+    ])
 
     return { status: "success", code: HTTP_STATUS_CODES.NO_CONTENT }
   },

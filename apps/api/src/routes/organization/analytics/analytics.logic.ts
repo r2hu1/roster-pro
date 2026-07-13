@@ -3,7 +3,6 @@ import { db } from "../../../core/db/client.js"
 import { order } from "../../../core/db/schemas/order.js"
 import { tableSchema } from "../../../core/db/schemas/table.js"
 import { HTTP_STATUS_CODES } from "../../../lib/utils.js"
-import { EventEmitter } from "node:events"
 import type {
   AnalyticsQueryDto,
   AnalyticsResponse,
@@ -14,16 +13,6 @@ import type {
   StatusBreakdown,
   PaymentBreakdown,
 } from "@workspace/shared/schemas/analytics/index"
-
-export const analyticsEmitter = new EventEmitter()
-analyticsEmitter.setMaxListeners(100)
-
-type AnalyticsUpdatedEvent = {
-  type: "updated"
-  data: AnalyticsResponse
-}
-
-export type AnalyticsEvent = AnalyticsUpdatedEvent
 
 function emptyAnalytics(): AnalyticsResponse {
   return {

@@ -15,7 +15,8 @@ import ReceiptsDataTable from "./receipts-data-table"
 import PageHeader from "@/components/page-header"
 
 export default function ReceiptsPageView() {
-  const { orders, connected } = useOrdersStream()
+  const { organization } = useSession()
+  const { orders, connected } = useOrdersStream({ organizationId: organization?.id ?? "" })
   const [activeFilter, setActiveFilter] = useState<string>("All")
   const [search, setSearch] = useState("")
 

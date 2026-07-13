@@ -2,21 +2,36 @@
 
 import { useEffect, useState, useCallback } from "react"
 import type { TableStatusResponse } from "@workspace/shared/schemas/table/response"
+import { useRealtime } from "@/lib/realtime-client"
 
-export function useTableStatusStream() {
+export function useTableStatusStream(organizationId: string) {
   const [tables, setTables] = useState<TableStatusResponse[]>([])
   const [connected, setConnected] = useState(false)
 
   useEffect(() => {
-    const es = new EventSource("/api/organization/table/status/stream")
+    fetch("/api/organization/table/")
+      .then((res) => res.json())
+      .then((result) => {
+        if (result.status === "success") {
+          setTables(result.data)
+        }
+      })
+      .catch(() => {})
+  }, [organizationId])
 
-    es.addEventListener("init", (e) => {
-      setTables(JSON.parse(e.data))
-      setConnected(true)
-    })
+  const { status: connectionStatus } = useRealtime({
+    channels: [`table:${organizationId}`],
+    events: ["table.status", "table.deleted"],
+    onData({ event, data }) {
+      const sseEvent = event.split(".")[1]
 
-    es.addEventListener("status", (e) => {
-      const updated: TableStatusResponse = JSON.parse(e.data)
+      if (sseEvent === "deleted") {
+        const { id } = data as { id: string }
+        setTables((prev) => prev.filter((t) => t.id !== id))
+        return
+      }
+
+      const updated = data as TableStatusResponse
       setTables((prev) => {
         const idx = prev.findIndex((t) => t.id === updated.id)
         if (idx !== -1) {
@@ -26,19 +41,12 @@ export function useTableStatusStream() {
         }
         return [...prev, updated]
       })
-    })
+    },
+  })
 
-    es.addEventListener("deleted", (e) => {
-      const { id } = JSON.parse(e.data)
-      setTables((prev) => prev.filter((t) => t.id !== id))
-    })
-
-    es.onerror = () => {
-      setConnected(false)
-    }
-
-    return () => es.close()
-  }, [])
+  useEffect(() => {
+    setConnected(connectionStatus === "connected")
+  }, [connectionStatus])
 
   const updateStatus = useCallback(
     async (tableId: string, status: "available" | "occupied") => {
