@@ -103,8 +103,8 @@ export const tableLogic = {
 
     await redisClient.delPattern(`${TABLE_CACHE_PREFIX}*:${organizationId}`)
 
-    const channel = realtime.channel(`table:${organizationId}`)
-    await channel.emit("table.status", {
+    const tableChannel = realtime?.channel(`table:${organizationId}`)
+    await tableChannel?.emit("table.status", {
       id: created.id,
       number: created.number,
       name: created.name,
@@ -156,8 +156,8 @@ export const tableLogic = {
     await redisClient.del(`${TABLE_CACHE_PREFIX}${organizationId}:${body.id}`)
     await redisClient.delPattern(`${TABLE_CACHE_PREFIX}all:${organizationId}`)
 
-    const channel = realtime.channel(`table:${organizationId}`)
-    await channel.emit("table.status", {
+    const tableChannel = realtime?.channel(`table:${organizationId}`)
+    await tableChannel?.emit("table.status", {
       id: updated.id,
       number: updated.number,
       name: updated.name,
@@ -200,8 +200,8 @@ export const tableLogic = {
     await redisClient.del(`${TABLE_CACHE_PREFIX}${organizationId}:${id}`)
     await redisClient.delPattern(`${TABLE_CACHE_PREFIX}all:${organizationId}`)
 
-    const channel = realtime.channel(`table:${organizationId}`)
-    await channel.emit("table.deleted", { id })
+    const tableChannel = realtime?.channel(`table:${organizationId}`)
+    await tableChannel?.emit("table.deleted", { id })
 
     return { status: "success", code: HTTP_STATUS_CODES.NO_CONTENT }
   },
@@ -245,8 +245,8 @@ export const tableLogic = {
     await redisClient.del(`${TABLE_CACHE_PREFIX}${organizationId}:${body.id}`)
     await redisClient.delPattern(`${TABLE_CACHE_PREFIX}all:${organizationId}`)
 
-    const channel = realtime.channel(`table:${organizationId}`)
-    await channel.emit("table.status", {
+    const tableChannel = realtime?.channel(`table:${organizationId}`)
+    await tableChannel?.emit("table.status", {
       id: updated.id,
       number: updated.number,
       name: updated.name,

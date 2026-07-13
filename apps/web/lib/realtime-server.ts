@@ -2,20 +2,37 @@ import { Realtime } from "@upstash/realtime"
 import { Redis } from "@upstash/redis"
 import { z } from "zod"
 
-const url = process.env.UPSTASH_REDIS_REST_URL
-const token = process.env.UPSTASH_REDIS_REST_TOKEN
-
-if (!url || !token) {
-  throw new Error("Missing UPSTASH_REDIS_REST_URL or UPSTASH_REDIS_REST_TOKEN")
+const schema = {
+  order: { created: z.any(), updated: z.any(), deleted: z.any() },
+  table: { status: z.any(), deleted: z.any() },
+  analytics: { updated: z.any() },
 }
 
-const redis = new Redis({ url, token })
+let realtimeInstance: Realtime<{ schema: typeof schema }> | null = null
 
-export const realtime = new Realtime({
-  schema: {
-    order: { created: z.any(), updated: z.any(), deleted: z.any() },
-    table: { status: z.any(), deleted: z.any() },
-    analytics: { updated: z.any() },
-  },
-  redis,
-})
+function initRealtime() {
+  if (realtimeInstance) return realtimeInstance
+
+  const url = process.env.UPSTASH_REDIS_REST_URL
+  const token = process.env.UPSTASH_REDIS_REST_TOKEN
+
+  if (!url || !token) {
+    console.warn(
+      "[realtime] Missing UPSTASH_REDIS_REST_URL or UPSTASH_REDIS_REST_TOKEN — realtime features disabled"
+    )
+    return null
+  }
+
+  try {
+    const redis = new Redis({ url, token })
+    realtimeInstance = new Realtime({ schema, redis }) as unknown as Realtime<{ schema: typeof schema }>
+    return realtimeInstance
+  } catch (err) {
+    console.error("[realtime] Failed to initialize Realtime:", err)
+    return null
+  }
+}
+
+const realtime = initRealtime()
+
+export { realtime }

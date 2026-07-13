@@ -1,18 +1,13 @@
 import { Hono } from "hono"
-import { streamSSE } from "hono/streaming"
 import type { AppEnv } from "../../../index.js"
-import type { TableStatusResponse } from "@workspace/shared/schemas/table/index"
 import { HTTP_STATUS_CODES, zvalidator } from "../../../lib/utils.js"
 import { sessionMiddleware } from "../../../middleware/session.js"
 import { tableLogic } from "./table.logic.js"
-import { realtime } from "../../../lib/realtime.js"
 import {
   createTableSchema,
   updateTableSchema,
   updateTableStatusSchema,
 } from "./table.validation.js"
-import type { ContentfulStatusCode } from "hono/utils/http-status"
-
 export const tableRouter = new Hono<AppEnv>()
 
 tableRouter.get("/", sessionMiddleware, async (c) => {
@@ -136,56 +131,6 @@ tableRouter.patch(
     return c.json(result, result.code)
   }
 )
-
-tableRouter.get("/status/stream", sessionMiddleware, async (c) => {
-  const organizationId = c.get("organizationId")
-  if (!organizationId) {
-    return c.json(
-      {
-        status: "error",
-        code: HTTP_STATUS_CODES.UNAUTHORIZED,
-        message: "Organization not found",
-      },
-      HTTP_STATUS_CODES.UNAUTHORIZED
-    )
-  }
-
-  const initialStatus = await tableLogic.getAllStatus(organizationId)
-  if (initialStatus.status === "error") {
-    return c.json(initialStatus, initialStatus.code as 404)
-  }
-
-  return streamSSE(c, async (stream) => {
-    await stream.writeSSE({
-      event: "init",
-      data: JSON.stringify(initialStatus.data),
-    })
-
-    const channel = realtime.channel(`table:${organizationId}`)
-    const unsubscribe = await channel.subscribe({
-      events: ["table.status", "table.deleted"],
-      onData({ event, data }) {
-        const sseEvent = event.split(".")[1] as "status" | "deleted"
-        stream.writeSSE({
-          event: sseEvent,
-          data: JSON.stringify(data),
-        })
-      },
-    })
-
-    const heartbeat = setInterval(() => {
-      stream.writeSSE({ event: "ping", data: "" }).catch(() => {})
-    }, 30000)
-
-    await new Promise<void>((resolve) => {
-      stream.onAbort(() => {
-        unsubscribe()
-        clearInterval(heartbeat)
-        resolve()
-      })
-    })
-  })
-})
 
 tableRouter.post("/token", sessionMiddleware, async (c) => {
   const body = await c.req.raw.json()

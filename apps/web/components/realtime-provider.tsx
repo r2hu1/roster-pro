@@ -6,7 +6,7 @@ export function Realtime({ children }: { children: React.ReactNode }) {
   return (
     <RealtimeProvider
       api={{ url: "/api/realtime", withCredentials: true }}
-      maxReconnectAttempts={10}
+      maxReconnectAttempts={Number.POSITIVE_INFINITY}
     >
       {children}
     </RealtimeProvider>
