@@ -1,156 +1,235 @@
 # Orders Realtime — Scaling Plan
 
-Status of the orders board (`apps/web/modules/orders`) after the pagination +
-SSE-delta refactor, and the work still required to run it at thousands of
-concurrent realtime orders / connections.
+This document explains where the live orders board stands today and what the
+team needs to do before it can handle thousands of orders and many kitchens
+watching at once.
 
-## What already shipped (done)
-
-- **Keyset pagination** (`orderLogic.getPaginated`) over `(createdAt, id)` desc,
-  backed by composite index `order_org_created_idx`. O(limit) at any depth.
-  Server-side `status` + `search` filtering. `GET /v1/organization/orders`.
-- **Stats endpoint** (`orderLogic.getStats`, `GET .../orders/stats`): status
-  counts via `GROUP BY`, so cards stay accurate independent of the loaded page.
-- **SSE is a pure delta channel**: `GET .../orders/stream` no longer dumps the
-  whole table on connect (removed the unbounded `init`); emits `ready` + `ping`
-  + `created`/`updated`/`deleted` deltas only.
-- **Client** (`use-orders-stream.ts`): REST owns the snapshot + `loadMore`
-  (infinite scroll); SSE deltas merge into a keyed store; **snapshot re-syncs on
-  every SSE reconnect** (heals missed-event gaps); stats debounce-refetch on
-  deltas.
-
-The **pagination layer scales to millions of rows**. The **realtime layer is
-currently single-instance only**. The items below make the realtime layer
-horizontally scalable and production-hardened.
+Code lives in `apps/web/modules/orders` (frontend) and
+`apps/api/src/routes/organization/orders` (backend).
 
 ---
 
-## P0 — Cross-instance fan-out (the hard blocker)
+## Background: how the orders board works now
 
-**Problem.** `orderEmitter` (`orders.logic.ts`) is an in-process Node
-`EventEmitter`. A mutation on API instance A only notifies SSE clients connected
-to instance A. The moment we run >1 API instance — required for thousands of
-long-lived SSE connections — realtime silently half-breaks: some clients never
-see some updates. `orderEmitter.setMaxListeners(1000)` also caps ~1000
-concurrent streams per process.
+Two separate mechanisms feed the board:
 
-**Constraint.** Current Redis is **Upstash REST** (`@upstash/redis`), which is
-HTTP request/response — it has **no persistent `SUBSCRIBE`**, so it cannot be
-the pub/sub transport as-is.
+1. **The list** — a normal REST request that returns one page of orders (newest
+   first). Scrolling down asks for the next page. This is fast and stays fast no
+   matter how many orders exist.
+2. **The live updates** — a long-lived connection called **SSE** (Server-Sent
+   Events). The browser opens it once and keeps it open; the server *pushes* a
+   small message down it whenever an order is created, updated, or deleted. No
+   polling, no refresh button.
 
-**Options (pick one):**
-1. **Real Redis pub/sub** (`ioredis` against a TCP Redis / Upstash's Redis
-   protocol endpoint, not the REST client). Each instance `SUBSCRIBE`s to
-   `orders:<orgId>`; mutations `PUBLISH`. Smallest conceptual change — replace
-   the emitter's `.emit`/`.on` with publish/subscribe. **Recommended.**
-2. **Postgres `LISTEN/NOTIFY`.** No new infra (already on Postgres). Caveats:
-   payload size limit (~8KB — publish the order id, refetch), one dedicated
-   listener connection per instance, not partition-tolerant. Good if we want
-   zero new dependencies.
-3. **Dedicated broker** (NATS / Redis Streams / Kafka). Overkill now; revisit
-   only if we need replay/persistence or fan-out beyond one Redis.
+When an order changes, the backend does two things: it writes to the database,
+and it announces the change so every open SSE connection can forward it to the
+browser. The browser merges that change into the page it's already showing.
 
-**Acceptance:** run 3 API instances behind the LB; a mutation on any instance
-reaches an SSE client on every other instance within ~100ms.
-
-**Touch points:** `orders.logic.ts` (every `orderEmitter.emit`), the `/stream`
-handler in `orders.route.ts` (subscribe instead of `.on`), plus the same
-pattern already duplicated in `analytics.logic.ts` and `table.logic.ts` — do
-all three, they share the bug.
+**The good news:** the list/pagination part scales to millions of orders.
+**The problem:** the "announce the change" part only works when the whole
+backend runs as a *single* process. That's the core of what follows.
 
 ---
 
-## P1 — Deployment target must hold long-lived connections
+## The one-line summary
 
-**Problem.** SSE needs a connection open for minutes/hours. Serverless platforms
-(Vercel functions, Lambda) cap execution time and will kill the stream; some
-proxies buffer `text/event-stream` and defeat push.
-
-**Action.**
-- Confirm where `apps/api` runs. If serverless → move the streaming routes to a
-  long-running target (container / node server / edge runtime that supports
-  streaming), or adopt a managed realtime transport.
-- Verify the proxy chain passes SSE through unbuffered end-to-end. The Next
-  route already sets `X-Accel-Buffering: no` + `no-transform`; confirm the LB /
-  CDN in front honors it.
-- Set connection limits + a max-lifetime on streams (force periodic reconnect,
-  e.g. every ~30–60 min) so instances can drain/deploy cleanly. Client already
-  re-syncs on reconnect, so forced cycling is safe.
-
-**Acceptance:** a board stays live > 1h across a rolling deploy with no manual
-refresh.
+- Pagination: **production-ready**, scales to millions of rows.
+- Live updates: **work today on a single server**, but break quietly the moment
+  we run more than one server — which we must do to support thousands of
+  simultaneous viewers.
 
 ---
 
-## P2 — Stats without a full table scan per event
+## P0 — Live updates break when we run more than one server
 
-**Problem.** `getStats` runs `COUNT(*) ... GROUP BY status` across the whole
-`order` table. Debounced, but still a full-table aggregate per burst. Fine at
-thousands of rows; expensive at millions × many active boards.
+**This is the blocker. Everything else is secondary.**
 
-**Options:**
-1. **Maintained counters**: a `order_status_counts(orgId, status, count)` table
-   (or Redis hash) incremented/decremented in the create/update/status/delete
-   transactions. Reads become a point lookup. Most robust.
-2. **Cache with short TTL** (e.g. Redis `orders:stats:<orgId>`, 2–5s) — cheap,
-   bounds the query rate regardless of delta volume. Good interim step.
-3. Partial index / materialized view if we stay on live aggregation.
+### What's happening
 
-**Recommendation:** ship (2) now as a guard, plan (1) for real scale.
+To announce changes, the backend uses an in-memory `EventEmitter` (a plain
+Node.js object that lets one part of the process notify another). It lives
+*inside a single running process*. When an order changes, it shouts "order
+updated!" and every SSE connection **in that same process** hears it.
 
-**Touch points:** `getStats`; and the mutation paths in `orders.logic.ts` if we
-go with maintained counters (increment alongside the existing cache
-invalidation).
+To handle thousands of viewers, we have to run several copies of the backend
+side by side (this is "horizontal scaling" — more servers sharing the load, a
+load balancer spreading connections across them). The instant we do that, the
+in-memory announcer stops working correctly:
+
+- A waiter's tablet is connected to **Server A**.
+- A new order is saved on **Server B**.
+- Server B shouts "new order!" — but only things *inside Server B* hear it.
+- The tablet on Server A never finds out. The order silently never appears.
+
+Some viewers see updates, some don't, seemingly at random. There's also a hard
+ceiling of ~1000 live connections per process baked into the current code.
+
+### Why we can't just reuse our existing Redis
+
+The natural fix is a shared "announcement channel" that every server listens to.
+Redis has exactly this (called pub/sub — publish/subscribe). But our Redis is
+**Upstash's REST version**, which talks over one-off HTTP requests. It has no
+way to *hold a subscription open*, so it can't be the always-listening channel
+we need. We'd need a different connection method or a different tool.
+
+### The options (pick one)
+
+1. **Real Redis pub/sub** — connect to Redis over its normal protocol (with a
+   library like `ioredis`) instead of the REST version. Every server subscribes
+   to a channel per organization; a change gets published once and all servers
+   receive it. Smallest change to our code. **Recommended.**
+2. **Postgres LISTEN/NOTIFY** — Postgres (which we already use) can broadcast
+   messages too. No new infrastructure. Downsides: messages are size-limited (so
+   we'd send just the order ID and re-fetch the order), and it needs a dedicated
+   database connection per server.
+3. **A dedicated message broker** (NATS, Kafka, Redis Streams) — more powerful,
+   but overkill right now. Only worth it if we later need message history/replay.
+
+### Done when
+
+We can run 3 backend servers behind the load balancer, change an order on any
+one of them, and every connected viewer — no matter which server they're on —
+sees the update within ~100 milliseconds.
+
+### Where to change it
+
+Every `orderEmitter.emit(...)` in `orders.logic.ts`, plus the `/stream` handler
+in `orders.route.ts`. **Note:** the exact same pattern (and therefore the same
+bug) also exists in `analytics.logic.ts` and `table.logic.ts` — fix all three
+together.
 
 ---
 
-## P2 — Backpressure & slow-client safety on the stream
+## P1 — Make sure our hosting can keep connections open for hours
 
-**Problem.** The `/stream` listener calls `stream.writeSSE(...)` **without
-awaiting**. A slow/stalled client can let writes queue and grow memory; a
-throwing write isn't isolated per subscriber.
+### What's happening
 
-**Action.**
-- Await (or queue with a bounded buffer) per-connection writes; drop the
-  connection if it falls too far behind (client will reconnect + re-sync).
-- Wrap each subscriber's write so one bad client can't take down the emit path.
-- Consider coalescing bursts (e.g. per-order latest-wins) under heavy churn.
+SSE relies on a connection staying open for a long time — potentially a whole
+shift. Some hosting setups fight this:
 
----
+- **Serverless platforms** (Vercel functions, AWS Lambda) force code to finish
+  within seconds and will cut the connection off.
+- Some proxies/CDNs **buffer** the stream (hold messages back instead of passing
+  them through instantly), which defeats the whole point of live updates.
 
-## P3 — Correctness / polish
+### What to do
 
-- **Search quality**: `ILIKE '%q%'` can't use a btree index (leading wildcard).
-  At scale add `pg_trgm` GIN index on the searched columns, or move to a search
-  service. Today it's a filtered scan.
-- **`getAll` + `order:all:<org>` Redis cache** is now dead for the list/stream
-  path. Remove it (and its `delPattern` invalidations) once nothing else reads
-  it, to drop write-path overhead.
-- **Per-org authorization on `/stream`**: confirm `sessionMiddleware` fully
-  scopes the subscription to the caller's org (it drives the channel name — must
-  not be client-supplied).
-- **`Last-Event-ID` replay (optional upgrade)**: with a broker that retains a
-  short history, resend missed deltas on reconnect instead of a full page-0
-  re-sync. Lighter than resync; only worth it if reconnect churn is high.
-- **Migration**: `order_org_created_idx` was added to the Drizzle schema
-  (`core/db/schemas/order.ts`). Generate + apply it:
-  `pnpm --filter api db:generate && pnpm --filter api db:migrate`
-  (build it `CONCURRENTLY` in prod to avoid locking the table).
+- Confirm where `apps/api` actually runs. If it's serverless, move the streaming
+  routes to something that allows long-running connections (a container or
+  always-on server), or adopt a managed realtime service.
+- Check the whole path from server to browser passes the stream through
+  immediately without buffering. Our code already sends the right hints
+  (`X-Accel-Buffering: no`); confirm the load balancer / CDN in front respects
+  them.
+- Have connections voluntarily restart every 30–60 minutes. Because the browser
+  now re-syncs whenever it reconnects (see the note below), cycling connections
+  is safe and lets us deploy new versions without stranding anyone on an old one.
+
+### Done when
+
+A board stays live for over an hour, and survives a routine deployment, without
+anyone hitting refresh.
 
 ---
 
-## Suggested order of execution
+## P2 — Stop recounting the whole table for the stat cards
 
-1. **Migration** for `order_org_created_idx` (unblocks pagination perf). — small
-2. **P0 fan-out** (Redis pub/sub or LISTEN/NOTIFY). — the real unlock
-3. **P1 deploy target** verification. — must pair with P0
-4. **P2 stats cache**, then **stream backpressure**. — hardening
-5. **P3** cleanup + search index as load dictates.
+### What's happening
 
-## How to load-test
+The cards at the top (Total, Pending, Ready, etc.) come from a query that counts
+every order in the organization, grouped by status. We already limit how often
+it runs, but each run still scans the entire orders table. That's fine with
+thousands of orders; with millions — multiplied by many open boards — it becomes
+a heavy, repeated query.
 
-- N synthetic SSE clients across ≥2 instances; drive create/update mutations;
-  assert every client observes every delta and stats converge.
-- Kill one instance mid-stream; confirm clients reconnect and re-sync (no
-  missing/duplicate orders — dedupe is by id).
-- Deep-paginate under continuous inserts; confirm no dupes/skips (keyset).
+### Options
+
+1. **Keep running totals** — a small table (or Redis entry) that holds the count
+   per status, nudged up or down whenever an order is created, changed, or
+   deleted. Reading the stats becomes an instant lookup. Most robust.
+2. **Cache the counts briefly** — store the result for a few seconds so rapid
+   changes don't trigger a fresh count each time. Cheap, easy, good stopgap.
+
+**Suggested:** do option 2 now as a safety valve, plan option 1 for real scale.
+
+### Where to change it
+
+`getStats` in `orders.logic.ts` (and, for option 1, the create/update/delete
+paths where counts would be adjusted).
+
+---
+
+## P2 — Protect the stream from slow viewers
+
+### What's happening
+
+When the server pushes a message to a viewer, it doesn't wait to confirm it was
+sent. If one viewer's connection is slow or stuck, undelivered messages can pile
+up in memory, and one misbehaving connection isn't isolated from the rest.
+
+### What to do
+
+- Wait for (or queue, with a size limit) each viewer's messages; if a viewer
+  falls too far behind, drop their connection — the browser will reconnect and
+  re-sync automatically.
+- Wrap each send so one broken connection can't disrupt the others.
+- Under heavy bursts, collapse rapid repeated updates to the same order into just
+  the latest one.
+
+---
+
+## P3 — Smaller correctness and cleanup items
+
+- **Search speed:** the current search (`ILIKE '%term%'`) can't use a normal
+  index because of the leading wildcard, so it scans. At scale, add a trigram
+  index (`pg_trgm`) on the searched columns, or move search to a dedicated
+  service.
+- **Remove dead code:** `getAll` and its Redis cache (`order:all:<org>`) are no
+  longer used by the list or the stream. Delete them once nothing else depends
+  on them, to save work on every write.
+- **Double-check stream authorization:** the SSE connection is scoped to the
+  caller's organization. Confirm that scope comes from the verified session, not
+  from anything the client can send.
+- **Optional upgrade — replay missed messages:** with a broker that keeps a short
+  history, on reconnect we could resend just the messages a viewer missed instead
+  of re-fetching the first page. Lighter, but only worth it if reconnects are
+  frequent.
+- **Run the database migration:** a new index (`order_org_created_idx`) was added
+  in the schema to keep pagination fast, but it hasn't been applied yet. Run:
+  ```
+  pnpm --filter api db:generate && pnpm --filter api db:migrate
+  ```
+  In production, create the index `CONCURRENTLY` so it doesn't lock the table.
+
+---
+
+## Already done (context)
+
+- **Pagination** that stays fast at any depth, with server-side status filtering
+  and search.
+- **Stats endpoint** so the cards are correct even though the browser only holds
+  one page.
+- **Slimmed-down stream:** it no longer sends the entire orders table when a
+  viewer connects — just live changes.
+- **Reconnect healing:** if the connection drops (network blip, deploy), the
+  browser re-fetches the latest page on reconnect, so any changes it missed while
+  disconnected are recovered.
+
+---
+
+## Suggested order of work
+
+1. **Run the migration** — quick, makes pagination fast.
+2. **P0: shared announcement channel** — the real unlock for multiple servers.
+3. **P1: confirm hosting** supports long-lived connections — pairs with P0.
+4. **P2: cache the stats, then protect the stream** — hardening.
+5. **P3: cleanup and search index** — as load demands.
+
+## How to test it under load
+
+- Open many simulated viewers across at least two servers, fire a stream of
+  order changes, and confirm every viewer sees every change and the stats agree.
+- Kill one server mid-stream; confirm viewers reconnect and re-sync with no
+  missing or duplicated orders.
+- Scroll deep into the history while new orders keep arriving; confirm no
+  duplicates and nothing skipped.
