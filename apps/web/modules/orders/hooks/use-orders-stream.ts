@@ -72,6 +72,8 @@ export function useOrdersStream(params: UseOrdersStreamParams = {}) {
   const cursorRef = useRef<string | null>(null)
   const loadingMoreRef = useRef(false)
 
+  const snapshotSeq = useRef(0)
+
   const statusRef = useRef(status)
   const searchRef = useRef(search)
   statusRef.current = status
@@ -95,15 +97,18 @@ export function useOrdersStream(params: UseOrdersStreamParams = {}) {
     statsTimer.current = setTimeout(refreshStats, STATS_DEBOUNCE_MS)
   }, [refreshStats])
 
-  useEffect(() => {
-    let cancelled = false
+  const loadSnapshot = useCallback(() => {
+    const seq = ++snapshotSeq.current
     setLoadingInitial(true)
-    storeRef.current = new Map()
     cursorRef.current = null
 
-    fetchOrders({ status, search, limit: PAGE_SIZE })
+    fetchOrders({
+      status: statusRef.current,
+      search: searchRef.current,
+      limit: PAGE_SIZE,
+    })
       .then((page) => {
-        if (cancelled) return
+        if (seq !== snapshotSeq.current) return // superseded by a newer load
         const next = new Map<string, OrderResponse>()
         for (const o of page.data) next.set(o.id, o)
         storeRef.current = next
@@ -113,19 +118,20 @@ export function useOrdersStream(params: UseOrdersStreamParams = {}) {
         setError(null)
       })
       .catch(() => {
-        if (!cancelled) setError("Failed to load orders")
+        if (seq === snapshotSeq.current) setError("Failed to load orders")
       })
       .finally(() => {
-        if (!cancelled) setLoadingInitial(false)
+        if (seq === snapshotSeq.current) setLoadingInitial(false)
       })
+  }, [rebuild])
 
-    return () => {
-      cancelled = true
-    }
-  }, [status, search, rebuild])
+  useEffect(() => {
+    loadSnapshot()
+  }, [status, search, loadSnapshot])
 
   const loadMore = useCallback(async () => {
     if (loadingMoreRef.current || !cursorRef.current) return
+    const seq = snapshotSeq.current
     loadingMoreRef.current = true
     setLoadingMore(true)
     try {
@@ -135,6 +141,7 @@ export function useOrdersStream(params: UseOrdersStreamParams = {}) {
         cursor: cursorRef.current,
         limit: PAGE_SIZE,
       })
+      if (seq !== snapshotSeq.current) return
       for (const o of page.data) storeRef.current.set(o.id, o)
       cursorRef.current = page.nextCursor
       setHasMore(page.hasMore)
@@ -170,6 +177,7 @@ export function useOrdersStream(params: UseOrdersStreamParams = {}) {
     let closed = false
     let delay = RECONNECT_BASE_MS
     let retry: ReturnType<typeof setTimeout> | null = null
+    let hasConnected = false
 
     const ring = () => {
       if (!bell.current) return
@@ -213,6 +221,11 @@ export function useOrdersStream(params: UseOrdersStreamParams = {}) {
         setConnected(true)
         setError(null)
         delay = RECONNECT_BASE_MS
+        if (hasConnected) {
+          loadSnapshot()
+        } else {
+          hasConnected = true
+        }
       })
 
       const handleEvent = (e: MessageEvent) => {
@@ -230,7 +243,6 @@ export function useOrdersStream(params: UseOrdersStreamParams = {}) {
       es.onopen = () => {
         setConnected(true)
         setError(null)
-        delay = RECONNECT_BASE_MS
       }
 
       es.onerror = () => {
@@ -254,7 +266,7 @@ export function useOrdersStream(params: UseOrdersStreamParams = {}) {
       if (statsTimer.current) clearTimeout(statsTimer.current)
       window.removeEventListener("pointerdown", unlock)
     }
-  }, [rebuild, scheduleStatsRefresh])
+  }, [rebuild, scheduleStatsRefresh, loadSnapshot])
 
   return {
     orders,

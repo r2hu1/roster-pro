@@ -19,6 +19,7 @@ import { useKitchenMode } from "@/modules/providers/kitchen-mode"
 import { Logo } from "@/components/logo"
 import { useSession } from "@/modules/providers/session-provider"
 import { cn } from "@workspace/ui/lib/utils"
+import { Loader } from "@workspace/ui/components/loader"
 
 const SEARCH_DEBOUNCE_MS = 350
 
@@ -65,7 +66,8 @@ function LoadMoreSentinel({
         onClick={onLoadMore}
         disabled={loadingMore}
       >
-        {loadingMore ? "Loading…" : "Load more"}
+        Load more
+        {loadingMore && <Loader />}
       </Button>
     </div>
   )
