@@ -8,12 +8,17 @@ import {
   ResponsiveModalTitle,
   ResponsiveModalDescription,
   ResponsiveModalBody,
+  ResponsiveModalFooter,
+  ResponsiveModalClose,
 } from "@workspace/ui/components/responsive-modal"
 import { Badge } from "@workspace/ui/components/badge"
 import { Separator } from "@workspace/ui/components/separator"
-import { IconBurger, IconShoppingBag } from "@tabler/icons-react"
-import { useOrdersStream } from "../providers/orders-stream"
+import { IconBurger, IconClock, IconShoppingBag } from "@tabler/icons-react"
 import { Button } from "@workspace/ui/components/button"
+import { useTableContext } from "@/modules/providers/table-provider"
+import { useActiveOrdersStream } from "@/hooks/use-active-orders-stream"
+import { motion } from "motion/react"
+import { RippleButton } from "./ripple-button"
 
 const statusLabel: Record<string, { label: string; variant: "default" | "secondary" | "outline" | "destructive" }> = {
   pending: { label: "Pending", variant: "secondary" },
@@ -29,16 +34,27 @@ interface Props {
   children: React.ReactNode
 }
 
+function orderEstimate(order: { items: Array<{ preparationTime?: number | null }> }): number {
+  return order.items.reduce((max, i) => Math.max(max, i.preparationTime ?? 0), 0)
+}
+
 export default function ResponsiveOrdersStatus() {
-  const { orders, connected, error } = useOrdersStream()
+  const { data: tableData } = useTableContext()
+  const tableId = tableData?.table.id
+  const organizationId = tableData?.organization.id
+
+  const { orders, connected, error } = useActiveOrdersStream(
+    tableId,
+    organizationId
+  )
 
   return (
     <ResponsiveModal>
-      <ResponsiveModalTrigger asChild>
-        <Button size="icon-lg" className="z-50 fixed bottom-10 right-10"><IconBurger/></Button>
+      <ResponsiveModalTrigger>
+        <RippleButton/>
       </ResponsiveModalTrigger>
 
-      <ResponsiveModalContent>
+      <ResponsiveModalContent thumbClassName="mt-1">
         <ResponsiveModalHeader>
           <ResponsiveModalTitle>Your Orders</ResponsiveModalTitle>
           <ResponsiveModalDescription>
@@ -56,7 +72,9 @@ export default function ResponsiveOrdersStatus() {
             </div>
           ) : (
             <div className="space-y-3">
-              {orders.map((order) => (
+              {orders.map((order) => {
+                const est = orderEstimate(order)
+                return (
                 <div
                   key={order.id}
                   className="rounded-lg border bg-card p-3 space-y-2"
@@ -65,14 +83,22 @@ export default function ResponsiveOrdersStatus() {
                     <span className="text-xs font-medium text-muted-foreground">
                       #{order.invoiceNumber}
                     </span>
-                    <Badge
-                      variant={
-                        statusLabel[order.status]?.variant ?? "secondary"
-                      }
-                      className="text-[10px] px-2 py-0"
-                    >
-                      {statusLabel[order.status]?.label ?? order.status}
-                    </Badge>
+                    <div className="flex items-center gap-2">
+                      {est > 0 && (
+                        <span className="flex items-center gap-0.5 text-[10px] text-muted-foreground">
+                          <IconClock className="size-3" />
+                          {est} min
+                        </span>
+                      )}
+                      <Badge
+                        variant={
+                          statusLabel[order.status]?.variant ?? "secondary"
+                        }
+                        className="text-[10px] px-2 py-0"
+                      >
+                        {statusLabel[order.status]?.label ?? order.status}
+                      </Badge>
+                    </div>
                   </div>
 
                   <div className="space-y-1">
@@ -110,10 +136,15 @@ export default function ResponsiveOrdersStatus() {
                     </span>
                   </div>
                 </div>
-              ))}
+                )})}
             </div>
           )}
         </ResponsiveModalBody>
+        <ResponsiveModalFooter>
+          <ResponsiveModalClose asChild>
+            <Button size="lg">Done</Button>
+          </ResponsiveModalClose>
+        </ResponsiveModalFooter>
       </ResponsiveModalContent>
     </ResponsiveModal>
   )
