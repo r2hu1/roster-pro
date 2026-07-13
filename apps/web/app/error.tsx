@@ -2,23 +2,20 @@
 
 import { useEffect } from "react"
 import { Button } from "@workspace/ui/components/button"
-import { IconAlertHexagon, IconAlertTriangle, IconArrowUpRight, IconError404 } from "@tabler/icons-react"
+import { IconAlertTriangle, IconArrowUpRight} from "@tabler/icons-react"
 import Link from "next/link"
 
-export default function Error({
-  error,
-  reset,
-}: {
-  error: Error & { digest?: string }
-  reset: () => void
-  }) {
+export default function Error() {
+  const reset = () => {
+    window.location.reload()
+  }
 
-    useEffect(() => {
-      const interval = setInterval(() => {
-        reset();
-      }, 5000)
-      return () => clearInterval(interval)
-    }, [reset])
+  useEffect(() => {
+    const interval = setInterval(() => {
+      reset()
+    }, 5000)
+    return () => clearInterval(interval)
+  }, [])
 
   return (
     <div className="flex min-h-screen px-6 flex-col items-center justify-center">
