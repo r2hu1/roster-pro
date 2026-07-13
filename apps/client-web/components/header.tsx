@@ -8,8 +8,8 @@ import { Button } from "@workspace/ui/components/button"
 import Image from "next/image"
 
 export default function Header() {
-  const { data } = useTableContext();
-  const { totalItems } = useCart();
+  const { data } = useTableContext()
+  const { totalItems } = useCart()
   return (
     <header className="pt-5 px-6 flex items-center justify-between gap-2">
       <div className="flex items-center gap-2">
@@ -31,7 +31,9 @@ export default function Header() {
         <Button size="icon-lg" className="relative">
           <IconShoppingCart className="size-4" />
           <span className="sr-only">Cart</span>
-          <Badge className="absolute -top-1 -right-1 text-xs p-0 h-4 w-4">{totalItems}</Badge>
+          <Badge className="absolute -top-1 -right-1 text-xs p-0 h-4 w-4">
+            {totalItems}
+          </Badge>
         </Button>
       </CartSheet>
     </header>

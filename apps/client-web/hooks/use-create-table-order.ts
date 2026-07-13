@@ -2,12 +2,12 @@
 
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import type {
-  CreateOrderDto,
   OrderResponse,
+  CreateTableOrderDto,
 } from "@workspace/shared/schemas/order/index"
 import api from "@/lib/axios"
 
-export type CreateTableOrderInput = Omit<CreateOrderDto, "tableNumber">
+export type CreateTableOrderInput = CreateTableOrderDto
 
 type CreateTableOrderResponse =
   | { status: "success"; code: number; data: OrderResponse; appended?: boolean }

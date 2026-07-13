@@ -453,7 +453,42 @@ export const orderLogic = {
       .limit(1)
 
     if (!active) {
-      return orderLogic.create({ ...body, items: resolvedIncoming, tableNumber })
+      const subtotal = +resolvedIncoming
+        .reduce((sum, it) => sum + it.unitPrice * it.quantity, 0)
+        .toFixed(2)
+      const discount = body.discount ?? 0
+      const taxableAmount = +(subtotal - discount).toFixed(2)
+      const gstRate = Number(org.gstRate ?? 5)
+      const halfRate = gstRate / 2
+      const cgstAmount = +((taxableAmount * halfRate) / 100).toFixed(2)
+      const sgstAmount = +((taxableAmount * halfRate) / 100).toFixed(2)
+      const igstAmount = 0
+      const totalGst = cgstAmount + sgstAmount
+      const roundOff = +(
+        Math.round(taxableAmount + totalGst) -
+        (taxableAmount + totalGst)
+      ).toFixed(2)
+      const grandTotal = +(taxableAmount + totalGst + roundOff).toFixed(2)
+
+      return orderLogic.create({
+        organizationId: body.organizationId,
+        customerName: body.customerName,
+        customerPhone: body.customerPhone,
+        customerEmail: body.customerEmail,
+        tableNumber,
+        items: resolvedIncoming,
+        subtotal,
+        discount,
+        taxableAmount,
+        gstRate,
+        cgstAmount,
+        sgstAmount,
+        igstAmount,
+        roundOff,
+        grandTotal,
+        notes: body.notes,
+        paymentMethod: body.paymentMethod,
+      })
     }
 
     const merged: OrderItemJson[] = active.items.map((it) => ({ ...it }))
@@ -511,7 +546,9 @@ export const orderLogic = {
       .returning()
 
     try {
-      await redisClient.del(`${ORDER_CACHE_PREFIX}${organizationId}:${active.id}`)
+      await redisClient.del(
+        `${ORDER_CACHE_PREFIX}${organizationId}:${active.id}`
+      )
       await redisClient.delPattern(`${ORDER_CACHE_PREFIX}all:${organizationId}`)
     } catch (err) {
       console.error("Failed to invalidate order cache", err)

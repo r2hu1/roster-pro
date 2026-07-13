@@ -1,4 +1,5 @@
 import type { OrderResponse } from "@workspace/shared/schemas/order/index"
+import { ScrollArea } from "@workspace/ui/components/scroll-area"
 
 const inr = (n: number) => n.toLocaleString("en-IN")
 

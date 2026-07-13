@@ -16,11 +16,11 @@ const TableContext = createContext<TableContextProps | null>(null)
 
 export function TableProvider({ children }: { children: React.ReactNode }) {
   const { token } = useParams<{ token: string }>()
-  const { data: decodedToken, isPending, error } = useDecodeToken(token);
+  const { data: decodedToken, isPending, error } = useDecodeToken(token)
 
   useEffect(() => {
-    localStorage.setItem("last-visited", token);
-  },[token])
+    localStorage.setItem("last-visited", token)
+  }, [token])
 
   return (
     <TableContext.Provider value={{ data: decodedToken, isPending, error }}>

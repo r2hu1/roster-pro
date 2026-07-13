@@ -19,11 +19,13 @@ import {
   IconMinus,
   IconPlus,
   IconShoppingBag,
+  IconShoppingBagPlus,
   IconShoppingCart,
   IconTrash,
 } from "@tabler/icons-react"
 import type { CartItemVariant } from "../provider/cart-provider"
 import { useCart } from "../provider/cart-provider"
+import ResponsivePlacingOrder from "./responsive-placing-order"
 
 interface Props {
   children?: React.ReactNode
@@ -49,9 +51,7 @@ export default function CartSheet({ children, open, onOpenChange }: Props) {
 
       <SheetContent side="right" className="flex flex-col w-full sm:max-w-md">
         <SheetHeader>
-          <SheetTitle>
-            Your Cart
-          </SheetTitle>
+          <SheetTitle>Your Cart</SheetTitle>
         </SheetHeader>
 
         {items.length === 0 ? (
@@ -94,7 +94,9 @@ export default function CartSheet({ children, open, onOpenChange }: Props) {
                         <ButtonGroup className="bg-secondary rounded-md">
                           <Button
                             type="button"
-                            variant={item.variant === "half" ? "default" : "ghost"}
+                            variant={
+                              item.variant === "half" ? "default" : "ghost"
+                            }
                             size="xs"
                             onClick={() =>
                               changeVariant(item.id, "half" as CartItemVariant)
@@ -104,7 +106,9 @@ export default function CartSheet({ children, open, onOpenChange }: Props) {
                           </Button>
                           <Button
                             type="button"
-                            variant={item.variant === "full" ? "default" : "ghost"}
+                            variant={
+                              item.variant === "full" ? "default" : "ghost"
+                            }
                             size="xs"
                             onClick={() =>
                               changeVariant(item.id, "full" as CartItemVariant)
@@ -157,28 +161,29 @@ export default function CartSheet({ children, open, onOpenChange }: Props) {
               </div>
             </ScrollArea>
 
-
             <SheetFooter>
-            <div className="space-y-1">
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">Estimate time</span>
-                <span className="flex items-center gap-1 font-medium">
-                  <IconClock className="size-3.5" />
-                  {estimateTime > 0 ? `${estimateTime} min` : "—"}
-                </span>
+              <div className="space-y-1">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground">Estimate time</span>
+                  <span className="flex items-center gap-1 font-medium">
+                    <IconClock className="size-3.5" />
+                    {estimateTime > 0 ? `${estimateTime} min` : "—"}
+                  </span>
+                </div>
+                <Separator />
+                <div className="flex items-center justify-between text-sm">
+                  <span className="font-medium">Total</span>
+                  <span className="text-base font-bold tabular-nums">
+                    ₹{totalPrice}
+                  </span>
+                </div>
               </div>
-              <Separator />
-              <div className="flex items-center justify-between text-sm">
-                <span className="font-medium">Total</span>
-                <span className="text-lg font-bold tabular-nums">
-                  ₹{totalPrice}
-                </span>
-              </div>
-            </div>
-              <Button className="w-full" size="lg">
-                <IconShoppingBag className="size-4" />
-                Confirm Order
-              </Button>
+              <ResponsivePlacingOrder>
+                <Button className="w-full" size="lg">
+                  Place Order
+                  <IconShoppingBagPlus className="size-4" />
+                </Button>
+              </ResponsivePlacingOrder>
             </SheetFooter>
           </>
         )}

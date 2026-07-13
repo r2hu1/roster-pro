@@ -98,6 +98,16 @@ export type {
 // Invoice
 export type { InvoiceData } from "./schemas/order/index.js"
 
+// Table Order
+export {
+  CreateTableOrderSchema,
+  CreateTableOrderItemSchema,
+} from "./schemas/order/index.js"
+export type {
+  CreateTableOrderDto,
+  CreateTableOrderItemDto,
+} from "./schemas/order/index.js"
+
 // Order Item
 export {
   OrderItemSchema,

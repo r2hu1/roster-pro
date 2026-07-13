@@ -111,8 +111,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
               : i
           )
         }
-        const unitPrice =
-          variant === "half" ? item.price.half : item.price.full
+        const unitPrice = variant === "half" ? item.price.half : item.price.full
         return [
           ...prev,
           {

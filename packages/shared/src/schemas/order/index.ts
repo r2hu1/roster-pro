@@ -23,6 +23,14 @@ export {
 export { type InvoiceData } from "./invoice.js"
 
 export {
+  CreateTableOrderSchema,
+  type CreateTableOrderDto,
+  CreateTableOrderItemSchema,
+  type CreateTableOrderItemDto,
+  defaultCreateTableOrder,
+} from "./table-order.js"
+
+export {
   OrderItemSchema,
   type OrderItem,
   CreateOrderItemSchema,

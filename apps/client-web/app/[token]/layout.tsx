@@ -62,6 +62,7 @@ export default function Layout({ children }: LayoutProps) {
                   icon: "size-4! mr-2!",
                 },
               }}
+              duration={1000}
             />
           </main>
         </CartProvider>

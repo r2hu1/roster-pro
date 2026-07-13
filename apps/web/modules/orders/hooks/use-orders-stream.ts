@@ -18,6 +18,30 @@ export function useOrdersStream() {
   const retryRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const delayRef = useRef(RECONNECT_BASE_MS)
 
+  const bell = useRef<HTMLAudioElement | null>(null)
+
+  useEffect(() => {
+    bell.current = new Audio("/audios/bell.wav")
+
+    const unlock = async () => {
+      try {
+        bell.current!.muted = true
+        await bell.current!.play()
+        bell.current!.pause()
+        bell.current!.currentTime = 0
+        bell.current!.muted = false
+      } catch {}
+
+      window.removeEventListener("pointerdown", unlock)
+    }
+
+    window.addEventListener("pointerdown", unlock)
+
+    return () => {
+      window.removeEventListener("pointerdown", unlock)
+    }
+  }, [])
+
   useEffect(() => {
     let es: EventSource | null = null
     let closed = false
@@ -34,6 +58,10 @@ export function useOrdersStream() {
       })
 
       const handleEvent = (e: MessageEvent) => {
+        if (bell.current) {
+          bell.current.currentTime = 0
+          bell.current.play().catch(console.error)
+        }
         const event: OrdersEvent = {
           type: e.type as OrdersEvent["type"],
           data: JSON.parse(e.data),
