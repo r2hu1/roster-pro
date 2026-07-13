@@ -37,7 +37,7 @@ export function TableStatsList({ stats }: { stats: TableStat[] }) {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="space-y-3 max-h-90 overflow-y-scroll no-scrollbar">
+        <div className="space-y-3 max-h-100 overflow-y-scroll no-scrollbar">
           {stats.map((stat) => (
             <div
               key={stat.tableNumber}

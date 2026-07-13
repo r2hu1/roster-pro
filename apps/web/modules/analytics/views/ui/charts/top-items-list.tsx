@@ -30,7 +30,7 @@ export function TopItemsList({ items }: { items: TopItem[] }) {
         <CardTitle>Top Items</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="space-y-3">
+        <div className="space-y-3 max-h-100 overflow-y-auto no-scrollbar">
           {items.map((item, i) => (
             <div
               key={item.name}
