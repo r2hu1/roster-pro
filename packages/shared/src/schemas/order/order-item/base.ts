@@ -10,6 +10,7 @@ export const OrderItemSchema = z.object({
   quantity: z.number(),
   unitPrice: z.number(),
   notes: z.string().nullable(),
+  preparationTime: z.number().nullable(),
 })
 
 export type OrderItem = z.infer<typeof OrderItemSchema>

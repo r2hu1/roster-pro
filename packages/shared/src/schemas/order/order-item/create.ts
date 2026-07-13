@@ -8,6 +8,7 @@ export const CreateOrderItemSchema = z.object({
   quantity: z.number().int().positive("Quantity must be at least 1"),
   unitPrice: z.number().positive("Unit price must be positive"),
   notes: z.string().nullable().optional(),
+  preparationTime: z.number().nullable().optional(),
 })
 
 export type CreateOrderItemDto = z.infer<typeof CreateOrderItemSchema>

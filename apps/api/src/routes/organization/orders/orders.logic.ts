@@ -434,6 +434,7 @@ export const orderLogic = {
         unitPrice,
         logo: mi.image ?? null,
         notes: incoming.notes ?? null,
+        preparationTime: mi.preparationTime ?? null,
       })
     }
 
