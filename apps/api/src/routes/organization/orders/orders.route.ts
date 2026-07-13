@@ -27,7 +27,30 @@ orderRouter.get("/", sessionMiddleware, async (c) => {
     )
   }
 
-  const result = await orderLogic.getAll(organizationId)
+  const limitRaw = c.req.query("limit")
+  const result = await orderLogic.getPaginated(organizationId, {
+    limit: limitRaw ? Number(limitRaw) : undefined,
+    cursor: c.req.query("cursor") ?? null,
+    status: c.req.query("status") ?? null,
+    search: c.req.query("search") ?? null,
+  })
+  return c.json(result, result.code)
+})
+
+orderRouter.get("/stats", sessionMiddleware, async (c) => {
+  const organizationId = c.get("organizationId")
+  if (!organizationId) {
+    return c.json(
+      {
+        status: "error",
+        code: HTTP_STATUS_CODES.UNAUTHORIZED,
+        message: "Organization not found",
+      },
+      HTTP_STATUS_CODES.UNAUTHORIZED
+    )
+  }
+
+  const result = await orderLogic.getStats(organizationId)
   return c.json(result, result.code)
 })
 
@@ -44,16 +67,8 @@ orderRouter.get("/stream", sessionMiddleware, async (c) => {
     )
   }
 
-  const initialOrders = await orderLogic.getAll(organizationId)
-  if (initialOrders.status === "error") {
-    return c.json(initialOrders, initialOrders.code as 404)
-  }
-
   return streamSSE(c, async (stream) => {
-    await stream.writeSSE({
-      event: "init",
-      data: JSON.stringify(initialOrders.data),
-    })
+    await stream.writeSSE({ event: "ready", data: "" })
 
     const listener = (event: {
       type: string

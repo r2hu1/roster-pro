@@ -1,5 +1,5 @@
 "use client"
-import { useMemo, useState, useEffect } from "react"
+import { useState, useEffect, useRef, useCallback } from "react"
 import {
   IconCirclePlus,
   IconToolsKitchen2Off,
@@ -20,12 +20,7 @@ import { Logo } from "@/components/logo"
 import { useSession } from "@/modules/providers/session-provider"
 import { cn } from "@workspace/ui/lib/utils"
 
-const KITCHEN_COLUMNS = [
-  { key: "pending", label: "Pending" },
-  { key: "preparing", label: "Preparing" },
-  { key: "ready", label: "Ready" },
-  { key: "served", label: "Served" },
-]
+const SEARCH_DEBOUNCE_MS = 350
 
 function useClock() {
   const [time, setTime] = useState(new Date())
@@ -36,36 +31,75 @@ function useClock() {
   return time
 }
 
+function LoadMoreSentinel({
+  hasMore,
+  loadingMore,
+  onLoadMore,
+}: {
+  hasMore: boolean
+  loadingMore: boolean
+  onLoadMore: () => void
+}) {
+  const ref = useRef<HTMLDivElement | null>(null)
+
+  useEffect(() => {
+    if (!hasMore) return
+    const el = ref.current
+    if (!el) return
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting) onLoadMore()
+      },
+      { rootMargin: "200px" }
+    )
+    io.observe(el)
+    return () => io.disconnect()
+  }, [hasMore, onLoadMore])
+
+  if (!hasMore) return null
+
+  return (
+    <div ref={ref} className="flex justify-center py-6">
+      <Button
+        variant="secondary"
+        onClick={onLoadMore}
+        disabled={loadingMore}
+      >
+        {loadingMore ? "Loading…" : "Load more"}
+      </Button>
+    </div>
+  )
+}
+
 export default function OrdersPageView() {
-  const { orders, connected } = useOrdersStream()
   const { organization } = useSession()
   const { kitchenMode } = useKitchenMode()
   const [activeFilter, setActiveFilter] = useState<string>("All")
   const [search, setSearch] = useState("")
+  const [debouncedSearch, setDebouncedSearch] = useState("")
   const clock = useClock()
 
-  const totalOrders = orders.length ?? []
-  const pendingCount = orders.filter((o) => o.status === "pending").length
-  const readyCount = orders.filter((o) => o.status === "ready").length
-  const completedCount = orders.filter((o) => o.status === "completed").length
-  const cancelledCount = orders.filter((o) => o.status === "cancelled").length
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedSearch(search), SEARCH_DEBOUNCE_MS)
+    return () => clearTimeout(t)
+  }, [search])
 
-  const filtered = useMemo(() => {
-    let result = orders
-    if (activeFilter !== "All") {
-      result = result.filter((o) => o.status === activeFilter.toLowerCase())
-    }
-    if (search.trim()) {
-      const q = search.toLowerCase()
-      result = result.filter(
-        (o) =>
-          o.invoiceNumber.toLowerCase().includes(q) ||
-          o.tableNumber.toLowerCase().includes(q) ||
-          o.customerName?.toLowerCase().includes(q)
-      )
-    }
-    return result
-  }, [orders, activeFilter, search])
+  const statusFilter =
+    activeFilter === "All" ? undefined : activeFilter.toLowerCase()
+
+  const {
+    orders,
+    stats,
+    connected,
+    hasMore,
+    loadingInitial,
+    loadingMore,
+    loadMore,
+  } = useOrdersStream({ status: statusFilter, search: debouncedSearch })
+
+  const handleLoadMore = useCallback(() => {
+    void loadMore()
+  }, [loadMore])
 
   if (kitchenMode) {
     return (
@@ -113,7 +147,7 @@ export default function OrdersPageView() {
           />
         </div>
 
-        <div className="flex-1 overflow-x-auto overflow-y-hidden px-4 sm:px-6 py-4">
+        <div className="flex-1 overflow-x-auto overflow-y-auto px-4 sm:px-6 py-4">
           {orders.length === 0 ? (
             <div className="h-full flex items-center justify-center">
               <EmptyData
@@ -123,11 +157,18 @@ export default function OrdersPageView() {
               />
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-              {filtered.map((order) => (
-                <OrderCard key={order.id} order={order} />
-              ))}
-            </div>
+            <>
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                {orders.map((order) => (
+                  <OrderCard key={order.id} order={order} />
+                ))}
+              </div>
+              <LoadMoreSentinel
+                hasMore={hasMore}
+                loadingMore={loadingMore}
+                onLoadMore={handleLoadMore}
+              />
+            </>
           )}
         </div>
       </div>
@@ -155,7 +196,7 @@ export default function OrdersPageView() {
         }
       />
       <div className="space-y-6">
-        {!connected && orders.length === 0 ? (
+        {loadingInitial && orders.length === 0 ? (
           <div className="space-y-6">
             <div className="grid grid-cols-4 gap-4">
               {Array.from({ length: 4 }).map((_, i) => (
@@ -172,11 +213,11 @@ export default function OrdersPageView() {
         ) : (
           <>
             <OrdersStats
-              total={totalOrders}
-              pending={pendingCount}
-              ready={readyCount}
-              completed={completedCount}
-              cancelled={cancelledCount}
+              total={stats.total}
+              pending={stats.pending}
+              ready={stats.ready}
+              completed={stats.completed}
+              cancelled={stats.cancelled}
             />
             <OrdersFilters
               activeFilter={activeFilter}
@@ -185,11 +226,16 @@ export default function OrdersPageView() {
               onSearchChange={setSearch}
             />
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-              {filtered.map((order, i) => (
-                <OrderCard key={i} order={order} />
+              {orders.map((order) => (
+                <OrderCard key={order.id} order={order} />
               ))}
             </div>
-            {filtered.length === 0 && (
+            <LoadMoreSentinel
+              hasMore={hasMore}
+              loadingMore={loadingMore}
+              onLoadMore={handleLoadMore}
+            />
+            {orders.length === 0 && (
               <EmptyData
                 title="No orders recieved yet."
                 description="Let your customer order, and you will see it here in realtime."

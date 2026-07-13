@@ -96,6 +96,11 @@ export const order = pgTable(
     idIdx: index("order_id_idx").on(table.id),
     invoiceIdx: index("order_invoice_idx").on(table.invoiceNumber),
     orgIdx: index("order_org_idx").on(table.organizationId),
+    orgCreatedIdx: index("order_org_created_idx").on(
+      table.organizationId,
+      table.createdAt,
+      table.id
+    ),
     statusIdx: index("order_status_idx").on(table.status),
     paymentStatusIdx: index("order_payment_status_idx").on(table.paymentStatus),
     createdAtIdx: index("order_created_at_idx").on(table.createdAt),

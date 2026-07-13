@@ -1,4 +1,15 @@
-import { and, eq, desc, like, sql, inArray, gte } from "drizzle-orm"
+import {
+  and,
+  eq,
+  desc,
+  sql,
+  inArray,
+  gte,
+  lt,
+  or,
+  ilike,
+  count,
+} from "drizzle-orm"
 import { db } from "../../../core/db/client.js"
 import {
   order,
@@ -68,6 +79,40 @@ const ACTIVE_ORDER_STATUSES: (typeof order.$inferSelect)["status"][] = [
 export const orderEmitter = new EventEmitter()
 orderEmitter.setMaxListeners(1000)
 
+const DEFAULT_PAGE_SIZE = 20
+const MAX_PAGE_SIZE = 100
+
+type OrderRow = typeof order.$inferSelect
+
+function encodeCursor(createdAt: Date, id: string): string {
+  return Buffer.from(`${createdAt.toISOString()}|${id}`).toString("base64url")
+}
+
+function decodeCursor(cursor: string): { createdAt: Date; id: string } | null {
+  try {
+    const raw = Buffer.from(cursor, "base64url").toString("utf8")
+    const sep = raw.indexOf("|")
+    if (sep === -1) return null
+    const createdAt = new Date(raw.slice(0, sep))
+    const id = raw.slice(sep + 1)
+    if (Number.isNaN(createdAt.getTime()) || !id) return null
+    return { createdAt, id }
+  } catch {
+    return null
+  }
+}
+
+const EMPTY_STATS = {
+  total: 0,
+  pending: 0,
+  confirmed: 0,
+  preparing: 0,
+  ready: 0,
+  served: 0,
+  completed: 0,
+  cancelled: 0,
+}
+
 type OrderCreatedEvent = {
   type: "created"
   data: typeof order.$inferSelect
@@ -114,6 +159,106 @@ export const orderLogic = {
     await redisClient.set(cacheKey, orders, CACHE_TTL)
 
     return { status: "success", code: HTTP_STATUS_CODES.OK, data: orders }
+  },
+
+  getPaginated: async (
+    organizationId: string,
+    opts: {
+      limit?: number
+      cursor?: string | null
+      status?: string | null
+      search?: string | null
+    } = {}
+  ) => {
+    if (!organizationId) {
+      return {
+        status: "error" as const,
+        code: HTTP_STATUS_CODES.NOT_FOUND,
+        message: "Organization not found",
+      }
+    }
+
+    const limit = Math.min(
+      Math.max(Math.trunc(opts.limit ?? DEFAULT_PAGE_SIZE) || DEFAULT_PAGE_SIZE, 1),
+      MAX_PAGE_SIZE
+    )
+
+    const conditions = [eq(order.organizationId, organizationId)]
+
+    if (opts.status && opts.status !== "all") {
+      conditions.push(eq(order.status, opts.status as OrderRow["status"]))
+    }
+
+    const search = opts.search?.trim()
+    if (search) {
+      const q = `%${search}%`
+      conditions.push(
+        or(
+          ilike(order.invoiceNumber, q),
+          ilike(order.tableNumber, q),
+          ilike(order.customerName, q)
+        )!
+      )
+    }
+
+    const decoded = opts.cursor ? decodeCursor(opts.cursor) : null
+    if (decoded) {
+      conditions.push(
+        or(
+          lt(order.createdAt, decoded.createdAt),
+          and(
+            eq(order.createdAt, decoded.createdAt),
+            lt(order.id, decoded.id)
+          )
+        )!
+      )
+    }
+
+    const rows = await db
+      .select()
+      .from(order)
+      .where(and(...conditions))
+      .orderBy(desc(order.createdAt), desc(order.id))
+      .limit(limit + 1)
+
+    const hasMore = rows.length > limit
+    const data = hasMore ? rows.slice(0, limit) : rows
+    const last = data[data.length - 1]
+    const nextCursor =
+      hasMore && last ? encodeCursor(last.createdAt, last.id) : null
+
+    return {
+      status: "success" as const,
+      code: HTTP_STATUS_CODES.OK,
+      data: { data, nextCursor, hasMore },
+    }
+  },
+
+  getStats: async (organizationId: string) => {
+    if (!organizationId) {
+      return {
+        status: "error" as const,
+        code: HTTP_STATUS_CODES.NOT_FOUND,
+        message: "Organization not found",
+      }
+    }
+
+    const rows = await db
+      .select({ status: order.status, value: count() })
+      .from(order)
+      .where(eq(order.organizationId, organizationId))
+      .groupBy(order.status)
+
+    const stats = { ...EMPTY_STATS }
+    for (const row of rows) {
+      const n = Number(row.value)
+      if (row.status in stats) {
+        stats[row.status as keyof typeof stats] = n
+      }
+      stats.total += n
+    }
+
+    return { status: "success" as const, code: HTTP_STATUS_CODES.OK, data: stats }
   },
 
   resolveTableNumber: async (

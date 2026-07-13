@@ -16,8 +16,6 @@ import PageHeader from "@/components/page-header"
 
 export default function ReceiptsPageView() {
   const { orders, connected } = useOrdersStream()
-  const { organization } = useSession()
-  const { kitchenMode } = useKitchenMode()
   const [activeFilter, setActiveFilter] = useState<string>("All")
   const [search, setSearch] = useState("")
 

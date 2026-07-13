@@ -3,15 +3,32 @@ import type {
   CreateOrderDto,
   UpdateOrderDto,
   OrderResponse,
-  OrderListResponse,
+  OrderPage,
+  OrderStats,
 } from "@workspace/shared/schemas/order/index"
 
+export interface FetchOrdersParams {
+  cursor?: string | null
+  limit?: number
+  status?: string | null
+  search?: string | null
+}
+
 export async function fetchOrders(
-  organizationId: string
-): Promise<OrderListResponse> {
-  const { data } = await api.get(`/organization/orders`, {
-    params: { organizationId },
-  })
+  params: FetchOrdersParams = {}
+): Promise<OrderPage> {
+  const query: Record<string, string> = {}
+  if (params.cursor) query.cursor = params.cursor
+  if (params.limit) query.limit = String(params.limit)
+  if (params.status && params.status !== "all") query.status = params.status
+  if (params.search?.trim()) query.search = params.search.trim()
+
+  const { data } = await api.get(`/organization/orders`, { params: query })
+  return data.data
+}
+
+export async function fetchOrderStats(): Promise<OrderStats> {
+  const { data } = await api.get(`/organization/orders/stats`)
   return data.data
 }
 
