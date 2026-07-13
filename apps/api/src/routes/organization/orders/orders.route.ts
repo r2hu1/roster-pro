@@ -88,6 +88,17 @@ orderRouter.get("/:id", async (c) => {
   return c.json(result, result.code)
 })
 
+orderRouter.post(
+  "/table/:tableId",
+  zvalidator("json", createTableOrderSchema),
+  async (c) => {
+    const tableId = c.req.param("tableId")!
+    const body = c.req.valid("json")
+    const result = await orderLogic.createOrAppend(tableId, body)
+    return c.json(result, result.code)
+  }
+)
+
 orderRouter.post("/", zvalidator("json", createOrderSchema), async (c) => {
   // console.log("create order");     // ignore this
   const body = c.req.valid("json")

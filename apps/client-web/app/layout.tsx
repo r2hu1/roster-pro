@@ -2,7 +2,6 @@ import { Geist } from "next/font/google"
 import "@workspace/ui/globals.css"
 import { cn } from "@workspace/ui/lib/utils"
 import type { Metadata } from "next"
-import { Realtime } from "@/components/realtime-provider"
 
 const geist = Geist({
   subsets: ["latin"],
@@ -27,9 +26,7 @@ export default function RootLayout({
       suppressHydrationWarning
       className={cn("antialiased ", geist.className)}
     >
-      <body>
-        <Realtime>{children}</Realtime>
-      </body>
+      <body>{children}</body>
     </html>
   )
 }
