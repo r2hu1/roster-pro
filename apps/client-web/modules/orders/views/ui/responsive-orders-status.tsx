@@ -34,8 +34,11 @@ interface Props {
   children: React.ReactNode
 }
 
-function orderEstimate(order: { items: Array<{ preparationTime?: number | null }> }): number {
-  return order.items.reduce((max, i) => Math.max(max, i.preparationTime ?? 0), 0)
+function orderEstimate(order: { items: Array<{ preparationTime?: number | null }>, createdAt: string | Date }): number {
+  const maxPrep = order.items.reduce((max, i) => Math.max(max, i.preparationTime ?? 0), 0)
+  if (maxPrep <= 0) return 0
+  const elapsed = (Date.now() - new Date(order.createdAt).getTime()) / 60000
+  return Math.max(0, Math.ceil(maxPrep - elapsed))
 }
 
 export default function ResponsiveOrdersStatus() {
