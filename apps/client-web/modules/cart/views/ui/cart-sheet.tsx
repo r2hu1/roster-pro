@@ -1,5 +1,6 @@
 "use client"
 
+import { useState } from "react"
 import Image from "next/image"
 
 import { Button } from "@workspace/ui/components/button"
@@ -16,6 +17,7 @@ import {
 } from "@workspace/ui/components/sheet"
 import {
   IconClock,
+  IconMaximize,
   IconMinus,
   IconPlus,
   IconShoppingBag,
@@ -26,6 +28,9 @@ import {
 import type { CartItemVariant } from "../provider/cart-provider"
 import { useCart } from "../provider/cart-provider"
 import ResponsivePlacingOrder from "./responsive-placing-order"
+import { Textarea } from "@workspace/ui/components/textarea"
+import Link from "next/link"
+import { useTableContext } from "@/modules/providers/table-provider"
 
 interface Props {
   children?: React.ReactNode
@@ -34,6 +39,7 @@ interface Props {
 }
 
 export default function CartSheet({ children, open, onOpenChange }: Props) {
+  const [orderNotes, setOrderNotes] = useState("")
   const {
     items,
     totalItems,
@@ -43,7 +49,8 @@ export default function CartSheet({ children, open, onOpenChange }: Props) {
     updateQuantity,
     changeVariant,
     clearCart,
-  } = useCart()
+  } = useCart();
+  const { token } = useTableContext();
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -51,7 +58,12 @@ export default function CartSheet({ children, open, onOpenChange }: Props) {
 
       <SheetContent side="right" className="flex flex-col w-full sm:max-w-md">
         <SheetHeader>
-          <SheetTitle>Your Cart</SheetTitle>
+          <SheetTitle asChild>
+            <Link href={`/${token}/cart`} className="flex items-center gap-2 text-xs">
+              <IconMaximize className="size-4" />
+              Full Screen
+            </Link>
+          </SheetTitle>
         </SheetHeader>
 
         {items.length === 0 ? (
@@ -61,7 +73,7 @@ export default function CartSheet({ children, open, onOpenChange }: Props) {
           </div>
         ) : (
           <>
-            <ScrollArea className="flex-1 px-4 max-h-140">
+            <ScrollArea className="flex-1 px-4 max-h-130">
               <div className="space-y-3">
                 {items.map((item) => (
                   <div key={item.id}>
@@ -163,6 +175,12 @@ export default function CartSheet({ children, open, onOpenChange }: Props) {
 
             <SheetFooter>
               <div className="space-y-1">
+                <Textarea
+                  placeholder="Any special instructions? (optional)"
+                  value={orderNotes}
+                  onChange={(e) => setOrderNotes(e.target.value)}
+                  rows={2}
+                />
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-muted-foreground">Estimate time</span>
                   <span className="flex items-center gap-1 font-medium">
@@ -178,7 +196,7 @@ export default function CartSheet({ children, open, onOpenChange }: Props) {
                   </span>
                 </div>
               </div>
-              <ResponsivePlacingOrder>
+              <ResponsivePlacingOrder orderNotes={orderNotes}>
                 <Button className="w-full" size="lg">
                   Place Order
                   <IconShoppingBagPlus className="size-4" />

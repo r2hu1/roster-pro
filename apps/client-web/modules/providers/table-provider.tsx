@@ -10,6 +10,7 @@ interface TableContextProps {
   data: DecodedToken | undefined
   isPending: boolean
   error: Error | null
+  token: string | undefined
 }
 
 const TableContext = createContext<TableContextProps | null>(null)
@@ -23,7 +24,7 @@ export function TableProvider({ children }: { children: React.ReactNode }) {
   }, [token])
 
   return (
-    <TableContext.Provider value={{ data: decodedToken, isPending, error }}>
+    <TableContext.Provider value={{ data: decodedToken, isPending, error,token }}>
       {children}
       {isPending && <Preloader />}
     </TableContext.Provider>

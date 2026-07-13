@@ -24,6 +24,7 @@ import Image from "next/image"
 
 interface Props {
   children: React.ReactNode
+  orderNotes?: string
 }
 
 type Phase = "confirm" | "placing" | "success" | "error"
@@ -31,7 +32,7 @@ type Phase = "confirm" | "placing" | "success" | "error"
 const CONFETTI_COLORS = ["#d99007", "#fd8bbc", "#eca184", "#f8deb1"]
 const CONFETTI_DURATION_MS = 3000
 
-export default function ResponsivePlacingOrder({ children }: Props) {
+export default function ResponsivePlacingOrder({ children, orderNotes }: Props) {
   const [open, setOpen] = useState(false)
   const [phase, setPhase] = useState<Phase>("confirm")
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
@@ -119,6 +120,7 @@ export default function ResponsivePlacingOrder({ children }: Props) {
         tableId: tableId!,
         data: {
           organizationId: organizationId!,
+          notes: orderNotes?.trim() || null,
           items: items.map((i) => ({
             menuItemId: i.menuItemId,
             variant: i.variant,
@@ -236,6 +238,11 @@ export default function ResponsivePlacingOrder({ children }: Props) {
                     ))}
                   </div>
                 </div>
+                {orderNotes && (
+                  <p className="text-sm text-muted-foreground italic">
+                    Note: {orderNotes}
+                  </p>
+                )}
                 <div className="space-y-2">
                   <p className="text-sm flex items-center justify-between">
                     Estimate Time{" "}
