@@ -179,7 +179,7 @@ export default function ResponsiveOrdersStatus() {
             size="lg"
             disabled={isRefetching || isPending}
           >
-            Refresh Status
+            Refresh
             {(isRefetching || isPending) && <Loader />}
           </Button>
           {/*<ResponsiveModalClose asChild>
