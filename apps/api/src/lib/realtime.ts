@@ -25,7 +25,9 @@ function initRealtime() {
 
   try {
     const redis = new Redis({ url, token })
-    realtimeInstance = new Realtime({ schema, redis }) as unknown as Realtime<{ schema: typeof schema }>
+    realtimeInstance = new Realtime({ schema, redis }) as unknown as Realtime<{
+      schema: typeof schema
+    }>
     return realtimeInstance
   } catch (err) {
     console.error("[realtime] Failed to initialize:", err)

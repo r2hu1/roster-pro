@@ -61,11 +61,7 @@ function LoadMoreSentinel({
 
   return (
     <div ref={ref} className="flex justify-center py-6">
-      <Button
-        variant="secondary"
-        onClick={onLoadMore}
-        disabled={loadingMore}
-      >
+      <Button variant="secondary" onClick={onLoadMore} disabled={loadingMore}>
         Load more
         {loadingMore && <Loader />}
       </Button>
@@ -99,7 +95,11 @@ export default function OrdersPageView() {
     loadingFilter,
     loadingMore,
     loadMore,
-  } = useOrdersStream({ organizationId: organizationId!, status: statusFilter, search: debouncedSearch })
+  } = useOrdersStream({
+    organizationId: organizationId!,
+    status: statusFilter,
+    search: debouncedSearch,
+  })
 
   const handleLoadMore = useCallback(() => {
     void loadMore()
@@ -150,8 +150,10 @@ export default function OrdersPageView() {
             onSearchChange={setSearch}
           />
           {loadingFilter && (
-            <div className="flex items-center justify-center">
-              <Loader className="text-muted-foreground" />
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+              {Array.from({ length: 9 }).map((_, i) => (
+                <Skeleton key={i} className="h-40" />
+              ))}
             </div>
           )}
         </div>
@@ -234,18 +236,12 @@ export default function OrdersPageView() {
               search={search}
               onSearchChange={setSearch}
             />
-              {loadingFilter && (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                  <Skeleton className="h-40"/>
-                  <Skeleton className="h-40"/>
-                  <Skeleton className="h-40"/>
-                  <Skeleton className="h-40"/>
-                  <Skeleton className="h-40"/>
-                  <Skeleton className="h-40"/>
-                  <Skeleton className="h-40"/>
-                  <Skeleton className="h-40"/>
-                  <Skeleton className="h-40"/>
-                </div>
+            {loadingFilter && (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                {Array.from({ length: 9 }).map((_, i) => (
+                  <Skeleton key={i} className="h-40" />
+                ))}
+              </div>
             )}
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
               {orders.map((order) => (

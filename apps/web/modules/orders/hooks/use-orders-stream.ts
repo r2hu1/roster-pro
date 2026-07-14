@@ -188,7 +188,7 @@ export function useOrdersStream(params: UseOrdersStreamParams) {
   useEffect(() => {
     refreshStats()
   }, [refreshStats])
- useEffect(() => {
+  useEffect(() => {
     return () => {
       if (statsTimer.current) clearTimeout(statsTimer.current)
     }
@@ -223,10 +223,7 @@ export function useOrdersStream(params: UseOrdersStreamParams) {
     }
   }, [])
 
-  const channels = useMemo(
-    () => [`orders:${organizationId}`],
-    [organizationId]
-  )
+  const channels = useMemo(() => [`orders:${organizationId}`], [organizationId])
   const events = useMemo(
     () => ["order.created", "order.updated", "order.deleted"] as const,
     []

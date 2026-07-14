@@ -1,7 +1,3 @@
 export default function SettingPageView() {
-  return (
-    <div>
-
-    </div>
-  );
+  return <div></div>
 }

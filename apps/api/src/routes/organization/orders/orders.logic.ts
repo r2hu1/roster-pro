@@ -156,7 +156,10 @@ export const orderLogic = {
     }
 
     const limit = Math.min(
-      Math.max(Math.trunc(opts.limit ?? DEFAULT_PAGE_SIZE) || DEFAULT_PAGE_SIZE, 1),
+      Math.max(
+        Math.trunc(opts.limit ?? DEFAULT_PAGE_SIZE) || DEFAULT_PAGE_SIZE,
+        1
+      ),
       MAX_PAGE_SIZE
     )
 
@@ -183,10 +186,7 @@ export const orderLogic = {
       conditions.push(
         or(
           lt(order.createdAt, decoded.createdAt),
-          and(
-            eq(order.createdAt, decoded.createdAt),
-            lt(order.id, decoded.id)
-          )
+          and(eq(order.createdAt, decoded.createdAt), lt(order.id, decoded.id))
         )!
       )
     }
@@ -235,7 +235,11 @@ export const orderLogic = {
       stats.total += n
     }
 
-    return { status: "success" as const, code: HTTP_STATUS_CODES.OK, data: stats }
+    return {
+      status: "success" as const,
+      code: HTTP_STATUS_CODES.OK,
+      data: stats,
+    }
   },
 
   resolveTableNumber: async (

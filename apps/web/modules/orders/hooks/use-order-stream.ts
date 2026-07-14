@@ -36,7 +36,10 @@ export function useOrderStream(orderId: string, organizationId: string) {
       if (sseEvent === "deleted") {
         payload = { type: "deleted", data: data as { id: string } }
       } else {
-        payload = { type: sseEvent as "created" | "updated", data: data as OrderResponse }
+        payload = {
+          type: sseEvent as "created" | "updated",
+          data: data as OrderResponse,
+        }
       }
 
       if (payload.type === "deleted") {
