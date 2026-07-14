@@ -47,9 +47,9 @@ export const order = pgTable(
       .notNull(),
     paymentMethod: text("payment_method"),
     items: jsonb("items").$type<OrderItemJson[]>().notNull(),
-    subtotal: integer("subtotal").notNull(),
-    discount: integer("discount").default(0).notNull(),
-    taxableAmount: integer("taxable_amount").notNull(),
+    subtotal: numeric("subtotal", { precision: 10, scale: 2, mode: "number" }).notNull(),
+    discount: numeric("discount", { precision: 10, scale: 2, mode: "number" }).default(0).notNull(),
+    taxableAmount: numeric("taxable_amount", { precision: 10, scale: 2, mode: "number" }).notNull(),
     gstRate: numeric("gst_rate", {
       precision: 10,
       scale: 2,

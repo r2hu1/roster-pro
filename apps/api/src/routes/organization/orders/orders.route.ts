@@ -167,7 +167,7 @@ orderRouter.delete("/:id", sessionMiddleware, async (c) => {
 
   const id = c.req.param("id")!
   const result = await orderLogic.delete(id, organizationId)
-  return c.json(result)
+  return c.json(result, result.code)
 })
 
 orderRouter.get("/session/:sessionId/bill", sessionMiddleware, async (c) => {

@@ -1,6 +1,7 @@
 import {
   and,
   eq,
+  ne,
   desc,
   sql,
   inArray,
@@ -152,6 +153,93 @@ function decodeCursor(cursor: string): { createdAt: Date; id: string } | null {
   } catch {
     return null
   }
+}
+
+async function insertOrderInTransaction(
+  tx: any,
+  data: {
+    organizationId: string
+    tableSessionId: string | null | undefined
+    tableNumber: string
+    customerName?: string | null
+    customerPhone?: string | null
+    customerEmail?: string | null
+    status?: string
+    paymentStatus?: string
+    paymentMethod?: string | null
+    items: OrderItemJson[]
+    subtotal: number
+    discount: number
+    taxableAmount: number
+    notes?: string | null
+  },
+  orgGstRate: number | null
+) {
+  const year = new Date().getFullYear()
+  const prefix = `INV-${year}-`
+
+  const [counter] = await tx
+    .insert(orderCounter)
+    .values({ organizationId: data.organizationId, year, lastSequence: 1 })
+    .onConflictDoUpdate({
+      target: [orderCounter.organizationId, orderCounter.year],
+      set: { lastSequence: sql`${orderCounter.lastSequence} + 1` },
+    })
+    .returning()
+
+  const invoiceNumber = `${prefix}${counter.lastSequence.toString().padStart(6, "0")}`
+
+  const taxableAmount = Number(data.taxableAmount)
+  const gstRate = Number(orgGstRate ?? 5)
+  const halfRate = gstRate / 2
+  const cgstAmount = +((taxableAmount * halfRate) / 100).toFixed(2)
+  const sgstAmount = +((taxableAmount * halfRate) / 100).toFixed(2)
+  const igstAmount = 0
+  const totalGst = cgstAmount + sgstAmount
+  const roundOff = +(
+    Math.round(taxableAmount + totalGst) -
+    (taxableAmount + totalGst)
+  ).toFixed(2)
+  const grandTotal = +(taxableAmount + totalGst + roundOff).toFixed(2)
+
+  const [result] = await tx
+    .insert(order)
+    .values({
+      organizationId: data.organizationId,
+      tableSessionId: data.tableSessionId ?? null,
+      invoiceNumber,
+      customerName: data.customerName ?? null,
+      customerPhone: data.customerPhone ?? null,
+      customerEmail: data.customerEmail ?? null,
+      tableNumber: data.tableNumber,
+      status: data.status ?? "pending",
+      paymentStatus: data.paymentStatus ?? "pending",
+      paymentMethod: data.paymentMethod ?? null,
+      items: data.items ?? [],
+      subtotal: data.subtotal,
+      discount: data.discount,
+      taxableAmount,
+      gstRate,
+      cgstAmount,
+      sgstAmount,
+      igstAmount: 0,
+      roundOff,
+      grandTotal,
+      notes: data.notes ?? null,
+    })
+    .returning()
+
+  await tx
+    .update(tableSchema)
+    .set({ status: "occupied" })
+    .where(
+      and(
+        eq(tableSchema.number, Number(data.tableNumber)),
+        eq(tableSchema.organizationId, data.organizationId)
+      )
+    )
+
+  return result
 }
 
 const EMPTY_STATS = {
@@ -424,79 +512,27 @@ export const orderLogic = {
     }
 
     const created = await db.transaction(async (tx) => {
-      const year = new Date().getFullYear()
-      const prefix = `INV-${year}-`
-
-      const [counter] = await tx
-        .insert(orderCounter)
-        .values({ organizationId, year, lastSequence: 1 })
-        .onConflictDoUpdate({
-          target: [orderCounter.organizationId, orderCounter.year],
-          set: { lastSequence: sql`${orderCounter.lastSequence} + 1` },
-        })
-        .returning()
-
-      const invoiceNumber = `${prefix}${counter.lastSequence.toString().padStart(6, "0")}`
-
-      const taxableAmount = Number(body.taxableAmount)
-      const gstRate = Number(org.gstRate ?? 5)
-
-      const halfRate = gstRate / 2
-
-      const cgstAmount = +((taxableAmount * halfRate) / 100).toFixed(2)
-      const sgstAmount = +((taxableAmount * halfRate) / 100).toFixed(2)
-      const igstAmount = 0
-
-      const totalGst = cgstAmount + sgstAmount
-
-      const roundOff = +(
-        Math.round(taxableAmount + totalGst) -
-        (taxableAmount + totalGst)
-      ).toFixed(2)
-
-      const grandTotal = +(taxableAmount + totalGst + roundOff).toFixed(2)
-
-      const [result] = await tx
-        .insert(order)
-        .values({
+      return insertOrderInTransaction(
+        tx,
+        {
           organizationId,
-          tableSessionId: body.tableSessionId ?? null,
-          invoiceNumber,
-          customerName: body.customerName ?? null,
-          customerPhone: body.customerPhone ?? null,
-          customerEmail: body.customerEmail ?? null,
+          tableSessionId: body.tableSessionId,
           tableNumber: body.tableNumber,
-          status: body.status ?? "pending",
-          paymentStatus: body.paymentStatus ?? "pending",
-          paymentMethod: body.paymentMethod ?? null,
+          customerName: body.customerName,
+          customerPhone: body.customerPhone,
+          customerEmail: body.customerEmail,
+          status: body.status,
+          paymentStatus: body.paymentStatus,
+          paymentMethod: body.paymentMethod,
           items: body.items ?? [],
           subtotal: body.subtotal,
           discount: body.discount ?? 0,
-          taxableAmount,
-          gstRate,
-          cgstAmount,
-          sgstAmount,
-          igstAmount: 0,
-          roundOff,
-          grandTotal,
-          notes: body.notes ?? null,
-        })
-        .returning()
-
-      await tx
-        .update(tableSchema)
-        .set({ status: "occupied" })
-        .where(
-          and(
-            eq(tableSchema.number, Number(body.tableNumber)),
-            eq(tableSchema.organizationId, organizationId)
-          )
-        )
-
-      return result
+          taxableAmount: body.taxableAmount,
+          notes: body.notes,
+        },
+        org.gstRate
+      )
     })
-
-    await emitTableStatus(organizationId, body.tableNumber)
 
     if (!created) {
       return {
@@ -506,8 +542,8 @@ export const orderLogic = {
       }
     }
 
+    await emitTableStatus(organizationId, body.tableNumber)
     void redisClient.del(`${ORDER_CACHE_PREFIX}all:${organizationId}`)
-
     publishOrderEvent(organizationId, created.id, "order.created", created)
 
     return { status: "success", code: HTTP_STATUS_CODES.CREATED, data: created }
@@ -613,7 +649,13 @@ export const orderLogic = {
       })
     }
 
-    const session = await db.transaction(async (tx) => {
+    const subtotal = +resolvedIncoming
+      .reduce((sum, it) => sum + it.unitPrice * it.quantity, 0)
+      .toFixed(2)
+    const discount = body.discount ?? 0
+    const taxableAmount = +(subtotal - discount).toFixed(2)
+
+    const created = await db.transaction(async (tx) => {
       const [activeSession] = await tx
         .select()
         .from(tableSession)
@@ -625,70 +667,50 @@ export const orderLogic = {
           )
         )
         .limit(1)
+        .for("update")
 
-      if (activeSession) {
-        return activeSession
+      let session = activeSession
+      if (!session) {
+        const [newSession] = await tx
+          .insert(tableSession)
+          .values({
+            organizationId,
+            tableId,
+            tableNumber,
+            status: "active",
+          })
+          .returning()
+        session = newSession
       }
 
-      const [newSession] = await tx
-        .insert(tableSession)
-        .values({
+      return insertOrderInTransaction(
+        tx,
+        {
           organizationId,
-          tableId,
+          tableSessionId: session.id,
           tableNumber,
-          status: "active",
-        })
-        .returning()
-
-      return newSession
+          customerName: body.customerName,
+          customerPhone: body.customerPhone,
+          customerEmail: body.customerEmail,
+          paymentMethod: body.paymentMethod,
+          items: resolvedIncoming,
+          subtotal,
+          discount,
+          taxableAmount,
+          notes: body.notes,
+        },
+        org.gstRate
+      )
     })
 
-    const subtotal = +resolvedIncoming
-      .reduce((sum, it) => sum + it.unitPrice * it.quantity, 0)
-      .toFixed(2)
-    const discount = body.discount ?? 0
-    const taxableAmount = +(subtotal - discount).toFixed(2)
-    const gstRate = Number(org.gstRate ?? 5)
-    const halfRate = gstRate / 2
-    const cgstAmount = +((taxableAmount * halfRate) / 100).toFixed(2)
-    const sgstAmount = +((taxableAmount * halfRate) / 100).toFixed(2)
-    const igstAmount = 0
-    const totalGst = cgstAmount + sgstAmount
-    const roundOff = +(
-      Math.round(taxableAmount + totalGst) -
-      (taxableAmount + totalGst)
-    ).toFixed(2)
-    const grandTotal = +(taxableAmount + totalGst + roundOff).toFixed(2)
-
-    const result = await orderLogic.create({
-      organizationId: body.organizationId,
-      customerName: body.customerName,
-      customerPhone: body.customerPhone,
-      customerEmail: body.customerEmail,
-      tableNumber,
-      tableSessionId: session.id,
-      items: resolvedIncoming,
-      subtotal,
-      discount,
-      taxableAmount,
-      gstRate,
-      cgstAmount,
-      sgstAmount,
-      igstAmount,
-      roundOff,
-      grandTotal,
-      notes: body.notes,
-      paymentMethod: body.paymentMethod,
-    })
-
-    if (result.status === "error") {
-      return result
-    }
+    await emitTableStatus(organizationId, tableNumber)
+    void redisClient.del(`${ORDER_CACHE_PREFIX}all:${organizationId}`)
+    publishOrderEvent(organizationId, created.id, "order.created", created)
 
     return {
       status: "success" as const,
       code: HTTP_STATUS_CODES.OK,
-      data: result.data,
+      data: created,
       appended: true,
     }
   },
@@ -854,7 +876,7 @@ export const orderLogic = {
 
     publishOrderEvent(organizationId, id, "order.deleted", { id })
 
-    return { status: "success", code: HTTP_STATUS_CODES.NO_CONTENT }
+    return { status: "success", code: HTTP_STATUS_CODES.OK }
   },
 
   invoice: async (orderId: string, organizationId: string) => {
@@ -1101,6 +1123,14 @@ export const orderLogic = {
       }
     }
 
+    if (session.status === "completed") {
+      return {
+        status: "error",
+        code: HTTP_STATUS_CODES.CONFLICT,
+        message: "Session already checked out",
+      }
+    }
+
     const sessionOrders = await db
       .select()
       .from(order)
@@ -1125,7 +1155,12 @@ export const orderLogic = {
           paymentMethod,
           updatedAt: new Date(),
         })
-        .where(eq(order.tableSessionId, sessionId))
+        .where(
+          and(
+            eq(order.tableSessionId, sessionId),
+            ne(order.status, "cancelled")
+          )
+        )
 
       await tx
         .update(tableSchema)
