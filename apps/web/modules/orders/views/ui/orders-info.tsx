@@ -31,7 +31,12 @@ export default function OrdersInfo({
             <span className="text-muted-foreground text-sm font-normal">
               Order
             </span>
-            <span className="font-mono">{order.invoiceNumber}</span>
+            <span className="font-mono text-sm">{order.invoiceNumber}</span>
+            {order.tableSessionId && (
+              <span className="ml-auto mr-6 text-xs font-medium text-amber-600 bg-amber-50 dark:text-amber-400 dark:bg-amber-950 px-2 py-0.5 rounded-full border border-amber-200 dark:border-amber-800">
+                Session
+              </span>
+            )}
           </SheetTitle>
         </SheetHeader>
 
@@ -46,6 +51,21 @@ export default function OrdersInfo({
                   {order.tableNumber}
                 </span>
               </div>
+              {order.tableSessionId && (
+                <div className="rounded-lg border border-amber-200 dark:border-amber-800 bg-amber-50/50 dark:bg-amber-950/30 p-3 space-y-1">
+                  <div className="flex items-center gap-1.5">
+                    <svg className="size-4 text-amber-600 dark:text-amber-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 12h16.5m-16.5 3.75h16.5M3.75 19.5h16.5M5.625 4.5h12.75a1.875 1.875 0 0 1 0 3.75H5.625a1.875 1.875 0 0 1 0-3.75Z" />
+                    </svg>
+                    <span className="text-xs font-medium text-amber-700 dark:text-amber-300">
+                      Multi-round session
+                    </span>
+                  </div>
+                  <p className="text-xs text-amber-600/80 dark:text-amber-400/70">
+                    This order is part of a multi-round session at Table {order.tableNumber}. Print the consolidated receipt to include all rounds.
+                  </p>
+                </div>
+              )}
               <OrderStatusSelect orderId={order.id} initial={order.status} />
               <PaymentStatusSelect
                 orderId={order.id}
