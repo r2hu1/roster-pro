@@ -1,5 +1,5 @@
 import { z } from "zod"
-import { TableStatus } from "../../enums/index.js"
+import { TableStatus } from "../../enums"
 
 export const UpdateTableSchema = z.object({
   id: z.string().min(1, "Table ID is required"),
