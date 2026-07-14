@@ -95,5 +95,3 @@ export async function checkoutSession(
   )
   return data.data
 }
-
-

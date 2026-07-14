@@ -12,7 +12,9 @@ import {
 import { OrderStatusSelect, PaymentStatusSelect } from "./order-status-controls"
 import { OrderItemsList } from "./order-items-list"
 import { OrderTotalsSummary } from "./order-totals-summary"
-import { PrintReceiptButton } from "@/modules/receipts/views/ui/print-receipt-button"
+import PrintReceiptVersionModal from "./print-recipts-version-responsive-modal"
+import { Button } from "@workspace/ui/components/button"
+import { IconPrinter } from "@tabler/icons-react"
 import { ScrollArea, ScrollBar } from "@workspace/ui/components/scroll-area"
 
 export default function OrdersInfo({
@@ -54,15 +56,27 @@ export default function OrdersInfo({
               {order.tableSessionId && (
                 <div className="rounded-lg border border-amber-200 dark:border-amber-800 bg-amber-50/50 dark:bg-amber-950/30 p-3 space-y-1">
                   <div className="flex items-center gap-1.5">
-                    <svg className="size-4 text-amber-600 dark:text-amber-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 12h16.5m-16.5 3.75h16.5M3.75 19.5h16.5M5.625 4.5h12.75a1.875 1.875 0 0 1 0 3.75H5.625a1.875 1.875 0 0 1 0-3.75Z" />
+                    <svg
+                      className="size-4 text-amber-600 dark:text-amber-400"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      strokeWidth={1.5}
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M3.75 12h16.5m-16.5 3.75h16.5M3.75 19.5h16.5M5.625 4.5h12.75a1.875 1.875 0 0 1 0 3.75H5.625a1.875 1.875 0 0 1 0-3.75Z"
+                      />
                     </svg>
                     <span className="text-xs font-medium text-amber-700 dark:text-amber-300">
                       Multi-round session
                     </span>
                   </div>
                   <p className="text-xs text-amber-600/80 dark:text-amber-400/70">
-                    This order is part of a multi-round session at Table {order.tableNumber}. Print the consolidated receipt to include all rounds.
+                    This order is part of a multi-round session at Table{" "}
+                    {order.tableNumber}. Print the consolidated receipt to
+                    include all rounds.
                   </p>
                 </div>
               )}
@@ -112,12 +126,15 @@ export default function OrdersInfo({
                 minute: "2-digit",
               })}
             </p>
-            <PrintReceiptButton
+            <PrintReceiptVersionModal
               orderId={order.id}
-              sessionId={order.tableSessionId ?? null}
-              size="lg"
-              variant="default"
-            />
+              sessionId={order.tableSessionId}
+            >
+              <Button size="lg" variant="default">
+                <IconPrinter />
+                Print
+              </Button>
+            </PrintReceiptVersionModal>
           </div>
         </SheetFooter>
       </SheetContent>

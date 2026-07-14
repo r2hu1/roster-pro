@@ -5,7 +5,12 @@ import type { OrderResponse } from "@workspace/shared/schemas/order/index"
 import api from "@/lib/axios"
 
 type ActiveOrdersResponse =
-  | { status: "success"; code: number; data: OrderResponse[]; tableSessionId: string | null }
+  | {
+      status: "success"
+      code: number
+      data: OrderResponse[]
+      tableSessionId: string | null
+    }
   | { status: "error"; code: number; message: string }
 
 export function useActiveOrders(
@@ -15,7 +20,10 @@ export function useActiveOrders(
   return useQuery({
     queryKey: ["active-orders", organizationId, tableId],
     enabled: Boolean(tableId && organizationId),
-    queryFn: async (): Promise<{ orders: OrderResponse[]; tableSessionId: string | null }> => {
+    queryFn: async (): Promise<{
+      orders: OrderResponse[]
+      tableSessionId: string | null
+    }> => {
       const res = await api.get<ActiveOrdersResponse>(
         `organization/orders/table/${tableId}/active`,
         { params: { organizationId } }

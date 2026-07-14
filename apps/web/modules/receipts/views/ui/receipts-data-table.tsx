@@ -23,7 +23,7 @@ import {
 import { Button } from "@workspace/ui/components/button"
 import { IconChevronLeft, IconChevronRight } from "@tabler/icons-react"
 import { formatCurrency } from "@workspace/shared/utils/formatter"
-import { PrintReceiptButton } from "./print-receipt-button"
+import PrintReceiptVersionModal from "@/modules/orders/views/ui/print-recipts-version-responsive-modal"
 
 export const columns: ColumnDef<OrderResponse>[] = [
   {
@@ -105,7 +105,14 @@ export const columns: ColumnDef<OrderResponse>[] = [
     header: () => <div className="text-right">Receipt</div>,
     cell: ({ row }) => (
       <div className="text-right">
-        <PrintReceiptButton orderId={row.original.id} variant="secondary" />
+        <PrintReceiptVersionModal
+          orderId={row.original.id}
+          sessionId={row.original.tableSessionId}
+        >
+          <Button variant="secondary" size="sm">
+            Print
+          </Button>
+        </PrintReceiptVersionModal>
       </div>
     ),
   },

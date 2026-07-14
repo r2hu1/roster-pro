@@ -1,12 +1,8 @@
-import type { Metadata } from 'next';
+import type { Metadata } from "next"
 export const metadata: Metadata = {
-  title:"Subscribe"
-};
+  title: "Subscribe",
+}
 
 export default function SubscribePage() {
-  return (
-    <div>
-
-    </div>
-  );
+  return <div></div>
 }

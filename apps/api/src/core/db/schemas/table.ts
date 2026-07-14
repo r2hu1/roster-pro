@@ -57,7 +57,10 @@ export const tableSession = pgTable(
         onDelete: "cascade",
       }),
     tableNumber: text("table_number").notNull(),
-    status: text("status").$type<"active" | "completed">().default("active").notNull(),
+    status: text("status")
+      .$type<"active" | "completed">()
+      .default("active")
+      .notNull(),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at")
       .defaultNow()
@@ -78,4 +81,3 @@ export const tableSession = pgTable(
       .where(eq(table.status, "active")),
   })
 )
-

@@ -31,10 +31,9 @@ export const order = pgTable(
       .references(() => organization.id, {
         onDelete: "cascade",
       }),
-    tableSessionId: text("table_session_id")
-      .references(() => tableSession.id, {
-        onDelete: "set null",
-      }),
+    tableSessionId: text("table_session_id").references(() => tableSession.id, {
+      onDelete: "set null",
+    }),
     invoiceNumber: text("invoice_number").notNull(),
     customerName: text("customer_name"),
     customerPhone: text("customer_phone"),
@@ -47,9 +46,19 @@ export const order = pgTable(
       .notNull(),
     paymentMethod: text("payment_method"),
     items: jsonb("items").$type<OrderItemJson[]>().notNull(),
-    subtotal: numeric("subtotal", { precision: 10, scale: 2, mode: "number" }).notNull(),
-    discount: numeric("discount", { precision: 10, scale: 2, mode: "number" }).default(0).notNull(),
-    taxableAmount: numeric("taxable_amount", { precision: 10, scale: 2, mode: "number" }).notNull(),
+    subtotal: numeric("subtotal", {
+      precision: 10,
+      scale: 2,
+      mode: "number",
+    }).notNull(),
+    discount: numeric("discount", { precision: 10, scale: 2, mode: "number" })
+      .default(0)
+      .notNull(),
+    taxableAmount: numeric("taxable_amount", {
+      precision: 10,
+      scale: 2,
+      mode: "number",
+    }).notNull(),
     gstRate: numeric("gst_rate", {
       precision: 10,
       scale: 2,

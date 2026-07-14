@@ -51,7 +51,13 @@ function orderEstimate(order: {
   return Math.max(0, Math.ceil(maxPrep - elapsed))
 }
 
-function OrderRoundCard({ order, label }: { order: OrderResponse; label: string }) {
+function OrderRoundCard({
+  order,
+  label,
+}: {
+  order: OrderResponse
+  label: string
+}) {
   const est = orderEstimate(order)
   return (
     <div className="rounded-lg border bg-card p-3 space-y-2">
@@ -100,14 +106,13 @@ function OrderRoundCard({ order, label }: { order: OrderResponse; label: string 
 
       <div className="flex items-center justify-between text-xs text-muted-foreground">
         <span>
-          #{order.invoiceNumber} · {new Date(order.createdAt).toLocaleTimeString([], {
+          #{order.invoiceNumber} ·{" "}
+          {new Date(order.createdAt).toLocaleTimeString([], {
             hour: "2-digit",
             minute: "2-digit",
           })}
         </span>
-        <span className="font-medium tabular-nums">
-          ₹{order.grandTotal}
-        </span>
+        <span className="font-medium tabular-nums">₹{order.grandTotal}</span>
       </div>
     </div>
   )
@@ -170,7 +175,9 @@ export default function ResponsiveOrdersStatus() {
             <div className="space-y-3">
               {orders.length > 1 && (
                 <div className="flex items-center justify-between text-sm bg-muted/30 rounded-lg px-3 py-2">
-                  <span className="text-muted-foreground">All Rounds Total</span>
+                  <span className="text-muted-foreground">
+                    All Rounds Total
+                  </span>
                   <span className="font-semibold tabular-nums">
                     ₹{totalAmount.toLocaleString("en-IN")}
                   </span>

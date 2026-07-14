@@ -87,7 +87,13 @@ async function releaseTableIfNeeded(
     .where(
       and(
         eq(order.tableSessionId, tableSessionId),
-        inArray(order.status, ["pending", "confirmed", "preparing", "ready", "served"])
+        inArray(order.status, [
+          "pending",
+          "confirmed",
+          "preparing",
+          "ready",
+          "served",
+        ])
       )
     )
 
@@ -433,7 +439,7 @@ export const orderLogic = {
       )
       .limit(1)
 
-    let orders: typeof order.$inferSelect[] = []
+    let orders: (typeof order.$inferSelect)[] = []
     if (activeSession) {
       orders = await db
         .select()
@@ -779,7 +785,11 @@ export const orderLogic = {
       .returning()
 
     if (updated.status === "completed" || updated.status === "cancelled") {
-      await releaseTableIfNeeded(organizationId, updated.tableNumber, updated.tableSessionId)
+      await releaseTableIfNeeded(
+        organizationId,
+        updated.tableNumber,
+        updated.tableSessionId
+      )
     }
 
     void redisClient.del(`${ORDER_CACHE_PREFIX}${organizationId}:${body.id}`)
@@ -823,7 +833,11 @@ export const orderLogic = {
       .returning()
 
     if (status === "completed" || status === "cancelled") {
-      await releaseTableIfNeeded(organizationId, updated.tableNumber, updated.tableSessionId)
+      await releaseTableIfNeeded(
+        organizationId,
+        updated.tableNumber,
+        updated.tableSessionId
+      )
     } else {
       await db
         .update(tableSchema)
@@ -1006,14 +1020,17 @@ export const orderLogic = {
       }
     }
 
-    const consolidatedItemsMap = new Map<string, {
-      id: string
-      name: string
-      logo: string | null
-      quantity: number
-      unitPrice: number
-      total: number
-    }>()
+    const consolidatedItemsMap = new Map<
+      string,
+      {
+        id: string
+        name: string
+        logo: string | null
+        quantity: number
+        unitPrice: number
+        total: number
+      }
+    >()
 
     for (const ord of sessionOrders) {
       for (const item of ord.items) {
@@ -1036,8 +1053,12 @@ export const orderLogic = {
     }
 
     const itemsList = Array.from(consolidatedItemsMap.values())
-    const subtotal = +itemsList.reduce((sum, it) => sum + it.total, 0).toFixed(2)
-    const discount = +sessionOrders.reduce((sum, ord) => sum + ord.discount, 0).toFixed(2)
+    const subtotal = +itemsList
+      .reduce((sum, it) => sum + it.total, 0)
+      .toFixed(2)
+    const discount = +sessionOrders
+      .reduce((sum, ord) => sum + ord.discount, 0)
+      .toFixed(2)
     const taxableAmount = +(subtotal - discount).toFixed(2)
     const gstRate = Number(org.gstRate ?? 5)
     const halfRate = gstRate / 2
@@ -1050,17 +1071,23 @@ export const orderLogic = {
     ).toFixed(2)
     const grandTotal = +(taxableAmount + totalGst + roundOff).toFixed(2)
 
-    const firstOrderWithCustomer = sessionOrders.find(ord => ord.customerName || ord.customerPhone)
+    const firstOrderWithCustomer = sessionOrders.find(
+      (ord) => ord.customerName || ord.customerPhone
+    )
     const representativeOrder = firstOrderWithCustomer ?? sessionOrders[0]
 
-    const allPaid = sessionOrders.length > 0 && sessionOrders.every(ord => ord.paymentStatus === "paid")
+    const allPaid =
+      sessionOrders.length > 0 &&
+      sessionOrders.every((ord) => ord.paymentStatus === "paid")
 
     return {
       status: "success",
       code: HTTP_STATUS_CODES.OK,
       data: {
         sessionId: session.id,
-        invoiceNumber: representativeOrder?.invoiceNumber ?? `SESS-${session.id.slice(0, 8).toUpperCase()}`,
+        invoiceNumber:
+          representativeOrder?.invoiceNumber ??
+          `SESS-${session.id.slice(0, 8).toUpperCase()}`,
         issuedAt: session.createdAt,
 
         organization: {
@@ -1099,12 +1126,20 @@ export const orderLogic = {
           method: representativeOrder?.paymentMethod ?? null,
         },
 
-        notes: sessionOrders.map(ord => ord.notes).filter(Boolean).join(" | ") || null,
+        notes:
+          sessionOrders
+            .map((ord) => ord.notes)
+            .filter(Boolean)
+            .join(" | ") || null,
       },
     }
   },
 
-  checkoutSession: async (sessionId: string, organizationId: string, paymentMethod: string) => {
+  checkoutSession: async (
+    sessionId: string,
+    organizationId: string,
+    paymentMethod: string
+  ) => {
     const [session] = await db
       .select()
       .from(tableSession)
@@ -1172,7 +1207,9 @@ export const orderLogic = {
       await redisClient.delPattern(`${TABLE_CACHE_PREFIX}*:${organizationId}`)
       await redisClient.del(`${ORDER_CACHE_PREFIX}all:${organizationId}`)
       for (const ord of sessionOrders) {
-        await redisClient.del(`${ORDER_CACHE_PREFIX}${organizationId}:${ord.id}`)
+        await redisClient.del(
+          `${ORDER_CACHE_PREFIX}${organizationId}:${ord.id}`
+        )
       }
     } catch (err) {
       console.error("Failed to invalidate cache on checkout", err)

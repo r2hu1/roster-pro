@@ -43,12 +43,17 @@ async function run() {
     const tableId = tableMap.get(key)
 
     if (!tableId) {
-      console.warn(`Could not find tableId for table number ${tableNumber} in org ${orgId}. Skipping...`)
+      console.warn(
+        `Could not find tableId for table number ${tableNumber} in org ${orgId}. Skipping...`
+      )
       continue
     }
 
     // Sort orders in this group by createdAt ascending
-    groupOrders.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
+    groupOrders.sort(
+      (a, b) =>
+        new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+    )
 
     let currentSessionId: string | null = null
     let sessionStartTime = 0
@@ -57,9 +62,18 @@ async function run() {
       const orderTime = new Date(ord.createdAt).getTime()
 
       // Create new session if no session exists or order is outside window
-      if (!currentSessionId || orderTime - sessionStartTime > SESSION_WINDOW_MS) {
+      if (
+        !currentSessionId ||
+        orderTime - sessionStartTime > SESSION_WINDOW_MS
+      ) {
         // Determine status: if order is active, session is active; otherwise completed
-        const isOrderActive = ["pending", "confirmed", "preparing", "ready", "served"].includes(ord.status)
+        const isOrderActive = [
+          "pending",
+          "confirmed",
+          "preparing",
+          "ready",
+          "served",
+        ].includes(ord.status)
 
         const [newSession] = await db
           .insert(tableSession)
@@ -74,7 +88,9 @@ async function run() {
 
         currentSessionId = newSession.id
         sessionStartTime = orderTime
-        console.log(`Created table session ${currentSessionId} for table ${tableNumber} (Org: ${orgId})`)
+        console.log(
+          `Created table session ${currentSessionId} for table ${tableNumber} (Org: ${orgId})`
+        )
       }
 
       // Link order to session

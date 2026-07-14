@@ -61,9 +61,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
     >
       {children}
 
-      {isLoading && (
-        <Preloader/>
-      )}
+      {isLoading && <Preloader />}
     </SessionContext.Provider>
   )
 }
