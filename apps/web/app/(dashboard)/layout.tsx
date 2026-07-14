@@ -1,6 +1,7 @@
 import { KitchenModeProvider } from "@/modules/providers/kitchen-mode"
 import { ReactQueryProvider } from "@/modules/providers/query-client"
 import { SessionProvider } from "@/modules/providers/session-provider"
+import SubscriptionMiddleware from "@/modules/providers/subscription-middleware"
 
 export default async function RootLayout({
   children,
@@ -10,7 +11,9 @@ export default async function RootLayout({
   return (
     <ReactQueryProvider>
       <SessionProvider>
-        <KitchenModeProvider>{children}</KitchenModeProvider>
+        <SubscriptionMiddleware>
+          <KitchenModeProvider>{children}</KitchenModeProvider>
+        </SubscriptionMiddleware>
       </SessionProvider>
     </ReactQueryProvider>
   )
