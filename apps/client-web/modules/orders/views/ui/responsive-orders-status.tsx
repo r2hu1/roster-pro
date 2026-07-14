@@ -22,6 +22,7 @@ import { motion } from "motion/react"
 import { RippleButton } from "./ripple-button"
 import { useActiveOrders } from "@/hooks/use-active-orders"
 import { Skeleton } from "@workspace/ui/components/skeleton"
+import { Loader } from "@workspace/ui/components/loader"
 
 const statusLabel: Record<string, { label: string; variant: "default" | "secondary" | "outline" | "destructive" }> = {
   pending: { label: "Pending", variant: "secondary" },
@@ -49,7 +50,7 @@ export default function ResponsiveOrdersStatus() {
   const tableId = tableData?.table.id
   const organizationId = tableData?.organization.id
 
-  const { data: orders,error,refetch,isPending } = useActiveOrders(
+  const { data: orders,error,refetch,isPending,isRefetching } = useActiveOrders(
     tableId,
     organizationId
   )
@@ -69,6 +70,9 @@ export default function ResponsiveOrdersStatus() {
       <ResponsiveModalContent thumbClassName="mt-1">
         <ResponsiveModalHeader>
           <ResponsiveModalTitle>Your Orders</ResponsiveModalTitle>
+          <ResponsiveModalDescription>
+            Sit tight you order is ${orders?.map((e)=>e.status)}
+          </ResponsiveModalDescription>
         </ResponsiveModalHeader>
 
         <ResponsiveModalBody className="pb-4">
@@ -149,7 +153,10 @@ export default function ResponsiveOrdersStatus() {
           )}
         </ResponsiveModalBody>
         <ResponsiveModalFooter>
-          <Button onClick={() => refetch()} size="lg">Refresh</Button>
+          <Button onClick={() => refetch()} size="lg" disabled={(isRefetching || isPending)}>
+            Refresh Status
+            {(isRefetching || isPending) && <Loader />}
+          </Button>
           {/*<ResponsiveModalClose asChild>
             <Button>Close</Button>
           </ResponsiveModalClose>*/}

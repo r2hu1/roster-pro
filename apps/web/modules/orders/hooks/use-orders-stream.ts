@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import type {
   OrderResponse,
   OrderStats,
@@ -15,6 +15,7 @@ type OrdersEvent =
 
 const PAGE_SIZE = 9
 const STATS_DEBOUNCE_MS = 400
+const FILTER_DEBOUNCE_MS = 300
 
 const EMPTY_STATS: OrderStats = {
   total: 0,
@@ -49,7 +50,7 @@ function matchesFilter(
   const q = search?.trim().toLowerCase()
   if (q) {
     const hay = [order.invoiceNumber, order.tableNumber, order.customerName]
-      .filter(Boolean)
+      .filter((v) => v !== null && v !== undefined && v !== "")
       .join(" ")
       .toLowerCase()
     if (!hay.includes(q)) return false
@@ -76,6 +77,14 @@ export function useOrdersStream(params: UseOrdersStreamParams) {
   const snapshotSeq = useRef(0)
   const initialLoadDone = useRef(false)
 
+  const mountedRef = useRef(true)
+  useEffect(() => {
+    mountedRef.current = true
+    return () => {
+      mountedRef.current = false
+    }
+  }, [])
+
   const statusRef = useRef(status)
   const searchRef = useRef(search)
   statusRef.current = status
@@ -83,14 +92,18 @@ export function useOrdersStream(params: UseOrdersStreamParams) {
 
   const bell = useRef<HTMLAudioElement | null>(null)
   const statsTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const filterTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const rebuild = useCallback(() => {
+    if (!mountedRef.current) return
     setOrders(Array.from(storeRef.current.values()).sort(compareOrders))
   }, [])
 
   const refreshStats = useCallback(() => {
     fetchOrderStats()
-      .then(setStats)
+      .then((s) => {
+        if (mountedRef.current) setStats(s)
+      })
       .catch(() => {})
   }, [])
 
@@ -119,24 +132,32 @@ export function useOrdersStream(params: UseOrdersStreamParams) {
         for (const o of page.data) next.set(o.id, o)
         storeRef.current = next
         cursorRef.current = page.nextCursor
-        setHasMore(page.hasMore)
+        if (mountedRef.current) setHasMore(page.hasMore)
         rebuild()
-        setError(null)
+        if (mountedRef.current) setError(null)
       })
       .catch(() => {
-        if (seq === snapshotSeq.current) setError("Failed to load orders")
+        if (seq === snapshotSeq.current && mountedRef.current) {
+          setError("Failed to load orders")
+        }
       })
       .finally(() => {
         if (seq === snapshotSeq.current) {
           initialLoadDone.current = true
-          setLoadingInitial(false)
-          setLoadingFilter(false)
+          if (mountedRef.current) {
+            setLoadingInitial(false)
+            setLoadingFilter(false)
+          }
         }
       })
   }, [rebuild])
 
   useEffect(() => {
-    loadSnapshot()
+    if (filterTimer.current) clearTimeout(filterTimer.current)
+    filterTimer.current = setTimeout(loadSnapshot, FILTER_DEBOUNCE_MS)
+    return () => {
+      if (filterTimer.current) clearTimeout(filterTimer.current)
+    }
   }, [status, search, loadSnapshot])
 
   const loadMore = useCallback(async () => {
@@ -154,70 +175,97 @@ export function useOrdersStream(params: UseOrdersStreamParams) {
       if (seq !== snapshotSeq.current) return
       for (const o of page.data) storeRef.current.set(o.id, o)
       cursorRef.current = page.nextCursor
-      setHasMore(page.hasMore)
+      if (mountedRef.current) setHasMore(page.hasMore)
       rebuild()
     } catch {
-      // keep current window; hasMore stays true so the user can retry
+      //
     } finally {
       loadingMoreRef.current = false
-      setLoadingMore(false)
+      if (mountedRef.current) setLoadingMore(false)
     }
   }, [rebuild])
 
   useEffect(() => {
     refreshStats()
   }, [refreshStats])
+ useEffect(() => {
+    return () => {
+      if (statsTimer.current) clearTimeout(statsTimer.current)
+    }
+  }, [])
 
   const ring = useCallback(() => {
-    if (!bell.current) return
-    bell.current.currentTime = 0
-    bell.current.play().catch(() => {})
+    bell.current?.play().catch(() => {})
+    if (bell.current) bell.current.currentTime = 0
   }, [])
 
   useEffect(() => {
-    bell.current = new Audio("/audios/bell.wav")
+    const audio = new Audio("/audios/bell.wav")
+    bell.current = audio
 
     const unlock = async () => {
       try {
-        bell.current!.muted = true
-        await bell.current!.play()
-        bell.current!.pause()
-        bell.current!.currentTime = 0
-        bell.current!.muted = false
-      } catch {}
-      window.removeEventListener("pointerdown", unlock)
+        audio.muted = true
+        await audio.play()
+        audio.pause()
+        audio.currentTime = 0
+        audio.muted = false
+      } catch {
+        //
+      }
     }
-    window.addEventListener("pointerdown", unlock)
+    window.addEventListener("pointerdown", unlock, { once: true })
 
     return () => {
       window.removeEventListener("pointerdown", unlock)
+      audio.pause()
+      bell.current = null
     }
   }, [])
 
+  const channels = useMemo(
+    () => [`orders:${organizationId}`],
+    [organizationId]
+  )
+  const events = useMemo(
+    () => ["order.created", "order.updated", "order.deleted"] as const,
+    []
+  )
+
   const { status: connectionStatus } = useRealtime({
-    channels: [`orders:${organizationId}`],
-    events: ["order.created", "order.updated", "order.deleted"],
+    channels,
+    events,
     onData({ event, data }) {
       const sseEvent = event.split(".")[1]
       let payload: OrdersEvent
       if (sseEvent === "deleted") {
         payload = { type: "deleted", data: data as { id: string } }
       } else {
-        payload = { type: sseEvent as "created" | "updated", data: data as OrderResponse }
+        payload = {
+          type: sseEvent as "created" | "updated",
+          data: data as OrderResponse,
+        }
       }
 
       const store = storeRef.current
       let changed = false
+      let itemsAdded = false
 
       if (payload.type === "deleted") {
         changed = store.delete(payload.data.id)
       } else {
         const order = payload.data as OrderResponse
-        const fits = matchesFilter(
-          order,
-          statusRef.current,
-          searchRef.current
-        )
+        const prev = store.get(order.id)
+        itemsAdded =
+          !!prev &&
+          (order.items.length > prev.items.length ||
+            order.items.some((n) => {
+              const o = prev.items.find(
+                (i) => i.menuItemId === n.menuItemId && i.variant === n.variant
+              )
+              return o && n.quantity > o.quantity
+            }))
+        const fits = matchesFilter(order, statusRef.current, searchRef.current)
         if (fits) {
           store.set(order.id, order)
           changed = true
@@ -228,13 +276,14 @@ export function useOrdersStream(params: UseOrdersStreamParams) {
 
       if (changed) {
         rebuild()
-        if (payload.type !== "deleted") ring()
+        if (payload.type === "created" || itemsAdded) ring()
       }
       scheduleStatsRefresh()
     },
   })
 
   useEffect(() => {
+    if (!mountedRef.current) return
     setConnected(connectionStatus === "connected")
     if (connectionStatus === "error") {
       setError("Connection lost")
