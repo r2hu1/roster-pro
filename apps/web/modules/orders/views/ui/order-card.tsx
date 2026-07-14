@@ -8,11 +8,69 @@ import {
   statusStyles,
 } from "./orders-constants"
 import OrdersInfo from "./orders-info"
-import { IconInfoCircle } from "@tabler/icons-react"
+import { Button } from "@workspace/ui/components/button"
+import { updateOrder } from "../../api/orders"
 
 type Order = z.infer<typeof OrderSchema>
 
-export function OrderCard({ order }: { order: Order }) {
+import { OrderStatus } from "@workspace/shared/enums"
+
+const statusConfig: Partial<
+  Record<OrderStatus, { label: string; next: OrderStatus }>
+> = {
+  pending: {
+    label: "Mark Preparing",
+    next: "preparing",
+  },
+  confirmed: {
+    label: "Mark Preparing",
+    next: "preparing",
+  },
+  preparing: {
+    label: "Mark Ready",
+    next: "ready",
+  },
+  ready: {
+    label: "Mark Served",
+    next: "served",
+  },
+  served: {
+    label: "Mark Completed",
+    next: "completed",
+  },
+}
+
+function RenderUpdateStatusButton({
+  status,
+  orderId,
+}: {
+  status?: OrderStatus
+  orderId: string
+}) {
+  if (!status) return null
+
+  const config = statusConfig[status]
+  if (!config) return null
+
+  return (
+    <Button
+      variant="secondary"
+      size="xs"
+      onClick={(e) => {
+        e.stopPropagation()
+        updateOrder({
+          id: orderId,
+          status: config.next,
+        })
+      }}
+      className="isolate border-border!"
+    >
+      {config.label}
+    </Button>
+  )
+}
+
+export function OrderCard({ order, status }: { order: Order; status?: string }) {
   const time = new Date(order.createdAt).toLocaleTimeString("en-IN", {
     hour: "2-digit",
     minute: "2-digit",
@@ -37,8 +95,7 @@ export function OrderCard({ order }: { order: Order }) {
                 {order.invoiceNumber}
               </p>
             </div>
-
-            <IconInfoCircle className="size-4 text-muted-foreground transition opacity-0 group-hover:opacity-100" />
+            <RenderUpdateStatusButton status={status as OrderStatus} orderId={order.id} />
           </div>
 
           {order.customerName && (

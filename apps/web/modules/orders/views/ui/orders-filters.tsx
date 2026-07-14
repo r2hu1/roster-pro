@@ -21,17 +21,15 @@ export function OrdersFilters({
   onSearchChange: (value: string) => void
 }) {
   const { kitchenMode } = useKitchenMode()
-  const filters = !kitchenMode
-    ? [
-        "All",
-        "Pending",
-        "Preparing",
-        "Ready",
-        "Served",
-        "Completed",
-        "Cancelled",
-      ]
-    : ["All", "Pending", "Preparing", "Ready", "Served"]
+  const filters = [
+      "All",
+      "Pending",
+      "Preparing",
+      "Ready",
+      "Served",
+      "Completed",
+      "Cancelled",
+    ];
 
   if (kitchenMode) {
     return (

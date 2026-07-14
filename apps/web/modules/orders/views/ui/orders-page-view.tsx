@@ -20,6 +20,7 @@ import { Logo } from "@/components/logo"
 import { useSession } from "@/modules/providers/session-provider"
 import { cn } from "@workspace/ui/lib/utils"
 import { Loader } from "@workspace/ui/components/loader"
+import { OrderStatus } from "@workspace/shared/enums"
 
 const SEARCH_DEBOUNCE_MS = 350
 
@@ -171,7 +172,7 @@ export default function OrdersPageView() {
             <>
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                 {orders.map((order) => (
-                  <OrderCard key={order.id} order={order} />
+                  <OrderCard key={order.id} order={order} status={activeFilter.toLowerCase()}/>
                 ))}
               </div>
               <LoadMoreSentinel
