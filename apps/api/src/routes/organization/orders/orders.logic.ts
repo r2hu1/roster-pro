@@ -24,10 +24,11 @@ import type {
   UpdateOrderDto,
 } from "@workspace/shared/schemas/order/index"
 import type { CreateTableOrderDto } from "./orders.validation.js"
-import { EventEmitter } from "node:events"
 import { organization } from "../../../core/db/schemas/auth.js"
-import { analyticsEmitter } from "../analytics/analytics.logic.js"
-import { tableEmitter } from "../table/table.logic.js"
+import {
+  publishOrderEvent,
+  publishTableEvent,
+} from "../../../lib/realtime-events.js"
 import { menuItem, type Price } from "../../../core/db/schemas/menu.js"
 
 const TABLE_CACHE_PREFIX = "table:"
@@ -50,10 +51,7 @@ async function emitTableStatus(organizationId: string, tableNumber: string) {
     )
 
   if (table) {
-    tableEmitter.emit(`table:${organizationId}`, {
-      type: "status",
-      data: table,
-    })
+    publishTableEvent(organizationId, "table.status", table)
   }
 
   try {
@@ -75,9 +73,6 @@ const ACTIVE_ORDER_STATUSES: (typeof order.$inferSelect)["status"][] = [
   "ready",
   "served",
 ]
-
-export const orderEmitter = new EventEmitter()
-orderEmitter.setMaxListeners(1000)
 
 const DEFAULT_PAGE_SIZE = 20
 const MAX_PAGE_SIZE = 100
@@ -112,26 +107,6 @@ const EMPTY_STATS = {
   completed: 0,
   cancelled: 0,
 }
-
-type OrderCreatedEvent = {
-  type: "created"
-  data: typeof order.$inferSelect
-}
-
-type OrderUpdatedEvent = {
-  type: "updated"
-  data: typeof order.$inferSelect
-}
-
-type OrderDeletedEvent = {
-  type: "deleted"
-  data: { id: string }
-}
-
-export type OrderEvent =
-  | OrderCreatedEvent
-  | OrderUpdatedEvent
-  | OrderDeletedEvent
 
 export const orderLogic = {
   getAll: async (organizationId: string) => {
@@ -179,7 +154,10 @@ export const orderLogic = {
     }
 
     const limit = Math.min(
-      Math.max(Math.trunc(opts.limit ?? DEFAULT_PAGE_SIZE) || DEFAULT_PAGE_SIZE, 1),
+      Math.max(
+        Math.trunc(opts.limit ?? DEFAULT_PAGE_SIZE) || DEFAULT_PAGE_SIZE,
+        1
+      ),
       MAX_PAGE_SIZE
     )
 
@@ -206,10 +184,7 @@ export const orderLogic = {
       conditions.push(
         or(
           lt(order.createdAt, decoded.createdAt),
-          and(
-            eq(order.createdAt, decoded.createdAt),
-            lt(order.id, decoded.id)
-          )
+          and(eq(order.createdAt, decoded.createdAt), lt(order.id, decoded.id))
         )!
       )
     }
@@ -258,7 +233,11 @@ export const orderLogic = {
       stats.total += n
     }
 
-    return { status: "success" as const, code: HTTP_STATUS_CODES.OK, data: stats }
+    return {
+      status: "success" as const,
+      code: HTTP_STATUS_CODES.OK,
+      data: stats,
+    }
   },
 
   resolveTableNumber: async (
@@ -457,28 +436,9 @@ export const orderLogic = {
       }
     }
 
-    try {
-      await redisClient.delPattern(`${ORDER_CACHE_PREFIX}all:${organizationId}`)
-    } catch (err) {
-      console.error("Failed to invalidate order cache", err)
-    }
+    void redisClient.del(`${ORDER_CACHE_PREFIX}all:${organizationId}`)
 
-    try {
-      orderEmitter.emit(`orders:${organizationId}`, {
-        type: "created",
-        data: created,
-      } satisfies OrderCreatedEvent)
-      orderEmitter.emit(`order:${created.id}`, {
-        type: "created",
-        data: created,
-      } satisfies OrderCreatedEvent)
-      analyticsEmitter.emit(`analytics:${organizationId}`, {
-        type: "updated",
-        data: null,
-      })
-    } catch (err) {
-      console.error("Failed to emit order events", err)
-    }
+    publishOrderEvent(organizationId, created.id, "order.created", created)
 
     return { status: "success", code: HTTP_STATUS_CODES.CREATED, data: created }
   },
@@ -695,26 +655,11 @@ export const orderLogic = {
       await redisClient.del(
         `${ORDER_CACHE_PREFIX}${organizationId}:${active.id}`
       )
-      await redisClient.delPattern(`${ORDER_CACHE_PREFIX}all:${organizationId}`)
+      await redisClient.del(`${ORDER_CACHE_PREFIX}all:${organizationId}`)
     } catch (err) {
       console.error("Failed to invalidate order cache", err)
     }
-    try {
-      orderEmitter.emit(`orders:${organizationId}`, {
-        type: "updated",
-        data: updated,
-      } satisfies OrderUpdatedEvent)
-      orderEmitter.emit(`order:${updated.id}`, {
-        type: "updated",
-        data: updated,
-      } satisfies OrderUpdatedEvent)
-      analyticsEmitter.emit(`analytics:${organizationId}`, {
-        type: "updated",
-        data: null,
-      })
-    } catch (err) {
-      console.error("Failed to emit order events", err)
-    }
+    publishOrderEvent(organizationId, updated.id, "order.updated", updated)
     return {
       status: "success" as const,
       code: HTTP_STATUS_CODES.OK,
@@ -797,26 +742,13 @@ export const orderLogic = {
           )
         )
 
-      await emitTableStatus(organizationId, updated.tableNumber)
+      void emitTableStatus(organizationId, updated.tableNumber)
     }
 
-    await redisClient.del(`${ORDER_CACHE_PREFIX}${organizationId}:${body.id}`)
-    await redisClient.delPattern(`${ORDER_CACHE_PREFIX}all:${organizationId}`)
+    void redisClient.del(`${ORDER_CACHE_PREFIX}${organizationId}:${body.id}`)
+    void redisClient.del(`${ORDER_CACHE_PREFIX}all:${organizationId}`)
 
-    orderEmitter.emit(`orders:${organizationId}`, {
-      type: "updated",
-      data: updated,
-    } satisfies OrderUpdatedEvent)
-
-    orderEmitter.emit(`order:${updated.id}`, {
-      type: "updated",
-      data: updated,
-    } satisfies OrderUpdatedEvent)
-
-    analyticsEmitter.emit(`analytics:${organizationId}`, {
-      type: "updated",
-      data: null,
-    })
+    publishOrderEvent(organizationId, updated.id, "order.updated", updated)
 
     return { status: "success", code: HTTP_STATUS_CODES.OK, data: updated }
   },
@@ -875,25 +807,12 @@ export const orderLogic = {
         )
     }
 
-    await emitTableStatus(organizationId, updated.tableNumber)
+    void emitTableStatus(organizationId, updated.tableNumber)
 
-    await redisClient.del(`${ORDER_CACHE_PREFIX}${organizationId}:${id}`)
-    await redisClient.delPattern(`${ORDER_CACHE_PREFIX}all:${organizationId}`)
+    void redisClient.del(`${ORDER_CACHE_PREFIX}${organizationId}:${id}`)
+    void redisClient.del(`${ORDER_CACHE_PREFIX}all:${organizationId}`)
 
-    orderEmitter.emit(`orders:${organizationId}`, {
-      type: "updated",
-      data: updated,
-    } satisfies OrderUpdatedEvent)
-
-    orderEmitter.emit(`order:${updated.id}`, {
-      type: "updated",
-      data: updated,
-    } satisfies OrderUpdatedEvent)
-
-    analyticsEmitter.emit(`analytics:${organizationId}`, {
-      type: "updated",
-      data: null,
-    })
+    publishOrderEvent(organizationId, updated.id, "order.updated", updated)
 
     return { status: "success", code: HTTP_STATUS_CODES.OK, data: updated }
   },
@@ -924,23 +843,10 @@ export const orderLogic = {
       .delete(order)
       .where(and(eq(order.id, id), eq(order.organizationId, organizationId)))
 
-    await redisClient.del(`${ORDER_CACHE_PREFIX}${organizationId}:${id}`)
-    await redisClient.delPattern(`${ORDER_CACHE_PREFIX}all:${organizationId}`)
+    void redisClient.del(`${ORDER_CACHE_PREFIX}${organizationId}:${id}`)
+    void redisClient.del(`${ORDER_CACHE_PREFIX}all:${organizationId}`)
 
-    orderEmitter.emit(`orders:${organizationId}`, {
-      type: "deleted",
-      data: { id },
-    } satisfies OrderDeletedEvent)
-
-    orderEmitter.emit(`order:${id}`, {
-      type: "deleted",
-      data: { id },
-    } satisfies OrderDeletedEvent)
-
-    analyticsEmitter.emit(`analytics:${organizationId}`, {
-      type: "updated",
-      data: null,
-    })
+    publishOrderEvent(organizationId, id, "order.deleted", { id })
 
     return { status: "success", code: HTTP_STATUS_CODES.NO_CONTENT }
   },

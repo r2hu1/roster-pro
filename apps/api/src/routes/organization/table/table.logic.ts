@@ -9,15 +9,12 @@ import type {
   UpdateTableDto,
   UpdateTableStatusDto,
 } from "@workspace/shared/schemas/table/index"
-import { EventEmitter } from "node:events"
+import { publishTableEvent } from "../../../lib/realtime-events.js"
 import { cryptoUtil } from "../../../lib/crypto.js"
 import { organization } from "../../../core/db/schemas/auth.js"
 
 const TABLE_CACHE_PREFIX = "table:"
 const CACHE_TTL = 300
-
-export const tableEmitter = new EventEmitter()
-tableEmitter.setMaxListeners(100)
 
 export const tableLogic = {
   getAll: async (organizationId: string) => {
@@ -106,15 +103,12 @@ export const tableLogic = {
 
     await redisClient.delPattern(`${TABLE_CACHE_PREFIX}*:${organizationId}`)
 
-    tableEmitter.emit(`table:${organizationId}`, {
-      type: "status",
-      data: {
-        id: created.id,
-        number: created.number,
-        name: created.name,
-        status: created.status,
-        updatedAt: created.updatedAt,
-      },
+    publishTableEvent(organizationId, "table.status", {
+      id: created.id,
+      number: created.number,
+      name: created.name,
+      status: created.status,
+      updatedAt: created.updatedAt,
     })
 
     return { status: "success", code: HTTP_STATUS_CODES.CREATED, data: created }
@@ -159,17 +153,14 @@ export const tableLogic = {
       .returning()
 
     await redisClient.del(`${TABLE_CACHE_PREFIX}${organizationId}:${body.id}`)
-    await redisClient.delPattern(`${TABLE_CACHE_PREFIX}all:${organizationId}`)
+    await redisClient.del(`${TABLE_CACHE_PREFIX}all:${organizationId}`)
 
-    tableEmitter.emit(`table:${organizationId}`, {
-      type: "status",
-      data: {
-        id: updated.id,
-        number: updated.number,
-        name: updated.name,
-        status: updated.status,
-        updatedAt: updated.updatedAt,
-      },
+    publishTableEvent(organizationId, "table.status", {
+      id: updated.id,
+      number: updated.number,
+      name: updated.name,
+      status: updated.status,
+      updatedAt: updated.updatedAt,
     })
 
     return { status: "success", code: HTTP_STATUS_CODES.OK, data: updated }
@@ -205,12 +196,9 @@ export const tableLogic = {
     await db.delete(tableSchema).where(eq(tableSchema.id, id))
 
     await redisClient.del(`${TABLE_CACHE_PREFIX}${organizationId}:${id}`)
-    await redisClient.delPattern(`${TABLE_CACHE_PREFIX}all:${organizationId}`)
+    await redisClient.del(`${TABLE_CACHE_PREFIX}all:${organizationId}`)
 
-    tableEmitter.emit(`table:${organizationId}`, {
-      type: "deleted",
-      data: { id },
-    })
+    publishTableEvent(organizationId, "table.deleted", { id })
 
     return { status: "success", code: HTTP_STATUS_CODES.NO_CONTENT }
   },
@@ -252,17 +240,14 @@ export const tableLogic = {
       .returning()
 
     await redisClient.del(`${TABLE_CACHE_PREFIX}${organizationId}:${body.id}`)
-    await redisClient.delPattern(`${TABLE_CACHE_PREFIX}all:${organizationId}`)
+    await redisClient.del(`${TABLE_CACHE_PREFIX}all:${organizationId}`)
 
-    tableEmitter.emit(`table:${organizationId}`, {
-      type: "status",
-      data: {
-        id: updated.id,
-        number: updated.number,
-        name: updated.name,
-        status: updated.status,
-        updatedAt: updated.updatedAt,
-      },
+    publishTableEvent(organizationId, "table.status", {
+      id: updated.id,
+      number: updated.number,
+      name: updated.name,
+      status: updated.status,
+      updatedAt: updated.updatedAt,
     })
 
     return { status: "success", code: HTTP_STATUS_CODES.OK, data: updated }

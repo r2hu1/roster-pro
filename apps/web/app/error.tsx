@@ -2,7 +2,7 @@
 
 import { useEffect } from "react"
 import { Button } from "@workspace/ui/components/button"
-import { IconAlertTriangle, IconArrowUpRight} from "@tabler/icons-react"
+import { IconAlertTriangle, IconArrowUpRight } from "@tabler/icons-react"
 import Link from "next/link"
 
 export default function Error() {
@@ -25,16 +25,14 @@ export default function Error() {
         <p className="text-muted-foreground text-sm">
           An unexpected error occurred.
         </p>
-      <div className="flex gap-2 mt-4 items-center justify-center">
-        <Button asChild variant="secondary">
-          <Link href="mailto:rahul@rosterpro.in">
-          Report <IconArrowUpRight/>
-          </Link>
-        </Button>
-        <Button onClick={() => reset()}>
-          Try again
-        </Button>
-      </div>
+        <div className="flex gap-2 mt-4 items-center justify-center">
+          <Button asChild variant="secondary">
+            <Link href="mailto:rahul@rosterpro.in">
+              Report <IconArrowUpRight />
+            </Link>
+          </Button>
+          <Button onClick={() => reset()}>Try again</Button>
+        </div>
       </div>
     </div>
   )

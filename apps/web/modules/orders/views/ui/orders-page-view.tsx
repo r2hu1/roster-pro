@@ -20,6 +20,7 @@ import { Logo } from "@/components/logo"
 import { useSession } from "@/modules/providers/session-provider"
 import { cn } from "@workspace/ui/lib/utils"
 import { Loader } from "@workspace/ui/components/loader"
+import { OrderStatus } from "@workspace/shared/enums"
 
 const SEARCH_DEBOUNCE_MS = 350
 
@@ -61,11 +62,7 @@ function LoadMoreSentinel({
 
   return (
     <div ref={ref} className="flex justify-center py-6">
-      <Button
-        variant="secondary"
-        onClick={onLoadMore}
-        disabled={loadingMore}
-      >
+      <Button variant="secondary" onClick={onLoadMore} disabled={loadingMore}>
         Load more
         {loadingMore && <Loader />}
       </Button>
@@ -75,6 +72,7 @@ function LoadMoreSentinel({
 
 export default function OrdersPageView() {
   const { organization } = useSession()
+  const organizationId = organization?.id
   const { kitchenMode } = useKitchenMode()
   const [activeFilter, setActiveFilter] = useState<string>("All")
   const [search, setSearch] = useState("")
@@ -95,9 +93,14 @@ export default function OrdersPageView() {
     connected,
     hasMore,
     loadingInitial,
+    loadingFilter,
     loadingMore,
     loadMore,
-  } = useOrdersStream({ status: statusFilter, search: debouncedSearch })
+  } = useOrdersStream({
+    organizationId: organizationId!,
+    status: statusFilter,
+    search: debouncedSearch,
+  })
 
   const handleLoadMore = useCallback(() => {
     void loadMore()
@@ -140,17 +143,24 @@ export default function OrdersPageView() {
           </div>
         </div>
 
-        <div className="shrink-0 px-4 sm:px-6 pt-4">
+        <div className="shrink-0 px-4 sm:px-6 pt-4 space-y-3">
           <OrdersFilters
             activeFilter={activeFilter}
             onFilterChange={setActiveFilter}
             search={search}
             onSearchChange={setSearch}
           />
+          {loadingFilter && (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+              {Array.from({ length: 9 }).map((_, i) => (
+                <Skeleton key={i} className="h-40" />
+              ))}
+            </div>
+          )}
         </div>
 
         <div className="flex-1 overflow-x-auto overflow-y-auto px-4 sm:px-6 py-4">
-          {orders.length === 0 ? (
+          {!loadingFilter && orders.length === 0 ? (
             <div className="h-full flex items-center justify-center">
               <EmptyData
                 title="No orders received yet."
@@ -162,7 +172,11 @@ export default function OrdersPageView() {
             <>
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                 {orders.map((order) => (
-                  <OrderCard key={order.id} order={order} />
+                  <OrderCard
+                    key={order.id}
+                    order={order}
+                    status={activeFilter.toLowerCase()}
+                  />
                 ))}
               </div>
               <LoadMoreSentinel
@@ -227,6 +241,13 @@ export default function OrdersPageView() {
               search={search}
               onSearchChange={setSearch}
             />
+            {loadingFilter && (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                {Array.from({ length: 9 }).map((_, i) => (
+                  <Skeleton key={i} className="h-40" />
+                ))}
+              </div>
+            )}
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
               {orders.map((order) => (
                 <OrderCard key={order.id} order={order} />
@@ -239,8 +260,8 @@ export default function OrdersPageView() {
             />
             {orders.length === 0 && (
               <EmptyData
-                title="No orders recieved yet."
-                description="Let your customer order, and you will see it here in realtime."
+                title={`No orders ${statusFilter ?? "received"} yet.`}
+                description={`${statusFilter ?? ""} orders will appear here as they are placed.`}
                 icon={<IconToolsKitchen2Off />}
               />
             )}

@@ -7,6 +7,8 @@ import {
   NativeSelectOption,
 } from "@workspace/ui/components/native-select"
 import { updateOrderStatus, updateOrder } from "../../api/orders"
+import { Button } from "@workspace/ui/components/button"
+import { ButtonGroup } from "@workspace/ui/components/button-group"
 
 export function OrderStatusSelect({
   orderId,
@@ -23,15 +25,7 @@ export function OrderStatusSelect({
         Order Status{" "}
         <span className="lowercase text-[10px]">(click to update)</span>
       </label>
-      <NativeSelect
-        className="w-full"
-        value={value}
-        onChange={async (e) => {
-          const v = e.target.value as OrderStatus
-          setValue(v)
-          await updateOrderStatus(orderId, v, "")
-        }}
-      >
+      <div className="flex-wrap gap-2 items-center">
         {(
           [
             "pending",
@@ -42,11 +36,17 @@ export function OrderStatusSelect({
             "cancelled",
           ] as OrderStatus[]
         ).map((s) => (
-          <NativeSelectOption key={s} value={s}>
+          <Button
+            className="capitalize rounded-md!"
+            variant={initial !== s ? "secondary" : "default"}
+            onClick={() => updateOrderStatus(orderId, s, "")}
+            key={s}
+            value={s}
+          >
             {s}
-          </NativeSelectOption>
+          </Button>
         ))}
-      </NativeSelect>
+      </div>
     </div>
   )
 }
@@ -66,23 +66,22 @@ export function PaymentStatusSelect({
         Payment Status{" "}
         <span className="lowercase text-[10px]">(click to update)</span>
       </label>
-      <NativeSelect
-        className="w-full"
-        value={value}
-        onChange={async (e) => {
-          const v = e.target.value as PaymentStatus
-          setValue(v)
-          await updateOrder({ id: orderId, paymentStatus: v })
-        }}
-      >
+      <div className="flex-wrap gap-2 items-center">
         {(["pending", "paid", "failed", "refunded"] as PaymentStatus[]).map(
           (s) => (
-            <NativeSelectOption key={s} value={s}>
+            <Button
+              disabled={s === initial}
+              className="capitalize disabled:opacity-100 rounded-md!"
+              variant={initial !== s ? "secondary" : "default"}
+              onClick={() => updateOrder({ id: orderId, paymentStatus: s })}
+              key={s}
+              value={s}
+            >
               {s}
-            </NativeSelectOption>
+            </Button>
           )
         )}
-      </NativeSelect>
+      </div>
     </div>
   )
 }

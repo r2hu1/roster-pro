@@ -1,22 +1,42 @@
 "use client"
 
-import { useEffect, useState, useCallback } from "react"
+import { useEffect, useState, useCallback, useRef } from "react"
 import type { TableStatusResponse } from "@workspace/shared/schemas/table/response"
+import { channels } from "@workspace/shared/realtime"
+import { useRealtime } from "@/lib/realtime-client"
 
-export function useTableStatusStream() {
+export function useTableStatusStream(organizationId: string) {
   const [tables, setTables] = useState<TableStatusResponse[]>([])
   const [connected, setConnected] = useState(false)
 
+  const fetchTables = useCallback(() => {
+    return fetch("/api/organization/table/")
+      .then((res) => res.json())
+      .then((result) => {
+        if (result.status === "success") {
+          setTables(result.data)
+        }
+      })
+      .catch(() => {})
+  }, [])
+
   useEffect(() => {
-    const es = new EventSource("/api/organization/table/status/stream")
+    fetchTables()
+  }, [fetchTables])
 
-    es.addEventListener("init", (e) => {
-      setTables(JSON.parse(e.data))
-      setConnected(true)
-    })
+  const { status: connectionStatus } = useRealtime({
+    channels: [channels.table(organizationId)],
+    events: ["table.status", "table.deleted"],
+    onData({ event, data }) {
+      const sseEvent = event.split(".")[1]
 
-    es.addEventListener("status", (e) => {
-      const updated: TableStatusResponse = JSON.parse(e.data)
+      if (sseEvent === "deleted") {
+        const { id } = data as { id: string }
+        setTables((prev) => prev.filter((t) => t.id !== id))
+        return
+      }
+
+      const updated = data as TableStatusResponse
       setTables((prev) => {
         const idx = prev.findIndex((t) => t.id === updated.id)
         if (idx !== -1) {
@@ -26,19 +46,21 @@ export function useTableStatusStream() {
         }
         return [...prev, updated]
       })
-    })
+    },
+  })
 
-    es.addEventListener("deleted", (e) => {
-      const { id } = JSON.parse(e.data)
-      setTables((prev) => prev.filter((t) => t.id !== id))
-    })
-
-    es.onerror = () => {
-      setConnected(false)
+  // Refetch on reconnect to recover any status changes missed while offline.
+  const wasConnected = useRef(false)
+  useEffect(() => {
+    const isConnected = connectionStatus === "connected"
+    setConnected(isConnected)
+    if (isConnected) {
+      if (wasConnected.current) void fetchTables()
+      wasConnected.current = true
+    } else {
+      wasConnected.current = false
     }
-
-    return () => es.close()
-  }, [])
+  }, [connectionStatus, fetchTables])
 
   const updateStatus = useCallback(
     async (tableId: string, status: "available" | "occupied") => {

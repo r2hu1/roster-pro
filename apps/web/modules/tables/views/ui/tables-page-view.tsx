@@ -15,10 +15,12 @@ import CreateTableModal from "./create-table-responsive-modal"
 import UpdateTableModal from "./update-table-responsive-modal"
 import { TableCard } from "./table-card"
 import { useTableStatusStream } from "../../hooks/use-table-status-stream"
+import { useSession } from "@/modules/providers/session-provider"
 import EmptyData from "@/components/empty"
 
 export default function TablesPageView() {
-  const { tables, connected } = useTableStatusStream()
+  const { organization } = useSession()
+  const { tables, connected } = useTableStatusStream(organization?.id ?? "")
 
   const total = tables.length
   const occupied = tables.filter((t) => t.status === "occupied").length

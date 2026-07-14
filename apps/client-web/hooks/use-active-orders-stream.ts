@@ -9,12 +9,8 @@ type StreamState = {
   error: string | null
 }
 
-/**
- * Realtime active orders for a table over SSE.
- *
- * Server sends `init` (full snapshot) then `upsert` / `remove` deltas derived
- * from order events. Manual reconnect with 3s delay on disconnect.
- */
+const POLL_INTERVAL = 10_000
+
 export function useActiveOrdersStream(
   tableId?: string | null,
   organizationId?: string | null
@@ -23,6 +19,15 @@ export function useActiveOrdersStream(
   const [connected, setConnected] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const mapRef = useRef<Map<string, OrderResponse>>(new Map())
+  const tableRef = useRef<string | null>(null)
+
+  const sync = () =>
+    setOrders(
+      Array.from(mapRef.current.values()).sort(
+        (a, b) =>
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      )
+    )
 
   useEffect(() => {
     if (!tableId || !organizationId) return
@@ -32,60 +37,30 @@ export function useActiveOrdersStream(
     setError(null)
     setConnected(false)
 
-    const sync = () =>
-      setOrders(
-        Array.from(mapRef.current.values()).sort(
-          (a, b) =>
-            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-        )
+    const fetchOrders = () => {
+      fetch(
+        `/api/organization/orders/table/${tableId}/active?organizationId=${organizationId}`
       )
-
-    let cancelled = false
-
-    const connect = () => {
-      if (cancelled) return
-
-      const url = `/api/organization/orders/table/${tableId}/active/stream?organizationId=${organizationId}`
-      const es = new EventSource(url)
-
-      es.addEventListener("init", (event) => {
-        if (cancelled) return
-        const list: OrderResponse[] = JSON.parse((event as MessageEvent).data)
-        mapRef.current = new Map(list.map((o) => [o.id, o]))
-        sync()
-      })
-
-      es.addEventListener("upsert", (event) => {
-        const o: OrderResponse = JSON.parse((event as MessageEvent).data)
-        mapRef.current.set(o.id, o)
-        sync()
-      })
-
-      es.addEventListener("remove", (event) => {
-        const { id } = JSON.parse((event as MessageEvent).data) as { id: string }
-        if (mapRef.current.delete(id)) sync()
-      })
-
-      es.onopen = () => {
-        if (cancelled) return
-        setConnected(true)
-        setError(null)
-      }
-
-      es.onerror = () => {
-        if (cancelled) return
-        setConnected(false)
-        setError("Reconnecting…")
-        es.close()
-        setTimeout(() => connect(), 3000)
-      }
+        .then((res) => res.json())
+        .then((result) => {
+          if (result.status === "success") {
+            mapRef.current = new Map(
+              result.data.map((o: OrderResponse) => [o.id, o])
+            )
+            sync()
+            tableRef.current = result.tableNumber
+            setConnected(true)
+            setError(null)
+          }
+        })
+        .catch(() => {
+          setConnected(false)
+        })
     }
 
-    connect()
-
-    return () => {
-      cancelled = true
-    }
+    fetchOrders()
+    const interval = setInterval(fetchOrders, POLL_INTERVAL)
+    return () => clearInterval(interval)
   }, [tableId, organizationId])
 
   return { orders, connected, error }

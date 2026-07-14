@@ -1,10 +1,8 @@
 import { Hono } from "hono"
-import { streamSSE } from "hono/streaming"
 import type { AppEnv } from "../../../index.js"
-import type { OrderResponse } from "@workspace/shared/schemas/order/index"
 import { HTTP_STATUS_CODES, zvalidator } from "../../../lib/utils.js"
 import { sessionMiddleware } from "../../../middleware/session.js"
-import { orderLogic, orderEmitter } from "./orders.logic.js"
+import { orderLogic } from "./orders.logic.js"
 import {
   createOrderSchema,
   createTableOrderSchema,
@@ -54,59 +52,6 @@ orderRouter.get("/stats", sessionMiddleware, async (c) => {
   return c.json(result, result.code)
 })
 
-orderRouter.get("/stream", sessionMiddleware, async (c) => {
-  const organizationId = c.get("organizationId")
-  if (!organizationId) {
-    return c.json(
-      {
-        status: "error",
-        code: HTTP_STATUS_CODES.UNAUTHORIZED,
-        message: "Organization not found",
-      },
-      HTTP_STATUS_CODES.UNAUTHORIZED
-    )
-  }
-
-  return streamSSE(c, async (stream) => {
-    await stream.writeSSE({ event: "ready", data: "" })
-
-    const listener = (event: {
-      type: string
-      data: OrderResponse | { id: string }
-    }) => {
-      stream.writeSSE({
-        event: event.type,
-        data: JSON.stringify(event.data),
-      })
-    }
-
-    orderEmitter.on(`orders:${organizationId}`, listener)
-
-    const heartbeat = setInterval(() => {
-      stream.writeSSE({ event: "ping", data: "" }).catch(() => {})
-    }, 30000)
-
-    await new Promise<void>((resolve) => {
-      stream.onAbort(() => {
-        orderEmitter.off(`orders:${organizationId}`, listener)
-        clearInterval(heartbeat)
-        resolve()
-      })
-    })
-  })
-})
-
-orderRouter.post(
-  "/table/:tableId",
-  zvalidator("json", createTableOrderSchema),
-  async (c) => {
-    const tableId = c.req.param("tableId")!
-    const body = c.req.valid("json")
-    const result = await orderLogic.createOrAppend(tableId, body)
-    return c.json(result, result.code)
-  }
-)
-
 orderRouter.get("/table/:tableId/active", async (c) => {
   const organizationId = c.req.query("organizationId")
   if (!organizationId) {
@@ -123,120 +68,6 @@ orderRouter.get("/table/:tableId/active", async (c) => {
   const tableId = c.req.param("tableId")!
   const result = await orderLogic.getActiveByTableId(tableId, organizationId)
   return c.json(result, result.code)
-})
-
-orderRouter.get("/table/:tableId/active/stream", async (c) => {
-  const organizationId = c.req.query("organizationId")
-  if (!organizationId) {
-    return c.json(
-      {
-        status: "error",
-        code: HTTP_STATUS_CODES.BAD_REQUEST,
-        message: "organizationId query parameter is required",
-      },
-      HTTP_STATUS_CODES.BAD_REQUEST
-    )
-  }
-
-  const tableId = c.req.param("tableId")!
-  const initial = await orderLogic.getActiveByTableId(tableId, organizationId)
-  if (initial.status === "error") {
-    return c.json(initial, initial.code as 404)
-  }
-
-  const tableNumber = initial.tableNumber
-
-  const isActive = (status: string) =>
-    status !== "completed" && status !== "cancelled"
-
-  return streamSSE(c, async (stream) => {
-    await stream.writeSSE({
-      event: "init",
-      data: JSON.stringify(initial.data),
-    })
-
-    const listener = (event: {
-      type: string
-      data: OrderResponse | { id: string }
-    }) => {
-      if (event.type === "deleted") {
-        stream.writeSSE({ event: "remove", data: JSON.stringify(event.data) })
-        return
-      }
-
-      const o = event.data as OrderResponse
-      if (o.tableNumber === tableNumber && isActive(o.status)) {
-        stream.writeSSE({ event: "upsert", data: JSON.stringify(o) })
-      } else {
-        stream.writeSSE({ event: "remove", data: JSON.stringify({ id: o.id }) })
-      }
-    }
-
-    orderEmitter.on(`orders:${organizationId}`, listener)
-
-    const heartbeat = setInterval(() => {
-      stream.writeSSE({ event: "ping", data: "" }).catch(() => {})
-    }, 30000)
-
-    await new Promise<void>((resolve) => {
-      stream.onAbort(() => {
-        orderEmitter.off(`orders:${organizationId}`, listener)
-        clearInterval(heartbeat)
-        resolve()
-      })
-    })
-  })
-})
-
-orderRouter.get("/:id/stream", async (c) => {
-  const organizationId = c.req.query("organizationId")
-  if (!organizationId) {
-    return c.json(
-      {
-        status: "error",
-        code: HTTP_STATUS_CODES.BAD_REQUEST,
-        message: "organizationId query parameter is required",
-      },
-      HTTP_STATUS_CODES.BAD_REQUEST
-    )
-  }
-
-  const id = c.req.param("id")!
-  const existing = await orderLogic.getById(id, organizationId)
-  if (existing.status === "error") {
-    return c.json(existing, existing.code as 404)
-  }
-
-  return streamSSE(c, async (stream) => {
-    await stream.writeSSE({
-      event: "init",
-      data: JSON.stringify(existing.data),
-    })
-
-    const listener = (event: {
-      type: string
-      data: OrderResponse | { id: string }
-    }) => {
-      stream.writeSSE({
-        event: event.type,
-        data: JSON.stringify(event.data),
-      })
-    }
-
-    orderEmitter.on(`order:${id}`, listener)
-
-    const heartbeat = setInterval(() => {
-      stream.writeSSE({ event: "ping", data: "" }).catch(() => {})
-    }, 30000)
-
-    await new Promise<void>((resolve) => {
-      stream.onAbort(() => {
-        orderEmitter.off(`order:${id}`, listener)
-        clearInterval(heartbeat)
-        resolve()
-      })
-    })
-  })
 })
 
 orderRouter.get("/:id", async (c) => {
@@ -257,8 +88,18 @@ orderRouter.get("/:id", async (c) => {
   return c.json(result, result.code)
 })
 
+orderRouter.post(
+  "/table/:tableId",
+  zvalidator("json", createTableOrderSchema),
+  async (c) => {
+    const tableId = c.req.param("tableId")!
+    const body = c.req.valid("json")
+    const result = await orderLogic.createOrAppend(tableId, body)
+    return c.json(result, result.code)
+  }
+)
+
 orderRouter.post("/", zvalidator("json", createOrderSchema), async (c) => {
-  // console.log("create order");     // ignore this
   const body = c.req.valid("json")
   const result = await orderLogic.create(body)
   return c.json(result, result.code)

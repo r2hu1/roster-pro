@@ -1,7 +1,6 @@
 "use client"
 
-import { useOrdersStream } from "@/modules/orders/hooks/use-orders-stream"
-import { useKitchenMode } from "@/modules/providers/kitchen-mode"
+import { useQuery } from "@tanstack/react-query"
 import { useSession } from "@/modules/providers/session-provider"
 import { useMemo, useState } from "react"
 import { IconSearch } from "@tabler/icons-react"
@@ -11,19 +10,24 @@ import {
   InputGroupAddon,
   InputGroupInput,
 } from "@workspace/ui/components/input-group"
+import { fetchOrders } from "@/modules/orders/api/orders"
 import ReceiptsDataTable from "./receipts-data-table"
 import PageHeader from "@/components/page-header"
 
 export default function ReceiptsPageView() {
-  const { orders, connected } = useOrdersStream()
-  const [activeFilter, setActiveFilter] = useState<string>("All")
+  const { organization } = useSession()
   const [search, setSearch] = useState("")
+
+  const { data, isLoading, error } = useQuery({
+    queryKey: ["orders"],
+    queryFn: () => fetchOrders({ limit: 100 }),
+    enabled: !!organization?.id,
+  })
+
+  const orders = data?.data ?? []
 
   const filtered = useMemo(() => {
     let result = orders
-    if (activeFilter !== "All") {
-      result = result.filter((o) => o.status === activeFilter.toLowerCase())
-    }
     if (search.trim()) {
       const q = search.toLowerCase()
       result = result.filter(
@@ -34,14 +38,15 @@ export default function ReceiptsPageView() {
       )
     }
     return result
-  }, [orders, activeFilter, search])
-  return (
-    <div className="space-y-4">
-      <PageHeader
-        title="Receipts"
-        description="All receipts for orders till date."
-      />
-      {!connected && orders.length === 0 ? (
+  }, [orders, search])
+
+  if (isLoading) {
+    return (
+      <div className="space-y-4">
+        <PageHeader
+          title="Receipts"
+          description="All receipts for orders till date."
+        />
         <div className="space-y-4">
           <Skeleton className="h-10 w-full rounded-lg" />
           <div className="space-y-2">
@@ -50,21 +55,39 @@ export default function ReceiptsPageView() {
             ))}
           </div>
         </div>
-      ) : (
-        <>
-          <InputGroup className="w-full">
-            <InputGroupInput
-              placeholder="Search by invoice, table, or customer..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
-            <InputGroupAddon>
-              <IconSearch />
-            </InputGroupAddon>
-          </InputGroup>
-          <ReceiptsDataTable orders={filtered} />
-        </>
-      )}
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="space-y-4">
+        <PageHeader
+          title="Receipts"
+          description="All receipts for orders till date."
+        />
+        <div className="text-red-500">Failed to load receipts.</div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="space-y-4">
+      <PageHeader
+        title="Receipts"
+        description="All receipts for orders till date."
+      />
+      <InputGroup className="w-full">
+        <InputGroupInput
+          placeholder="Search by invoice, table, or customer..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
+        <InputGroupAddon>
+          <IconSearch />
+        </InputGroupAddon>
+      </InputGroup>
+      <ReceiptsDataTable orders={filtered} />
     </div>
   )
 }

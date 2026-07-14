@@ -1,13 +1,13 @@
 "use client"
 
 import { authClient } from "@/lib/better-auth/client"
-import Transform from "@workspace/ui/components/transform"
 import type { Session, User } from "better-auth"
 import { createContext, useContext, useEffect } from "react"
 import { useQuery } from "@tanstack/react-query"
 import api from "@/lib/axios"
 import type { OrganizationResponse } from "@workspace/shared/schemas/organization/response"
 import { useRouter } from "next/navigation"
+import Preloader from "@/components/preloader"
 
 interface SessionContextProps {
   session: Session | null
@@ -62,14 +62,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
       {children}
 
       {isLoading && (
-        <div className="fixed bg-background z-100 flex inset-0 items-center justify-center">
-          <div className="grid place-items-center space-y-3 text-center">
-            <Transform className="size-10! bg-foreground!" />
-            <h1 className="text-foreground/80 w-[150px] text-sm">
-              Preparing your workspace...
-            </h1>
-          </div>
-        </div>
+        <Preloader/>
       )}
     </SessionContext.Provider>
   )

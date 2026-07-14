@@ -4,7 +4,7 @@ import "@workspace/ui/globals.css"
 import { cn } from "@workspace/ui/lib/utils"
 import { TooltipProvider } from "@workspace/ui/components/tooltip"
 import { Toaster } from "sonner"
-import { SessionProvider } from "@/modules/providers/session-provider"
+import { Realtime } from "@/components/realtime-provider"
 
 const instrumentSans = Instrument_Sans({
   subsets: ["latin"],
@@ -33,7 +33,9 @@ export default function RootLayout({
       )}
     >
       <body>
-        <TooltipProvider>{children}</TooltipProvider>
+        <TooltipProvider>
+          <Realtime>{children}</Realtime>
+        </TooltipProvider>
         <Toaster />
       </body>
     </html>
