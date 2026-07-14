@@ -71,7 +71,7 @@ export default function ResponsiveOrdersStatus() {
         <ResponsiveModalHeader>
           <ResponsiveModalTitle>Your Orders</ResponsiveModalTitle>
           <ResponsiveModalDescription>
-            Sit tight you order is ${orders?.map((e)=>e.status)}
+            {orders?.length === 0 ? "" : "Sit tight our chefs are preparing your order."}
           </ResponsiveModalDescription>
         </ResponsiveModalHeader>
 

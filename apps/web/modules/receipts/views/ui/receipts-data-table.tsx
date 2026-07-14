@@ -128,6 +128,9 @@ export default function ReceiptsDataTable({ orders }: ReceiptsDataTableProps) {
     state: {
       sorting,
     },
+    initialState: {
+      pagination: { pageSize: 12 },
+    },
   })
 
   return (
