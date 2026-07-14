@@ -100,7 +100,6 @@ orderRouter.post(
 )
 
 orderRouter.post("/", zvalidator("json", createOrderSchema), async (c) => {
-  // console.log("create order");     // ignore this
   const body = c.req.valid("json")
   const result = await orderLogic.create(body)
   return c.json(result, result.code)

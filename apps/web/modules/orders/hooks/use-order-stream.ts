@@ -55,8 +55,6 @@ export function useOrderStream(orderId: string, organizationId: string) {
     },
   })
 
-  // Reconcile after any reconnect: events emitted while the socket was down are
-  // not replayed, so refetch the authoritative record when the link is restored.
   const wasConnected = useRef(false)
   useEffect(() => {
     const isConnected = connectionStatus === "connected"

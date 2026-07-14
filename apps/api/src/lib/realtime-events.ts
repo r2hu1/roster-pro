@@ -4,11 +4,6 @@ import { channels } from "@workspace/shared/realtime"
 type OrderEvent = "order.created" | "order.updated" | "order.deleted"
 type TableEvent = "table.status" | "table.deleted"
 
-/**
- * Emit a single event without ever blocking or throwing into the request path.
- * Realtime delivery is best-effort; the database write is the source of truth
- * and clients reconcile via snapshot refetch on reconnect.
- */
 async function safeEmit(
   channel: string,
   event: string,
@@ -22,10 +17,6 @@ async function safeEmit(
   }
 }
 
-/**
- * Fan an order change out to the org-wide list channel, the per-order channel,
- * and the analytics channel. Fire-and-forget — callers must not await this.
- */
 export function publishOrderEvent(
   organizationId: string,
   orderId: string,
@@ -39,7 +30,6 @@ export function publishOrderEvent(
   ])
 }
 
-/** Fan a table change out to the org table channel. Fire-and-forget. */
 export function publishTableEvent(
   organizationId: string,
   event: TableEvent,

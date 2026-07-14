@@ -19,11 +19,6 @@ function unauthorized(message: string, status = 401) {
   })
 }
 
-/**
- * Resolves the caller's organizationId from the forwarded auth cookies by
- * asking the API's better-auth session endpoint. SSE cannot carry custom
- * headers, so authorization is cookie-based only.
- */
 async function resolveOrganizationId(request: Request): Promise<string | null> {
   const cookie = request.headers.get("cookie")
   if (!cookie) return null
@@ -31,7 +26,6 @@ async function resolveOrganizationId(request: Request): Promise<string | null> {
   try {
     const res = await fetch(`${API_URL}/v1/auth/get-session`, {
       headers: { cookie },
-      // Never cache — every connection must be authorized against a live session.
       cache: "no-store",
     })
     if (!res.ok) return null
@@ -48,11 +42,6 @@ async function resolveOrganizationId(request: Request): Promise<string | null> {
 const handler = realtime
   ? handle({
       realtime,
-      /**
-       * Runs before the stream opens. Rejects unauthenticated callers and any
-       * attempt to subscribe to a channel outside the caller's organization —
-       * the core multi-tenant isolation boundary.
-       */
       middleware: async ({ request, channels }) => {
         const organizationId = await resolveOrganizationId(request)
         if (!organizationId) return unauthorized("Unauthorized")
