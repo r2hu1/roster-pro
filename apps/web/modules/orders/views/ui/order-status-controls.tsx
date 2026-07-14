@@ -64,7 +64,7 @@ export function PaymentStatusSelect({
       <div className="flex-wrap gap-2 items-center">
         {(["pending", "paid", "failed", "refunded"] as PaymentStatus[]).map(
           (s) => (
-            <Button className="capitalize rounded-md!" variant={initial !== s ? "secondary" : "default"} onClick={() => updateOrderStatus(orderId, s, "")} key={s} value={s}>
+            <Button disabled={s === initial} className="capitalize disabled:opacity-100 rounded-md!" variant={initial !== s ? "secondary" : "default"} onClick={() => updateOrder({ id: orderId, paymentStatus: s })} key={s} value={s}>
               {s}
             </Button>
           )
