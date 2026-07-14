@@ -70,7 +70,13 @@ function RenderUpdateStatusButton({
   )
 }
 
-export function OrderCard({ order, status }: { order: Order; status?: string }) {
+export function OrderCard({
+  order,
+  status,
+}: {
+  order: Order
+  status?: string
+}) {
   const time = new Date(order.createdAt).toLocaleTimeString("en-IN", {
     hour: "2-digit",
     minute: "2-digit",
@@ -95,7 +101,10 @@ export function OrderCard({ order, status }: { order: Order; status?: string }) 
                 {order.invoiceNumber}
               </p>
             </div>
-            <RenderUpdateStatusButton status={status as OrderStatus} orderId={order.id} />
+            <RenderUpdateStatusButton
+              status={status as OrderStatus}
+              orderId={order.id}
+            />
           </div>
 
           {order.customerName && (

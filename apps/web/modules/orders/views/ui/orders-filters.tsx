@@ -22,14 +22,14 @@ export function OrdersFilters({
 }) {
   const { kitchenMode } = useKitchenMode()
   const filters = [
-      "All",
-      "Pending",
-      "Preparing",
-      "Ready",
-      "Served",
-      "Completed",
-      "Cancelled",
-    ];
+    "All",
+    "Pending",
+    "Preparing",
+    "Ready",
+    "Served",
+    "Completed",
+    "Cancelled",
+  ]
 
   if (kitchenMode) {
     return (

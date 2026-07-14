@@ -172,7 +172,11 @@ export default function OrdersPageView() {
             <>
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                 {orders.map((order) => (
-                  <OrderCard key={order.id} order={order} status={activeFilter.toLowerCase()}/>
+                  <OrderCard
+                    key={order.id}
+                    order={order}
+                    status={activeFilter.toLowerCase()}
+                  />
                 ))}
               </div>
               <LoadMoreSentinel
