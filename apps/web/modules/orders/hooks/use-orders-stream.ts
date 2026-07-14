@@ -66,6 +66,7 @@ export function useOrdersStream(params: UseOrdersStreamParams) {
   const [error, setError] = useState<string | null>(null)
   const [hasMore, setHasMore] = useState(false)
   const [loadingInitial, setLoadingInitial] = useState(true)
+  const [loadingFilter, setLoadingFilter] = useState(false)
   const [loadingMore, setLoadingMore] = useState(false)
 
   const storeRef = useRef<Map<string, OrderResponse>>(new Map())
@@ -73,6 +74,7 @@ export function useOrdersStream(params: UseOrdersStreamParams) {
   const loadingMoreRef = useRef(false)
 
   const snapshotSeq = useRef(0)
+  const initialLoadDone = useRef(false)
 
   const statusRef = useRef(status)
   const searchRef = useRef(search)
@@ -99,7 +101,11 @@ export function useOrdersStream(params: UseOrdersStreamParams) {
 
   const loadSnapshot = useCallback(() => {
     const seq = ++snapshotSeq.current
-    setLoadingInitial(true)
+    if (!initialLoadDone.current) {
+      setLoadingInitial(true)
+    } else {
+      setLoadingFilter(true)
+    }
     cursorRef.current = null
 
     fetchOrders({
@@ -121,7 +127,11 @@ export function useOrdersStream(params: UseOrdersStreamParams) {
         if (seq === snapshotSeq.current) setError("Failed to load orders")
       })
       .finally(() => {
-        if (seq === snapshotSeq.current) setLoadingInitial(false)
+        if (seq === snapshotSeq.current) {
+          initialLoadDone.current = true
+          setLoadingInitial(false)
+          setLoadingFilter(false)
+        }
       })
   }, [rebuild])
 
@@ -240,6 +250,7 @@ export function useOrdersStream(params: UseOrdersStreamParams) {
     error,
     hasMore,
     loadingInitial,
+    loadingFilter,
     loadingMore,
     loadMore,
   }
