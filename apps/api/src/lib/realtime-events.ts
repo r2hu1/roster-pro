@@ -10,7 +10,8 @@ async function safeEmit(
   data: unknown
 ): Promise<void> {
   try {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    // biome-ignore lint/suspicious/noExplicitAny: emit() event arg is a strict
+    // literal union; runtime dispatch is dynamic so a cast is unavoidable here.
     await realtime?.channel(channel)?.emit(event as any, data)
   } catch (err) {
     console.error(`[realtime] emit failed (${channel} ${event})`, err)
