@@ -57,6 +57,20 @@
       "when": 1783960674266,
       "tag": "0007_confused_leopardon",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1784045190066,
+      "tag": "0008_parallel_shard",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1784047735530,
+      "tag": "0009_bored_vanisher",
+      "breakpoints": true
     }
   ]
 }

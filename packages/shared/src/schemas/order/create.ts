@@ -8,6 +8,7 @@ export const CreateOrderSchema = z.object({
   customerPhone: z.string().nullable().optional(),
   customerEmail: z.string().email().nullable().optional(),
   tableNumber: z.string().min(1, "Table number is required"),
+  tableSessionId: z.string().nullable().optional(),
   status: OrderStatus.optional(),
   paymentStatus: PaymentStatus.optional(),
   paymentMethod: z.string().nullable().optional(),

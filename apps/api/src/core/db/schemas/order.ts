@@ -15,6 +15,7 @@ import type { CreateOrderItemDto } from "@workspace/shared/schemas/order/order-i
 
 import { v4 as uuidv4 } from "uuid"
 import { menuItem } from "./menu.js"
+import { tableSession } from "./table.js"
 
 export type OrderItemJson = Omit<CreateOrderItemDto, "id" | "orderId">
 
@@ -30,6 +31,9 @@ export const order = pgTable(
       .references(() => organization.id, {
         onDelete: "cascade",
       }),
+    tableSessionId: text("table_session_id").references(() => tableSession.id, {
+      onDelete: "set null",
+    }),
     invoiceNumber: text("invoice_number").notNull(),
     customerName: text("customer_name"),
     customerPhone: text("customer_phone"),
@@ -42,9 +46,19 @@ export const order = pgTable(
       .notNull(),
     paymentMethod: text("payment_method"),
     items: jsonb("items").$type<OrderItemJson[]>().notNull(),
-    subtotal: integer("subtotal").notNull(),
-    discount: integer("discount").default(0).notNull(),
-    taxableAmount: integer("taxable_amount").notNull(),
+    subtotal: numeric("subtotal", {
+      precision: 10,
+      scale: 2,
+      mode: "number",
+    }).notNull(),
+    discount: numeric("discount", { precision: 10, scale: 2, mode: "number" })
+      .default(0)
+      .notNull(),
+    taxableAmount: numeric("taxable_amount", {
+      precision: 10,
+      scale: 2,
+      mode: "number",
+    }).notNull(),
     gstRate: numeric("gst_rate", {
       precision: 10,
       scale: 2,
@@ -105,6 +119,7 @@ export const order = pgTable(
     paymentStatusIdx: index("order_payment_status_idx").on(table.paymentStatus),
     createdAtIdx: index("order_created_at_idx").on(table.createdAt),
     customerEmailIdx: index("order_customer_email_idx").on(table.customerEmail),
+    tableSessionIdx: index("order_table_session_idx").on(table.tableSessionId),
   })
 )
 

@@ -1,27 +1,22 @@
-"use client";
+"use client"
 
-import { useEffect, useMemo } from "react";
-import { useRouter } from "next/navigation";
-import { useQuery } from "@tanstack/react-query";
+import { useEffect, useMemo } from "react"
+import { useRouter } from "next/navigation"
+import { useQuery } from "@tanstack/react-query"
 
-import { authClient } from "@/lib/better-auth/client";
-import { useSession } from "./session-provider";
-import Preloader from "@/components/preloader";
+import { authClient } from "@/lib/better-auth/client"
+import { useSession } from "./session-provider"
+import Preloader from "@/components/preloader"
 
 interface Props {
-  children: React.ReactNode;
+  children: React.ReactNode
 }
 
 export default function SubscriptionMiddleware({ children }: Props) {
-  const router = useRouter();
-  const { organization } = useSession();
+  const router = useRouter()
+  const { organization } = useSession()
 
-  const {
-    data,
-    isPending,
-    isError,
-    error,
-  } = useQuery({
+  const { data, isPending, isError, error } = useQuery({
     queryKey: ["subscription", organization?.id],
     enabled: !!organization?.id,
     staleTime: 5 * 60 * 1000,
@@ -34,53 +29,50 @@ export default function SubscriptionMiddleware({ children }: Props) {
           page: 1,
           limit: 1,
         },
-      });
+      })
 
       if (res.error) {
-        throw new Error(res.error.message);
+        throw new Error(res.error.message)
       }
 
-      return res.data;
+      return res.data
     },
-  });
+  })
 
   const hasSubscription = useMemo(() => {
-    return (data?.result.items.length ?? 0) > 0;
-  }, [data]);
+    return (data?.result.items.length ?? 0) > 0
+  }, [data])
 
   const shouldRedirect =
-    !!organization &&
-    !isPending &&
-    !isError &&
-    !hasSubscription;
+    !!organization && !isPending && !isError && !hasSubscription
 
   useEffect(() => {
-    if (!shouldRedirect) return;
+    if (!shouldRedirect) return
 
-    router.replace(`/${organization!.id}/subscribe`);
-  }, [shouldRedirect, organization, router]);
+    router.replace(`/${organization!.id}/subscribe`)
+  }, [shouldRedirect, organization, router])
 
   if (!organization) {
-    return <Preloader />;
+    return <Preloader />
   }
 
   if (isPending) {
-    return <Preloader />;
+    return <Preloader />
   }
 
   if (isError) {
-    console.error(error);
+    console.error(error)
 
     return (
       <div className="flex min-h-screen items-center justify-center">
         Failed to verify your subscription.
       </div>
-    );
+    )
   }
 
   if (shouldRedirect) {
-    return <Preloader />;
+    return <Preloader />
   }
 
-  return children;
+  return children
 }

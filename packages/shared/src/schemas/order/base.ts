@@ -10,6 +10,7 @@ export const OrderSchema = z.object({
   customerPhone: z.string().nullable(),
   customerEmail: z.string().nullable(),
   tableNumber: z.string(),
+  tableSessionId: z.string().nullable().optional(),
   status: OrderStatus,
   paymentStatus: PaymentStatus,
   paymentMethod: z.string().nullable(),

@@ -167,8 +167,53 @@ orderRouter.delete("/:id", sessionMiddleware, async (c) => {
 
   const id = c.req.param("id")!
   const result = await orderLogic.delete(id, organizationId)
-  return c.json(result)
+  return c.json(result, result.code)
 })
+
+orderRouter.get("/session/:sessionId/bill", sessionMiddleware, async (c) => {
+  const organizationId = c.get("organizationId")
+  if (!organizationId) {
+    return c.json(
+      {
+        status: "error",
+        code: HTTP_STATUS_CODES.UNAUTHORIZED,
+        message: "Organization not found",
+      },
+      HTTP_STATUS_CODES.UNAUTHORIZED
+    )
+  }
+
+  const sessionId = c.req.param("sessionId")!
+  const result = await orderLogic.getSessionBill(sessionId, organizationId)
+  return c.json(result, result.code)
+})
+
+orderRouter.post(
+  "/session/:sessionId/checkout",
+  sessionMiddleware,
+  async (c) => {
+    const organizationId = c.get("organizationId")
+    if (!organizationId) {
+      return c.json(
+        {
+          status: "error",
+          code: HTTP_STATUS_CODES.UNAUTHORIZED,
+          message: "Organization not found",
+        },
+        HTTP_STATUS_CODES.UNAUTHORIZED
+      )
+    }
+
+    const sessionId = c.req.param("sessionId")!
+    const { paymentMethod } = await c.req.json()
+    const result = await orderLogic.checkoutSession(
+      sessionId,
+      organizationId,
+      paymentMethod || "cash"
+    )
+    return c.json(result, result.code)
+  }
+)
 
 orderRouter.get("/:orderId/invoice", async (c) => {
   const organizationId = c.req.query("organizationId")
