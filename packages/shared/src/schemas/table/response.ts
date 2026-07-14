@@ -1,6 +1,6 @@
 import { z } from "zod"
 import { TableSchema } from "./base.js"
-import { TableStatus } from "../../enums/index.js"
+import { TableStatus } from "../../enums"
 
 export const TableResponseSchema = TableSchema
 
