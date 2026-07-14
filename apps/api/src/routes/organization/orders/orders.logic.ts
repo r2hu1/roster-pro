@@ -25,11 +25,10 @@ import type {
 } from "@workspace/shared/schemas/order/index"
 import type { CreateTableOrderDto } from "./orders.validation.js"
 import { organization } from "../../../core/db/schemas/auth.js"
-import { realtime as _realtime } from "../../../lib/realtime.js"
-
-function channel(name: string) {
-  return _realtime?.channel(name)
-}
+import {
+  publishOrderEvent,
+  publishTableEvent,
+} from "../../../lib/realtime-events.js"
 import { menuItem, type Price } from "../../../core/db/schemas/menu.js"
 
 const TABLE_CACHE_PREFIX = "table:"
@@ -52,8 +51,7 @@ async function emitTableStatus(organizationId: string, tableNumber: string) {
     )
 
   if (table) {
-    const tableChannel = channel(`table:${organizationId}`)
-    await tableChannel?.emit("table.status", table)
+    publishTableEvent(organizationId, "table.status", table)
   }
 
   try {
@@ -438,16 +436,9 @@ export const orderLogic = {
       }
     }
 
-    void redisClient.delPattern(`${ORDER_CACHE_PREFIX}all:${organizationId}`)
+    void redisClient.del(`${ORDER_CACHE_PREFIX}all:${organizationId}`)
 
-    const ordersChannel = channel(`orders:${organizationId}`)
-    const orderChannel = channel(`order:${created.id}`)
-    const analyticsChannel = channel(`analytics:${organizationId}`)
-    void Promise.all([
-      ordersChannel?.emit("order.created", created),
-      orderChannel?.emit("order.created", created),
-      analyticsChannel?.emit("analytics.updated", null),
-    ])
+    publishOrderEvent(organizationId, created.id, "order.created", created)
 
     return { status: "success", code: HTTP_STATUS_CODES.CREATED, data: created }
   },
@@ -664,22 +655,11 @@ export const orderLogic = {
       await redisClient.del(
         `${ORDER_CACHE_PREFIX}${organizationId}:${active.id}`
       )
-      await redisClient.delPattern(`${ORDER_CACHE_PREFIX}all:${organizationId}`)
+      await redisClient.del(`${ORDER_CACHE_PREFIX}all:${organizationId}`)
     } catch (err) {
       console.error("Failed to invalidate order cache", err)
     }
-    try {
-      const ordersChannel = channel(`orders:${organizationId}`)
-      const orderChannel = channel(`order:${updated.id}`)
-      const analyticsChannel = channel(`analytics:${organizationId}`)
-      await Promise.all([
-        ordersChannel?.emit("order.updated", updated),
-        orderChannel?.emit("order.updated", updated),
-        analyticsChannel?.emit("analytics.updated", null),
-      ])
-    } catch (err) {
-      console.error("Failed to emit order events", err)
-    }
+    publishOrderEvent(organizationId, updated.id, "order.updated", updated)
     return {
       status: "success" as const,
       code: HTTP_STATUS_CODES.OK,
@@ -766,16 +746,9 @@ export const orderLogic = {
     }
 
     void redisClient.del(`${ORDER_CACHE_PREFIX}${organizationId}:${body.id}`)
-    void redisClient.delPattern(`${ORDER_CACHE_PREFIX}all:${organizationId}`)
+    void redisClient.del(`${ORDER_CACHE_PREFIX}all:${organizationId}`)
 
-    const ordersChannel = channel(`orders:${organizationId}`)
-    const orderChannel = channel(`order:${updated.id}`)
-    const analyticsChannel = channel(`analytics:${organizationId}`)
-    void Promise.all([
-      ordersChannel?.emit("order.updated", updated),
-      orderChannel?.emit("order.updated", updated),
-      analyticsChannel?.emit("analytics.updated", null),
-    ])
+    publishOrderEvent(organizationId, updated.id, "order.updated", updated)
 
     return { status: "success", code: HTTP_STATUS_CODES.OK, data: updated }
   },
@@ -837,16 +810,9 @@ export const orderLogic = {
     void emitTableStatus(organizationId, updated.tableNumber)
 
     void redisClient.del(`${ORDER_CACHE_PREFIX}${organizationId}:${id}`)
-    void redisClient.delPattern(`${ORDER_CACHE_PREFIX}all:${organizationId}`)
+    void redisClient.del(`${ORDER_CACHE_PREFIX}all:${organizationId}`)
 
-    const ordersChannel = channel(`orders:${organizationId}`)
-    const orderChannel = channel(`order:${updated.id}`)
-    const analyticsChannel = channel(`analytics:${organizationId}`)
-    void Promise.all([
-      ordersChannel?.emit("order.updated", updated),
-      orderChannel?.emit("order.updated", updated),
-      analyticsChannel?.emit("analytics.updated", null),
-    ])
+    publishOrderEvent(organizationId, updated.id, "order.updated", updated)
 
     return { status: "success", code: HTTP_STATUS_CODES.OK, data: updated }
   },
@@ -878,16 +844,9 @@ export const orderLogic = {
       .where(and(eq(order.id, id), eq(order.organizationId, organizationId)))
 
     void redisClient.del(`${ORDER_CACHE_PREFIX}${organizationId}:${id}`)
-    void redisClient.delPattern(`${ORDER_CACHE_PREFIX}all:${organizationId}`)
+    void redisClient.del(`${ORDER_CACHE_PREFIX}all:${organizationId}`)
 
-    const ordersChannel = channel(`orders:${organizationId}`)
-    const orderChannel = channel(`order:${id}`)
-    const analyticsChannel = channel(`analytics:${organizationId}`)
-    void Promise.all([
-      ordersChannel?.emit("order.deleted", { id }),
-      orderChannel?.emit("order.deleted", { id }),
-      analyticsChannel?.emit("analytics.updated", null),
-    ])
+    publishOrderEvent(organizationId, id, "order.deleted", { id })
 
     return { status: "success", code: HTTP_STATUS_CODES.NO_CONTENT }
   },

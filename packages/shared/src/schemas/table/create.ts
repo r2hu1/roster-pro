@@ -1,5 +1,5 @@
 import { z } from "zod"
-import { TableStatus } from "../../enums"
+import { TableStatus } from "../../enums/index.js"
 
 export const CreateTableSchema = z.object({
   number: z.number().int().positive("Table number must be a positive integer"),

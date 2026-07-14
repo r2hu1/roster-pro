@@ -1,7 +1,8 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import type { OrderResponse } from "@workspace/shared/schemas/order/index"
+import { channels } from "@workspace/shared/realtime"
 import { useRealtime } from "@/lib/realtime-client"
 
 type OrderEvent =
@@ -14,8 +15,8 @@ export function useOrderStream(orderId: string, organizationId: string) {
   const [connected, setConnected] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  useEffect(() => {
-    fetch(
+  const fetchOrder = useCallback(() => {
+    return fetch(
       `/api/organization/orders/${orderId}?organizationId=${organizationId}`
     )
       .then((res) => res.json())
@@ -27,8 +28,12 @@ export function useOrderStream(orderId: string, organizationId: string) {
       .catch(() => {})
   }, [orderId, organizationId])
 
+  useEffect(() => {
+    fetchOrder()
+  }, [fetchOrder])
+
   const { status: connectionStatus } = useRealtime({
-    channels: [`order:${orderId}`],
+    channels: [channels.order(organizationId, orderId)],
     events: ["order.created", "order.updated", "order.deleted"],
     onData({ event, data }) {
       const sseEvent = event.split(".")[1]
@@ -50,14 +55,21 @@ export function useOrderStream(orderId: string, organizationId: string) {
     },
   })
 
+  // Reconcile after any reconnect: events emitted while the socket was down are
+  // not replayed, so refetch the authoritative record when the link is restored.
+  const wasConnected = useRef(false)
   useEffect(() => {
-    setConnected(connectionStatus === "connected")
-    if (connectionStatus === "error") {
-      setError("Connection lost")
-    } else if (connectionStatus === "connected") {
+    const isConnected = connectionStatus === "connected"
+    setConnected(isConnected)
+    if (isConnected) {
+      if (wasConnected.current) void fetchOrder()
+      wasConnected.current = true
       setError(null)
+    } else {
+      if (connectionStatus === "error") setError("Connection lost")
+      wasConnected.current = false
     }
-  }, [connectionStatus])
+  }, [connectionStatus, fetchOrder])
 
   return { order, connected, error }
 }

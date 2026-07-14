@@ -1,5 +1,5 @@
 import { z } from "zod"
-import { TableStatus } from "../../enums"
+import { TableStatus } from "../../enums/index.js"
 
 export const TableSchema = z.object({
   id: z.string(),

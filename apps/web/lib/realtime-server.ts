@@ -1,14 +1,10 @@
 import { Realtime } from "@upstash/realtime"
 import { Redis } from "@upstash/redis"
-import { z } from "zod"
+import { realtimeSchema } from "@workspace/shared/realtime"
 
-const schema = {
-  order: { created: z.any(), updated: z.any(), deleted: z.any() },
-  table: { status: z.any(), deleted: z.any() },
-  analytics: { updated: z.any() },
-}
+type Schema = typeof realtimeSchema
 
-let realtimeInstance: Realtime<{ schema: typeof schema }> | null = null
+let realtimeInstance: Realtime<{ schema: Schema }> | null = null
 
 function initRealtime() {
   if (realtimeInstance) return realtimeInstance
@@ -25,9 +21,10 @@ function initRealtime() {
 
   try {
     const redis = new Redis({ url, token })
-    realtimeInstance = new Realtime({ schema, redis }) as unknown as Realtime<{
-      schema: typeof schema
-    }>
+    realtimeInstance = new Realtime({
+      schema: realtimeSchema,
+      redis,
+    }) as unknown as Realtime<{ schema: Schema }>
     return realtimeInstance
   } catch (err) {
     console.error("[realtime] Failed to initialize Realtime:", err)

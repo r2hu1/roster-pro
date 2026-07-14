@@ -9,7 +9,7 @@ import type {
   UpdateTableDto,
   UpdateTableStatusDto,
 } from "@workspace/shared/schemas/table/index"
-import { realtime } from "../../../lib/realtime.js"
+import { publishTableEvent } from "../../../lib/realtime-events.js"
 import { cryptoUtil } from "../../../lib/crypto.js"
 import { organization } from "../../../core/db/schemas/auth.js"
 
@@ -103,8 +103,7 @@ export const tableLogic = {
 
     await redisClient.delPattern(`${TABLE_CACHE_PREFIX}*:${organizationId}`)
 
-    const tableChannel = realtime?.channel(`table:${organizationId}`)
-    await tableChannel?.emit("table.status", {
+    publishTableEvent(organizationId, "table.status", {
       id: created.id,
       number: created.number,
       name: created.name,
@@ -154,10 +153,9 @@ export const tableLogic = {
       .returning()
 
     await redisClient.del(`${TABLE_CACHE_PREFIX}${organizationId}:${body.id}`)
-    await redisClient.delPattern(`${TABLE_CACHE_PREFIX}all:${organizationId}`)
+    await redisClient.del(`${TABLE_CACHE_PREFIX}all:${organizationId}`)
 
-    const tableChannel = realtime?.channel(`table:${organizationId}`)
-    await tableChannel?.emit("table.status", {
+    publishTableEvent(organizationId, "table.status", {
       id: updated.id,
       number: updated.number,
       name: updated.name,
@@ -198,10 +196,9 @@ export const tableLogic = {
     await db.delete(tableSchema).where(eq(tableSchema.id, id))
 
     await redisClient.del(`${TABLE_CACHE_PREFIX}${organizationId}:${id}`)
-    await redisClient.delPattern(`${TABLE_CACHE_PREFIX}all:${organizationId}`)
+    await redisClient.del(`${TABLE_CACHE_PREFIX}all:${organizationId}`)
 
-    const tableChannel = realtime?.channel(`table:${organizationId}`)
-    await tableChannel?.emit("table.deleted", { id })
+    publishTableEvent(organizationId, "table.deleted", { id })
 
     return { status: "success", code: HTTP_STATUS_CODES.NO_CONTENT }
   },
@@ -243,10 +240,9 @@ export const tableLogic = {
       .returning()
 
     await redisClient.del(`${TABLE_CACHE_PREFIX}${organizationId}:${body.id}`)
-    await redisClient.delPattern(`${TABLE_CACHE_PREFIX}all:${organizationId}`)
+    await redisClient.del(`${TABLE_CACHE_PREFIX}all:${organizationId}`)
 
-    const tableChannel = realtime?.channel(`table:${organizationId}`)
-    await tableChannel?.emit("table.status", {
+    publishTableEvent(organizationId, "table.status", {
       id: updated.id,
       number: updated.number,
       name: updated.name,

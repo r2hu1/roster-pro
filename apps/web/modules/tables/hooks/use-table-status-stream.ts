@@ -1,15 +1,16 @@
 "use client"
 
-import { useEffect, useState, useCallback } from "react"
+import { useEffect, useState, useCallback, useRef } from "react"
 import type { TableStatusResponse } from "@workspace/shared/schemas/table/response"
+import { channels } from "@workspace/shared/realtime"
 import { useRealtime } from "@/lib/realtime-client"
 
 export function useTableStatusStream(organizationId: string) {
   const [tables, setTables] = useState<TableStatusResponse[]>([])
   const [connected, setConnected] = useState(false)
 
-  useEffect(() => {
-    fetch("/api/organization/table/")
+  const fetchTables = useCallback(() => {
+    return fetch("/api/organization/table/")
       .then((res) => res.json())
       .then((result) => {
         if (result.status === "success") {
@@ -17,10 +18,14 @@ export function useTableStatusStream(organizationId: string) {
         }
       })
       .catch(() => {})
-  }, [organizationId])
+  }, [])
+
+  useEffect(() => {
+    fetchTables()
+  }, [fetchTables])
 
   const { status: connectionStatus } = useRealtime({
-    channels: [`table:${organizationId}`],
+    channels: [channels.table(organizationId)],
     events: ["table.status", "table.deleted"],
     onData({ event, data }) {
       const sseEvent = event.split(".")[1]
@@ -44,9 +49,18 @@ export function useTableStatusStream(organizationId: string) {
     },
   })
 
+  // Refetch on reconnect to recover any status changes missed while offline.
+  const wasConnected = useRef(false)
   useEffect(() => {
-    setConnected(connectionStatus === "connected")
-  }, [connectionStatus])
+    const isConnected = connectionStatus === "connected"
+    setConnected(isConnected)
+    if (isConnected) {
+      if (wasConnected.current) void fetchTables()
+      wasConnected.current = true
+    } else {
+      wasConnected.current = false
+    }
+  }, [connectionStatus, fetchTables])
 
   const updateStatus = useCallback(
     async (tableId: string, status: "available" | "occupied") => {

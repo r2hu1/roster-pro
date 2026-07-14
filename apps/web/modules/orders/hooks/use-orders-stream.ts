@@ -6,6 +6,7 @@ import type {
   OrderStats,
 } from "@workspace/shared/schemas/order/index"
 import { fetchOrders, fetchOrderStats } from "../api/orders"
+import { channels as rtChannels } from "@workspace/shared/realtime"
 import { useRealtime } from "@/lib/realtime-client"
 
 type OrdersEvent =
@@ -223,7 +224,10 @@ export function useOrdersStream(params: UseOrdersStreamParams) {
     }
   }, [])
 
-  const channels = useMemo(() => [`orders:${organizationId}`], [organizationId])
+  const channels = useMemo(
+    () => [rtChannels.orders(organizationId)],
+    [organizationId]
+  )
   const events = useMemo(
     () => ["order.created", "order.updated", "order.deleted"] as const,
     []
@@ -279,15 +283,25 @@ export function useOrdersStream(params: UseOrdersStreamParams) {
     },
   })
 
+  const wasConnected = useRef(false)
   useEffect(() => {
     if (!mountedRef.current) return
-    setConnected(connectionStatus === "connected")
-    if (connectionStatus === "error") {
-      setError("Connection lost")
-    } else if (connectionStatus === "connected") {
+    const isConnected = connectionStatus === "connected"
+    setConnected(isConnected)
+    if (isConnected) {
       setError(null)
+      // On any reconnect after a drop, events missed while offline are gone —
+      // reload the snapshot + stats so the view converges to server truth.
+      if (wasConnected.current === false && initialLoadDone.current) {
+        loadSnapshot()
+        refreshStats()
+      }
+      wasConnected.current = true
+    } else {
+      if (connectionStatus === "error") setError("Connection lost")
+      wasConnected.current = false
     }
-  }, [connectionStatus])
+  }, [connectionStatus, loadSnapshot, refreshStats])
 
   return {
     orders,
