@@ -4,13 +4,14 @@ import { useState } from "react"
 import { Button } from "@workspace/ui/components/button"
 import { IconPrinter } from "@tabler/icons-react"
 import { useSession } from "@/modules/providers/session-provider"
-import { generateInvoice } from "@/modules/orders/api/orders"
+import { generateInvoice, fetchSessionBill } from "@/modules/orders/api/orders"
 import { printReceipt } from "./print-receipt"
 import type { InvoiceData } from "@workspace/shared/schemas/order/index"
 import { Loader } from "@workspace/ui/components/loader"
 
 interface PrintReceiptButtonProps {
   orderId: string
+  sessionId?: string | null
   size?: "default" | "sm" | "lg" | "icon"
   label?: string
   loadingLabel?: string
@@ -20,6 +21,7 @@ interface PrintReceiptButtonProps {
 
 export function PrintReceiptButton({
   orderId,
+  sessionId,
   size = "sm",
   label = "Print",
   loadingLabel = "Printing...",
@@ -35,12 +37,17 @@ export function PrintReceiptButton({
     setPrinting(true)
 
     try {
-      const invoice = (await generateInvoice(
-        orderId,
-        organization.id
-      )) as InvoiceData
+      if (sessionId) {
+        const bill = await fetchSessionBill(sessionId)
+        printReceipt(bill as InvoiceData)
+      } else {
+        const invoice = (await generateInvoice(
+          orderId,
+          organization.id
+        )) as InvoiceData
 
-      printReceipt(invoice)
+        printReceipt(invoice)
+      }
     } catch (error) {
       console.error("Failed to print receipt:", error)
     } finally {

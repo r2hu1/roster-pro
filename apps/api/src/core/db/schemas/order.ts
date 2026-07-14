@@ -15,6 +15,7 @@ import type { CreateOrderItemDto } from "@workspace/shared/schemas/order/order-i
 
 import { v4 as uuidv4 } from "uuid"
 import { menuItem } from "./menu.js"
+import { tableSession } from "./table.js"
 
 export type OrderItemJson = Omit<CreateOrderItemDto, "id" | "orderId">
 
@@ -29,6 +30,10 @@ export const order = pgTable(
       .notNull()
       .references(() => organization.id, {
         onDelete: "cascade",
+      }),
+    tableSessionId: text("table_session_id")
+      .references(() => tableSession.id, {
+        onDelete: "set null",
       }),
     invoiceNumber: text("invoice_number").notNull(),
     customerName: text("customer_name"),
@@ -105,6 +110,7 @@ export const order = pgTable(
     paymentStatusIdx: index("order_payment_status_idx").on(table.paymentStatus),
     createdAtIdx: index("order_created_at_idx").on(table.createdAt),
     customerEmailIdx: index("order_customer_email_idx").on(table.customerEmail),
+    tableSessionIdx: index("order_table_session_idx").on(table.tableSessionId),
   })
 )
 

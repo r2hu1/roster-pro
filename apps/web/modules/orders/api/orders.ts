@@ -77,3 +77,23 @@ export async function generateInvoice(orderId: string, organizationId: string) {
   })
   return data.data
 }
+
+export async function fetchSessionBill(sessionId: string) {
+  const { data } = await api.get(
+    `/organization/orders/session/${sessionId}/bill`
+  )
+  return data.data
+}
+
+export async function checkoutSession(
+  sessionId: string,
+  paymentMethod: string
+) {
+  const { data } = await api.post(
+    `/organization/orders/session/${sessionId}/checkout`,
+    { paymentMethod }
+  )
+  return data.data
+}
+
+

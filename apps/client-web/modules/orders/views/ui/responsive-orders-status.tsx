@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import {
   ResponsiveModal,
   ResponsiveModalTrigger,
@@ -10,19 +10,17 @@ import {
   ResponsiveModalDescription,
   ResponsiveModalBody,
   ResponsiveModalFooter,
-  ResponsiveModalClose,
 } from "@workspace/ui/components/responsive-modal"
 import { Badge } from "@workspace/ui/components/badge"
 import { Separator } from "@workspace/ui/components/separator"
-import { IconBurger, IconClock, IconShoppingBag } from "@tabler/icons-react"
+import { IconClock, IconShoppingBag } from "@tabler/icons-react"
 import { Button } from "@workspace/ui/components/button"
 import { useTableContext } from "@/modules/providers/table-provider"
-import { useActiveOrdersStream } from "@/hooks/use-active-orders-stream"
-import { motion } from "motion/react"
 import { RippleButton } from "./ripple-button"
 import { useActiveOrders } from "@/hooks/use-active-orders"
 import { Skeleton } from "@workspace/ui/components/skeleton"
 import { Loader } from "@workspace/ui/components/loader"
+import type { OrderResponse } from "@workspace/shared/schemas/order/index"
 
 const statusLabel: Record<
   string,
@@ -40,10 +38,6 @@ const statusLabel: Record<
   cancelled: { label: "Cancelled", variant: "destructive" },
 }
 
-interface Props {
-  children: React.ReactNode
-}
-
 function orderEstimate(order: {
   items: Array<{ preparationTime?: number | null }>
   createdAt: string | Date
@@ -57,18 +51,88 @@ function orderEstimate(order: {
   return Math.max(0, Math.ceil(maxPrep - elapsed))
 }
 
+function OrderRoundCard({ order, label }: { order: OrderResponse; label: string }) {
+  const est = orderEstimate(order)
+  return (
+    <div className="rounded-lg border bg-card p-3 space-y-2">
+      <div className="flex items-center justify-between gap-2">
+        <span className="text-xs font-semibold text-muted-foreground">
+          {label}
+        </span>
+        <div className="flex items-center gap-2">
+          {est > 0 && (
+            <span className="flex items-center gap-0.5 text-[10px] text-muted-foreground">
+              <IconClock className="size-3" />
+              {est} min
+            </span>
+          )}
+          <Badge
+            variant={statusLabel[order.status]?.variant ?? "secondary"}
+            className="text-[10px] px-2 py-0"
+          >
+            {statusLabel[order.status]?.label ?? order.status}
+          </Badge>
+        </div>
+      </div>
+
+      <div className="space-y-1">
+        {order.items.map((item) => (
+          <div
+            key={`${item.menuItemId}-${item.variant}`}
+            className="flex items-center justify-between text-sm"
+          >
+            <span className="truncate">
+              {item.quantity}× {item.name}
+              {item.variant && (
+                <span className="text-muted-foreground text-xs ml-1">
+                  ({item.variant})
+                </span>
+              )}
+            </span>
+            <span className="tabular-nums text-muted-foreground shrink-0 ml-2">
+              ₹{item.unitPrice * item.quantity}
+            </span>
+          </div>
+        ))}
+      </div>
+
+      <Separator />
+
+      <div className="flex items-center justify-between text-xs text-muted-foreground">
+        <span>
+          #{order.invoiceNumber} · {new Date(order.createdAt).toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+          })}
+        </span>
+        <span className="font-medium tabular-nums">
+          ₹{order.grandTotal}
+        </span>
+      </div>
+    </div>
+  )
+}
+
 export default function ResponsiveOrdersStatus() {
   const { data: tableData } = useTableContext()
   const tableId = tableData?.table.id
   const organizationId = tableData?.organization.id
 
   const {
-    data: orders,
+    data: result,
     error,
     refetch,
     isPending,
     isRefetching,
   } = useActiveOrders(tableId, organizationId)
+
+  const orders = result?.orders ?? []
+  const tableSessionId = result?.tableSessionId
+
+  const totalAmount = useMemo(
+    () => orders.reduce((sum, o) => sum + (o.grandTotal ?? 0), 0),
+    [orders]
+  )
 
   const [tick, setTick] = useState(0)
   useEffect(() => {
@@ -86,7 +150,7 @@ export default function ResponsiveOrdersStatus() {
         <ResponsiveModalHeader>
           <ResponsiveModalTitle>Your Orders</ResponsiveModalTitle>
           <ResponsiveModalDescription>
-            {orders?.length === 0
+            {orders.length === 0
               ? ""
               : "Sit tight our chefs are preparing your order."}
           </ResponsiveModalDescription>
@@ -94,7 +158,7 @@ export default function ResponsiveOrdersStatus() {
 
         <ResponsiveModalBody className="pb-4">
           {isPending && <Skeleton className="h-24 w-full" />}
-          {!isPending && orders?.length === 0 ? (
+          {!isPending && orders.length === 0 ? (
             <div className="flex flex-col items-center justify-center gap-2 py-12 text-muted-foreground">
               <IconShoppingBag className="size-10" />
               <p className="text-sm text-center">
@@ -102,74 +166,37 @@ export default function ResponsiveOrdersStatus() {
                 <br /> you will see it here.
               </p>
             </div>
+          ) : tableSessionId ? (
+            <div className="space-y-3">
+              {orders.length > 1 && (
+                <div className="flex items-center justify-between text-sm bg-muted/30 rounded-lg px-3 py-2">
+                  <span className="text-muted-foreground">All Rounds Total</span>
+                  <span className="font-semibold tabular-nums">
+                    ₹{totalAmount.toLocaleString("en-IN")}
+                  </span>
+                </div>
+              )}
+              {orders.map((order, idx) => (
+                <OrderRoundCard
+                  key={order.id}
+                  order={order}
+                  label={
+                    orders.length > 1
+                      ? `Round ${orders.length - idx}`
+                      : `#${order.invoiceNumber}`
+                  }
+                />
+              ))}
+            </div>
           ) : (
             <div className="space-y-3">
-              {orders?.map((order) => {
-                const est = orderEstimate(order)
-                return (
-                  <div
-                    key={order.id}
-                    className="rounded-lg border bg-card p-3 space-y-2"
-                  >
-                    <div className="flex items-center justify-between gap-2">
-                      <span className="text-xs font-medium text-muted-foreground">
-                        #{order.invoiceNumber}
-                      </span>
-                      <div className="flex items-center gap-2">
-                        {est > 0 && (
-                          <span className="flex items-center gap-0.5 text-[10px] text-muted-foreground">
-                            <IconClock className="size-3" />
-                            {est} min
-                          </span>
-                        )}
-                        <Badge
-                          variant={
-                            statusLabel[order.status]?.variant ?? "secondary"
-                          }
-                          className="text-[10px] px-2 py-0"
-                        >
-                          {statusLabel[order.status]?.label ?? order.status}
-                        </Badge>
-                      </div>
-                    </div>
-
-                    <div className="space-y-1">
-                      {order.items.map((item) => (
-                        <div
-                          key={`${item.menuItemId}-${item.variant}`}
-                          className="flex items-center justify-between text-sm"
-                        >
-                          <span className="truncate">
-                            {item.quantity}× {item.name}
-                            {item.variant && (
-                              <span className="text-muted-foreground text-xs ml-1">
-                                ({item.variant})
-                              </span>
-                            )}
-                          </span>
-                          <span className="tabular-nums text-muted-foreground shrink-0 ml-2">
-                            ₹{item.unitPrice * item.quantity}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-
-                    <Separator />
-
-                    <div className="flex items-center justify-between text-xs text-muted-foreground">
-                      <span>
-                        {new Date(order.createdAt).toLocaleTimeString([], {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })}
-                      </span>
-                      <span className="font-medium tabular-nums">
-                        ₹{order.grandTotal}
-                      </span>
-                    </div>
-                  </div>
-                )
-              })}
+              {orders.map((order) => (
+                <OrderRoundCard
+                  key={order.id}
+                  order={order}
+                  label={`#${order.invoiceNumber}`}
+                />
+              ))}
             </div>
           )}
         </ResponsiveModalBody>
@@ -182,9 +209,6 @@ export default function ResponsiveOrdersStatus() {
             Refresh
             {(isRefetching || isPending) && <Loader />}
           </Button>
-          {/*<ResponsiveModalClose asChild>
-            <Button>Close</Button>
-          </ResponsiveModalClose>*/}
         </ResponsiveModalFooter>
       </ResponsiveModalContent>
     </ResponsiveModal>

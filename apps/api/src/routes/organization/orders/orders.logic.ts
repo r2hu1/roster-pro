@@ -16,7 +16,7 @@ import {
   orderCounter,
   type OrderItemJson,
 } from "../../../core/db/schemas/order.js"
-import { tableSchema } from "../../../core/db/schemas/table.js"
+import { tableSchema, tableSession } from "../../../core/db/schemas/table.js"
 import { redisClient } from "../../../core/redis/client.js"
 import { HTTP_STATUS_CODES } from "../../../lib/utils.js"
 import type {
@@ -58,6 +58,63 @@ async function emitTableStatus(organizationId: string, tableNumber: string) {
     await redisClient.delPattern(`${TABLE_CACHE_PREFIX}*:${organizationId}`)
   } catch (err) {
     console.error("Failed to invalidate table cache", err)
+  }
+}
+
+async function releaseTableIfNeeded(
+  organizationId: string,
+  tableNumber: string,
+  tableSessionId: string | null
+) {
+  if (!tableSessionId) {
+    await db
+      .update(tableSchema)
+      .set({ status: "available" })
+      .where(
+        and(
+          eq(tableSchema.number, Number(tableNumber)),
+          eq(tableSchema.organizationId, organizationId)
+        )
+      )
+    void emitTableStatus(organizationId, tableNumber)
+    return
+  }
+
+  const activeOrders = await db
+    .select()
+    .from(order)
+    .where(
+      and(
+        eq(order.tableSessionId, tableSessionId),
+        inArray(order.status, ["pending", "confirmed", "preparing", "ready", "served"])
+      )
+    )
+
+  if (activeOrders.length === 0) {
+    await db.transaction(async (tx) => {
+      await tx
+        .update(tableSession)
+        .set({ status: "completed", updatedAt: new Date() })
+        .where(eq(tableSession.id, tableSessionId))
+
+      const [t] = await tx
+        .select({ id: tableSchema.id })
+        .from(tableSchema)
+        .where(
+          and(
+            eq(tableSchema.number, Number(tableNumber)),
+            eq(tableSchema.organizationId, organizationId)
+          )
+        )
+
+      if (t) {
+        await tx
+          .update(tableSchema)
+          .set({ status: "available" })
+          .where(eq(tableSchema.id, t.id))
+      }
+    })
+    void emitTableStatus(organizationId, tableNumber)
   }
 }
 
@@ -276,26 +333,38 @@ export const orderLogic = {
       }
     }
 
-    const oneAndHalfHoursAgo = new Date(Date.now() - 90 * 60 * 1000)
-
-    const orders = await db
+    const [activeSession] = await db
       .select()
-      .from(order)
+      .from(tableSession)
       .where(
         and(
-          eq(order.organizationId, organizationId),
-          eq(order.tableNumber, tableNumber),
-          inArray(order.status, ACTIVE_ORDER_STATUSES),
-          gte(order.createdAt, oneAndHalfHoursAgo)
+          eq(tableSession.organizationId, organizationId),
+          eq(tableSession.tableId, tableId),
+          eq(tableSession.status, "active")
         )
       )
-      .orderBy(desc(order.createdAt))
+      .limit(1)
+
+    let orders: typeof order.$inferSelect[] = []
+    if (activeSession) {
+      orders = await db
+        .select()
+        .from(order)
+        .where(
+          and(
+            eq(order.tableSessionId, activeSession.id),
+            eq(order.organizationId, organizationId)
+          )
+        )
+        .orderBy(desc(order.createdAt))
+    }
 
     return {
       status: "success" as const,
       code: HTTP_STATUS_CODES.OK,
       data: orders,
       tableNumber,
+      tableSessionId: activeSession?.id ?? null,
     }
   },
 
@@ -391,6 +460,7 @@ export const orderLogic = {
         .insert(order)
         .values({
           organizationId,
+          tableSessionId: body.tableSessionId ?? null,
           invoiceNumber,
           customerName: body.customerName ?? null,
           customerPhone: body.customerPhone ?? null,
@@ -543,89 +613,46 @@ export const orderLogic = {
       })
     }
 
-    const windowStart = new Date(Date.now() - ACTIVE_ORDER_WINDOW_MS)
-    const [active] = await db
-      .select()
-      .from(order)
-      .where(
-        and(
-          eq(order.organizationId, organizationId),
-          eq(order.tableNumber, tableNumber),
-          inArray(order.status, ACTIVE_ORDER_STATUSES),
-          gte(order.createdAt, windowStart)
+    const session = await db.transaction(async (tx) => {
+      const [activeSession] = await tx
+        .select()
+        .from(tableSession)
+        .where(
+          and(
+            eq(tableSession.organizationId, organizationId),
+            eq(tableSession.tableId, tableId),
+            eq(tableSession.status, "active")
+          )
         )
-      )
-      .orderBy(desc(order.createdAt))
-      .limit(1)
+        .limit(1)
 
-    if (!active) {
-      const subtotal = +resolvedIncoming
-        .reduce((sum, it) => sum + it.unitPrice * it.quantity, 0)
-        .toFixed(2)
-      const discount = body.discount ?? 0
-      const taxableAmount = +(subtotal - discount).toFixed(2)
-      const gstRate = Number(org.gstRate ?? 5)
-      const halfRate = gstRate / 2
-      const cgstAmount = +((taxableAmount * halfRate) / 100).toFixed(2)
-      const sgstAmount = +((taxableAmount * halfRate) / 100).toFixed(2)
-      const igstAmount = 0
-      const totalGst = cgstAmount + sgstAmount
-      const roundOff = +(
-        Math.round(taxableAmount + totalGst) -
-        (taxableAmount + totalGst)
-      ).toFixed(2)
-      const grandTotal = +(taxableAmount + totalGst + roundOff).toFixed(2)
-
-      return orderLogic.create({
-        organizationId: body.organizationId,
-        customerName: body.customerName,
-        customerPhone: body.customerPhone,
-        customerEmail: body.customerEmail,
-        tableNumber,
-        items: resolvedIncoming,
-        subtotal,
-        discount,
-        taxableAmount,
-        gstRate,
-        cgstAmount,
-        sgstAmount,
-        igstAmount,
-        roundOff,
-        grandTotal,
-        notes: body.notes,
-        paymentMethod: body.paymentMethod,
-      })
-    }
-
-    const merged: OrderItemJson[] = active.items.map((it) => ({ ...it }))
-    for (const incoming of resolvedIncoming) {
-      const idx = merged.findIndex(
-        (it) =>
-          it.menuItemId === incoming.menuItemId &&
-          it.variant === incoming.variant
-      )
-      if (idx >= 0) {
-        merged[idx] = {
-          ...merged[idx],
-          quantity: merged[idx].quantity + incoming.quantity,
-          unitPrice: incoming.unitPrice,
-        }
-      } else {
-        merged.push(incoming)
+      if (activeSession) {
+        return activeSession
       }
-    }
 
-    const subtotal = +merged
+      const [newSession] = await tx
+        .insert(tableSession)
+        .values({
+          organizationId,
+          tableId,
+          tableNumber,
+          status: "active",
+        })
+        .returning()
+
+      return newSession
+    })
+
+    const subtotal = +resolvedIncoming
       .reduce((sum, it) => sum + it.unitPrice * it.quantity, 0)
       .toFixed(2)
-
-    const discount = active.discount + (body.discount ?? 0)
-
+    const discount = body.discount ?? 0
     const taxableAmount = +(subtotal - discount).toFixed(2)
-    const gstRate = active.gstRate
+    const gstRate = Number(org.gstRate ?? 5)
     const halfRate = gstRate / 2
     const cgstAmount = +((taxableAmount * halfRate) / 100).toFixed(2)
     const sgstAmount = +((taxableAmount * halfRate) / 100).toFixed(2)
+    const igstAmount = 0
     const totalGst = cgstAmount + sgstAmount
     const roundOff = +(
       Math.round(taxableAmount + totalGst) -
@@ -633,37 +660,35 @@ export const orderLogic = {
     ).toFixed(2)
     const grandTotal = +(taxableAmount + totalGst + roundOff).toFixed(2)
 
-    const [updated] = await db
-      .update(order)
-      .set({
-        items: merged,
-        subtotal,
-        discount,
-        taxableAmount,
-        cgstAmount,
-        sgstAmount,
-        roundOff,
-        grandTotal,
-        updatedAt: new Date(),
-      })
-      .where(
-        and(eq(order.id, active.id), eq(order.organizationId, organizationId))
-      )
-      .returning()
+    const result = await orderLogic.create({
+      organizationId: body.organizationId,
+      customerName: body.customerName,
+      customerPhone: body.customerPhone,
+      customerEmail: body.customerEmail,
+      tableNumber,
+      tableSessionId: session.id,
+      items: resolvedIncoming,
+      subtotal,
+      discount,
+      taxableAmount,
+      gstRate,
+      cgstAmount,
+      sgstAmount,
+      igstAmount,
+      roundOff,
+      grandTotal,
+      notes: body.notes,
+      paymentMethod: body.paymentMethod,
+    })
 
-    try {
-      await redisClient.del(
-        `${ORDER_CACHE_PREFIX}${organizationId}:${active.id}`
-      )
-      await redisClient.del(`${ORDER_CACHE_PREFIX}all:${organizationId}`)
-    } catch (err) {
-      console.error("Failed to invalidate order cache", err)
+    if (result.status === "error") {
+      return result
     }
-    publishOrderEvent(organizationId, updated.id, "order.updated", updated)
+
     return {
       status: "success" as const,
       code: HTTP_STATUS_CODES.OK,
-      data: updated,
+      data: result.data,
       appended: true,
     }
   },
@@ -732,17 +757,7 @@ export const orderLogic = {
       .returning()
 
     if (updated.status === "completed" || updated.status === "cancelled") {
-      await db
-        .update(tableSchema)
-        .set({ status: "available" })
-        .where(
-          and(
-            eq(tableSchema.number, Number(updated.tableNumber)),
-            eq(tableSchema.organizationId, organizationId)
-          )
-        )
-
-      void emitTableStatus(organizationId, updated.tableNumber)
+      await releaseTableIfNeeded(organizationId, updated.tableNumber, updated.tableSessionId)
     }
 
     void redisClient.del(`${ORDER_CACHE_PREFIX}${organizationId}:${body.id}`)
@@ -786,15 +801,7 @@ export const orderLogic = {
       .returning()
 
     if (status === "completed" || status === "cancelled") {
-      await db
-        .update(tableSchema)
-        .set({ status: "available" })
-        .where(
-          and(
-            eq(tableSchema.number, Number(updated.tableNumber)),
-            eq(tableSchema.organizationId, organizationId)
-          )
-        )
+      await releaseTableIfNeeded(organizationId, updated.tableNumber, updated.tableSessionId)
     } else {
       await db
         .update(tableSchema)
@@ -805,9 +812,8 @@ export const orderLogic = {
             eq(tableSchema.organizationId, organizationId)
           )
         )
+      void emitTableStatus(organizationId, updated.tableNumber)
     }
-
-    void emitTableStatus(organizationId, updated.tableNumber)
 
     void redisClient.del(`${ORDER_CACHE_PREFIX}${organizationId}:${id}`)
     void redisClient.del(`${ORDER_CACHE_PREFIX}all:${organizationId}`)
@@ -932,6 +938,226 @@ export const orderLogic = {
 
         notes: existingOrder.notes,
       },
+    }
+  },
+
+  getSessionBill: async (sessionId: string, organizationId: string) => {
+    const [session] = await db
+      .select()
+      .from(tableSession)
+      .where(
+        and(
+          eq(tableSession.id, sessionId),
+          eq(tableSession.organizationId, organizationId)
+        )
+      )
+
+    if (!session) {
+      return {
+        status: "error",
+        code: HTTP_STATUS_CODES.NOT_FOUND,
+        message: "Session not found",
+      }
+    }
+
+    const sessionOrders = await db
+      .select()
+      .from(order)
+      .where(
+        and(
+          eq(order.tableSessionId, sessionId),
+          eq(order.organizationId, organizationId),
+          sql`${order.status} != 'cancelled'`
+        )
+      )
+
+    const [org] = await db
+      .select()
+      .from(organization)
+      .where(eq(organization.id, organizationId))
+
+    if (!org) {
+      return {
+        status: "error",
+        code: HTTP_STATUS_CODES.NOT_FOUND,
+        message: "Organization not found",
+      }
+    }
+
+    const consolidatedItemsMap = new Map<string, {
+      id: string
+      name: string
+      logo: string | null
+      quantity: number
+      unitPrice: number
+      total: number
+    }>()
+
+    for (const ord of sessionOrders) {
+      for (const item of ord.items) {
+        const key = `${item.menuItemId}-${item.variant}`
+        const existing = consolidatedItemsMap.get(key)
+        if (existing) {
+          existing.quantity += item.quantity
+          existing.total = existing.quantity * existing.unitPrice
+        } else {
+          consolidatedItemsMap.set(key, {
+            id: item.menuItemId,
+            name: item.name,
+            logo: item.logo ?? null,
+            quantity: item.quantity,
+            unitPrice: item.unitPrice,
+            total: item.quantity * item.unitPrice,
+          })
+        }
+      }
+    }
+
+    const itemsList = Array.from(consolidatedItemsMap.values())
+    const subtotal = +itemsList.reduce((sum, it) => sum + it.total, 0).toFixed(2)
+    const discount = +sessionOrders.reduce((sum, ord) => sum + ord.discount, 0).toFixed(2)
+    const taxableAmount = +(subtotal - discount).toFixed(2)
+    const gstRate = Number(org.gstRate ?? 5)
+    const halfRate = gstRate / 2
+    const cgstAmount = +((taxableAmount * halfRate) / 100).toFixed(2)
+    const sgstAmount = +((taxableAmount * halfRate) / 100).toFixed(2)
+    const totalGst = cgstAmount + sgstAmount
+    const roundOff = +(
+      Math.round(taxableAmount + totalGst) -
+      (taxableAmount + totalGst)
+    ).toFixed(2)
+    const grandTotal = +(taxableAmount + totalGst + roundOff).toFixed(2)
+
+    const firstOrderWithCustomer = sessionOrders.find(ord => ord.customerName || ord.customerPhone)
+    const representativeOrder = firstOrderWithCustomer ?? sessionOrders[0]
+
+    const allPaid = sessionOrders.length > 0 && sessionOrders.every(ord => ord.paymentStatus === "paid")
+
+    return {
+      status: "success",
+      code: HTTP_STATUS_CODES.OK,
+      data: {
+        sessionId: session.id,
+        invoiceNumber: representativeOrder?.invoiceNumber ?? `SESS-${session.id.slice(0, 8).toUpperCase()}`,
+        issuedAt: session.createdAt,
+
+        organization: {
+          id: org.id,
+          name: org.name,
+          address: org.address,
+          phone: org.phone,
+          gstin: org.gstin,
+          hsnSac: org.hsnSac,
+          gstRate: org.gstRate,
+        },
+
+        customer: {
+          name: representativeOrder?.customerName ?? null,
+          email: representativeOrder?.customerEmail ?? null,
+          phone: representativeOrder?.customerPhone ?? null,
+          tableNumber: session.tableNumber,
+        },
+
+        items: itemsList,
+
+        totals: {
+          subtotal,
+          discount,
+          taxableAmount,
+          gstRate,
+          cgst: cgstAmount,
+          sgst: sgstAmount,
+          igst: 0,
+          roundOff,
+          grandTotal,
+        },
+
+        payment: {
+          status: allPaid ? "paid" : "pending",
+          method: representativeOrder?.paymentMethod ?? null,
+        },
+
+        notes: sessionOrders.map(ord => ord.notes).filter(Boolean).join(" | ") || null,
+      },
+    }
+  },
+
+  checkoutSession: async (sessionId: string, organizationId: string, paymentMethod: string) => {
+    const [session] = await db
+      .select()
+      .from(tableSession)
+      .where(
+        and(
+          eq(tableSession.id, sessionId),
+          eq(tableSession.organizationId, organizationId)
+        )
+      )
+
+    if (!session) {
+      return {
+        status: "error",
+        code: HTTP_STATUS_CODES.NOT_FOUND,
+        message: "Session not found",
+      }
+    }
+
+    const sessionOrders = await db
+      .select()
+      .from(order)
+      .where(
+        and(
+          eq(order.tableSessionId, sessionId),
+          eq(order.organizationId, organizationId)
+        )
+      )
+
+    await db.transaction(async (tx) => {
+      await tx
+        .update(tableSession)
+        .set({ status: "completed", updatedAt: new Date() })
+        .where(eq(tableSession.id, sessionId))
+
+      await tx
+        .update(order)
+        .set({
+          status: "completed",
+          paymentStatus: "paid",
+          paymentMethod,
+          updatedAt: new Date(),
+        })
+        .where(eq(order.tableSessionId, sessionId))
+
+      await tx
+        .update(tableSchema)
+        .set({ status: "available" })
+        .where(eq(tableSchema.id, session.tableId))
+    })
+
+    try {
+      await redisClient.delPattern(`${TABLE_CACHE_PREFIX}*:${organizationId}`)
+      await redisClient.del(`${ORDER_CACHE_PREFIX}all:${organizationId}`)
+      for (const ord of sessionOrders) {
+        await redisClient.del(`${ORDER_CACHE_PREFIX}${organizationId}:${ord.id}`)
+      }
+    } catch (err) {
+      console.error("Failed to invalidate cache on checkout", err)
+    }
+
+    void emitTableStatus(organizationId, session.tableNumber)
+
+    for (const ord of sessionOrders) {
+      publishOrderEvent(organizationId, ord.id, "order.updated", {
+        ...ord,
+        status: "completed",
+        paymentStatus: "paid",
+        paymentMethod,
+      })
+    }
+
+    return {
+      status: "success",
+      code: HTTP_STATUS_CODES.OK,
+      message: "Session checked out successfully",
     }
   },
 }

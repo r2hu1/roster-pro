@@ -94,6 +94,7 @@ export default function OrdersInfo({
             </p>
             <PrintReceiptButton
               orderId={order.id}
+              sessionId={order.tableSessionId ?? null}
               size="lg"
               variant="default"
             />
