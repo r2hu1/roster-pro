@@ -19,7 +19,7 @@
         "@hono/zod-validator": "^0.8.0",
         "@imagekit/nodejs": "^7.9.1",
         "@polar-sh/better-auth": "^1.8.4",
-        "@polar-sh/sdk": "^0.48.1",
+        "@polar-sh/sdk": "^0.47.0",
         "@upstash/realtime": "^1.0.4",
         "@upstash/redis": "^1.38.0",
         "@workspace/shared": "workspace:*",
@@ -114,7 +114,7 @@
       "version": "0.0.1",
       "dependencies": {
         "@polar-sh/better-auth": "^1.8.4",
-        "@polar-sh/sdk": "^0.48.1",
+        "@polar-sh/sdk": "^0.47.0",
         "@tabler/icons-react": "^3.44.0",
         "@tanstack/react-query": "^5.101.2",
         "@tanstack/react-table": "^8.21.3",
@@ -576,7 +576,7 @@
 
     "@polar-sh/checkout": ["@polar-sh/checkout@0.2.1", "", { "dependencies": { "date-fns": "^4.1.0" }, "peerDependencies": { "@stripe/react-stripe-js": "^3.6.0 || ^4.0.2", "@stripe/stripe-js": "^7.1.0", "react": "^18 || ^19" } }, "sha512-AEKKw3o4ykApECA4bU6a2YC0+aQKTFUasca4ZgCDIjG8AHlu3SjW3Taxh2nfeYAczhah0m0axVF9AV8VfdYzfw=="],
 
-    "@polar-sh/sdk": ["@polar-sh/sdk@0.48.1", "", { "dependencies": { "standardwebhooks": "^1.0.0", "zod": "^3.25.65 || ^4.0.0" } }, "sha512-FmU6eLJRXJ6Zau0IkqscfkFta8xxYbFV1VD9zzS2Ki2btCuFmUyPZOkHOXU77R892h2zyBegLnHS7jrOhMN1Sw=="],
+    "@polar-sh/sdk": ["@polar-sh/sdk@0.47.1", "", { "dependencies": { "standardwebhooks": "^1.0.0", "zod": "^3.25.65 || ^4.0.0" } }, "sha512-fkz7wPLbqfuDmY9LxuXpE2uP2TAV6J0q/YN5hJ4UBxpjbkB0hKM6c4R35N89t83dfzMlG6EOlqOn+Rd1T6XrJQ=="],
 
     "@radix-ui/number": ["@radix-ui/number@1.1.2", "", {}, "sha512-ceTwaxc4I5IOi97DgCotl3pqiyRGvffcc0oOsE2dQYaJOFIDsDt4VWG6xEbg1QePv9QWausCEIppud/tJ1wNig=="],
 
