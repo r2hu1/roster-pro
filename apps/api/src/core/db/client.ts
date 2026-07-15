@@ -5,6 +5,11 @@ import "dotenv/config"
 
 const { Pool } = pkg
 
+const dbUrl =
+  process.env.NODE_ENV === "production"
+    ? process.env.PROD_DATABASE_URL
+    : process.env.DEV_DATABASE_URL
+
 declare global {
   var _pgPool: InstanceType<typeof Pool> | undefined
   var _drizzleDb: ReturnType<typeof drizzle> | undefined
@@ -13,7 +18,7 @@ declare global {
 const pool =
   global._pgPool ??
   new Pool({
-    connectionString: process.env.DATABASE_URL,
+    connectionString: dbUrl,
     max: Number(process.env.DB_POOL_MAX) || 10,
     idleTimeoutMillis: 30000,
     connectionTimeoutMillis: 10000,
