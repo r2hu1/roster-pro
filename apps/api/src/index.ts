@@ -49,7 +49,6 @@ const server = serve(
   }
 )
 
-// Graceful shutdown: stop accepting connections, then drain the DB pool.
 let shuttingDown = false
 const shutdown = async (signal: string) => {
   if (shuttingDown) return
@@ -65,7 +64,6 @@ const shutdown = async (signal: string) => {
     process.exit(0)
   })
 
-  // Force-exit if drain hangs.
   setTimeout(() => process.exit(1), 10000).unref()
 }
 
