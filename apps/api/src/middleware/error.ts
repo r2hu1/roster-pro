@@ -3,8 +3,6 @@ import { HTTPException } from "hono/http-exception"
 import type { AppEnv } from "../index.js"
 import { HTTP_STATUS_CODES } from "../lib/utils.js"
 
-const isProd = process.env.NODE_ENV === "production"
-
 export const onError = (err: Error, c: Context<AppEnv>) => {
   const requestId = c.get("requestId")
 
@@ -45,7 +43,7 @@ export const onError = (err: Error, c: Context<AppEnv>) => {
         method: c.req.method,
         error: err.message,
         cause,
-        stack: isProd ? undefined : err.stack,
+        stack: err.stack,
       },
       null,
       2

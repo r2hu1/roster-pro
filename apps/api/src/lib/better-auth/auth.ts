@@ -8,15 +8,6 @@ import { user as userSchema } from "../../core/db/schemas/auth.js"
 import { eq } from "drizzle-orm"
 import { redisClient } from "../../core/redis/client.js"
 
-const productId =
-  process.env.NODE_ENV === "production"
-    ? process.env.PROD_POLAR_MONTHLY_PRODUCT_ID
-    : process.env.DEV_POLAR_MONTHLY_PRODUCT_ID
-const webhookSecret =
-  process.env.NODE_ENV === "production"
-    ? process.env.PROD_POLAR_WEBHOOK_SECRET
-    : process.env.DEV_POLAR_WEBHOOK_SECRET
-
 export const auth = betterAuth({
   basePath: "/v1/auth",
   trustedOrigins: ["*"],
@@ -78,7 +69,7 @@ export const auth = betterAuth({
         checkout({
           products: [
             {
-              productId: productId!,
+              productId: process.env.POLAR_MONTHLY_PRODUCT_ID!,
               slug: "pro",
             },
           ],
@@ -86,7 +77,7 @@ export const auth = betterAuth({
         }),
         portal(),
         webhooks({
-          secret: webhookSecret!,
+          secret: process.env.POLAR_WEBHOOK_SECRET!,
         }),
       ],
     }),
