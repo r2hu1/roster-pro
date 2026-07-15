@@ -1,0 +1,1 @@
+DROP INDEX "table_session_active_idx";

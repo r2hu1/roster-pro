@@ -76,8 +76,5 @@ export const tableSession = pgTable(
       table.tableId,
       table.status
     ),
-    activeSessionIdx: uniqueIndex("table_session_active_idx")
-      .on(table.tableId)
-      .where(eq(table.status, "active")),
   })
 )

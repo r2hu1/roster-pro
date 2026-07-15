@@ -1,6 +1,6 @@
 {
-  "id": "ef088c5a-32b2-4b54-a48f-e9957d0bdae9",
-  "prevId": "1f2ad56f-3b91-4ed4-ae04-7aa537374458",
+  "id": "f36eb527-6b5b-458f-85b2-390965b58e5b",
+  "prevId": "b83a02c3-07b9-4136-aadf-efe5b529475c",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -487,6 +487,25 @@
           "primaryKey": false,
           "notNull": false
         },
+        "gst_rate": {
+          "name": "gst_rate",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "default": 5
+        },
+        "gstin": {
+          "name": "gstin",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "number": {
+          "name": "number",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
         "hsn_sac": {
           "name": "hsn_sac",
           "type": "integer",
@@ -892,8 +911,7 @@
           "name": "id",
           "type": "text",
           "primaryKey": true,
-          "notNull": true,
-          "default": "'59a192ec-c4dd-4cb2-ab5c-68a4acea3a40'"
+          "notNull": true
         },
         "organization_id": {
           "name": "organization_id",
@@ -1010,8 +1028,7 @@
           "name": "id",
           "type": "text",
           "primaryKey": true,
-          "notNull": true,
-          "default": "'ea6a2ab7-0e24-49f8-a335-169a232d43df'"
+          "notNull": true
         },
         "menu_id": {
           "name": "menu_id",
@@ -1221,8 +1238,7 @@
           "name": "id",
           "type": "text",
           "primaryKey": true,
-          "notNull": true,
-          "default": "'5a3f8ff3-9973-42a0-b613-1b694bd4fe3e'"
+          "notNull": true
         },
         "number": {
           "name": "number",
@@ -1321,6 +1337,164 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
+    "public.table_session": {
+      "name": "table_session",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "organization_id": {
+          "name": "organization_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "table_id": {
+          "name": "table_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "table_number": {
+          "name": "table_number",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'active'"
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "table_session_id_idx": {
+          "name": "table_session_id_idx",
+          "columns": [
+            {
+              "expression": "id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "table_session_org_idx": {
+          "name": "table_session_org_idx",
+          "columns": [
+            {
+              "expression": "organization_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "table_session_table_id_idx": {
+          "name": "table_session_table_id_idx",
+          "columns": [
+            {
+              "expression": "table_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "table_session_org_table_status_idx": {
+          "name": "table_session_org_table_status_idx",
+          "columns": [
+            {
+              "expression": "organization_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "table_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "status",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "table_session_organization_id_organization_id_fk": {
+          "name": "table_session_organization_id_organization_id_fk",
+          "tableFrom": "table_session",
+          "tableTo": "organization",
+          "columnsFrom": [
+            "organization_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "table_session_table_id_table_id_fk": {
+          "name": "table_session_table_id_table_id_fk",
+          "tableFrom": "table_session",
+          "tableTo": "table",
+          "columnsFrom": [
+            "table_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
     "public.order": {
       "name": "order",
       "schema": "",
@@ -1329,14 +1503,19 @@
           "name": "id",
           "type": "text",
           "primaryKey": true,
-          "notNull": true,
-          "default": "'7e372838-8188-4ff3-86fb-aa7130374318'"
+          "notNull": true
         },
         "organization_id": {
           "name": "organization_id",
           "type": "text",
           "primaryKey": false,
           "notNull": true
+        },
+        "table_session_id": {
+          "name": "table_session_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
         },
         "invoice_number": {
           "name": "invoice_number",
@@ -1396,54 +1575,61 @@
         },
         "subtotal": {
           "name": "subtotal",
-          "type": "integer",
+          "type": "numeric(10, 2)",
           "primaryKey": false,
           "notNull": true
         },
         "discount": {
           "name": "discount",
-          "type": "integer",
+          "type": "numeric(10, 2)",
           "primaryKey": false,
           "notNull": true,
           "default": 0
         },
         "taxable_amount": {
           "name": "taxable_amount",
-          "type": "integer",
+          "type": "numeric(10, 2)",
           "primaryKey": false,
           "notNull": true
         },
+        "gst_rate": {
+          "name": "gst_rate",
+          "type": "numeric(10, 2)",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
         "cgst_amount": {
           "name": "cgst_amount",
-          "type": "integer",
+          "type": "numeric(10, 2)",
           "primaryKey": false,
           "notNull": true,
           "default": 0
         },
         "sgst_amount": {
           "name": "sgst_amount",
-          "type": "integer",
+          "type": "numeric(10, 2)",
           "primaryKey": false,
           "notNull": true,
           "default": 0
         },
         "igst_amount": {
           "name": "igst_amount",
-          "type": "integer",
+          "type": "numeric(10, 2)",
           "primaryKey": false,
           "notNull": true,
           "default": 0
         },
         "round_off": {
           "name": "round_off",
-          "type": "integer",
+          "type": "numeric(10, 2)",
           "primaryKey": false,
           "notNull": true,
           "default": 0
         },
         "grand_total": {
           "name": "grand_total",
-          "type": "integer",
+          "type": "numeric(10, 2)",
           "primaryKey": false,
           "notNull": true
         },
@@ -1514,6 +1700,33 @@
           "method": "btree",
           "with": {}
         },
+        "order_org_created_idx": {
+          "name": "order_org_created_idx",
+          "columns": [
+            {
+              "expression": "organization_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "created_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
         "order_status_idx": {
           "name": "order_status_idx",
           "columns": [
@@ -1573,6 +1786,21 @@
           "concurrently": false,
           "method": "btree",
           "with": {}
+        },
+        "order_table_session_idx": {
+          "name": "order_table_session_idx",
+          "columns": [
+            {
+              "expression": "table_session_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
         }
       },
       "foreignKeys": {
@@ -1588,18 +1816,23 @@
           ],
           "onDelete": "cascade",
           "onUpdate": "no action"
+        },
+        "order_table_session_id_table_session_id_fk": {
+          "name": "order_table_session_id_table_session_id_fk",
+          "tableFrom": "order",
+          "tableTo": "table_session",
+          "columnsFrom": [
+            "table_session_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {},
-      "uniqueConstraints": {
-        "order_invoice_number_unique": {
-          "name": "order_invoice_number_unique",
-          "nullsNotDistinct": false,
-          "columns": [
-            "invoice_number"
-          ]
-        }
-      },
+      "uniqueConstraints": {},
       "policies": {},
       "checkConstraints": {},
       "isRLSEnabled": false
@@ -1652,8 +1885,7 @@
           "name": "id",
           "type": "text",
           "primaryKey": true,
-          "notNull": true,
-          "default": "'58bb1c6a-a53d-4463-814b-1799640df37f'"
+          "notNull": true
         },
         "order_id": {
           "name": "order_id",

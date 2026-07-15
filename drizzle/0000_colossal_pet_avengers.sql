@@ -42,6 +42,9 @@ CREATE TABLE "organization" (
 	"created_at" timestamp NOT NULL,
 	"metadata" text,
 	"website" text,
+	"gst_rate" integer DEFAULT 5,
+	"gstin" text,
+	"number" text,
 	"hsn_sac" integer DEFAULT 996331,
 	"address" text,
 	CONSTRAINT "organization_slug_unique" UNIQUE("slug")
@@ -82,7 +85,7 @@ CREATE TABLE "verification" (
 );
 --> statement-breakpoint
 CREATE TABLE "menu" (
-	"id" text PRIMARY KEY DEFAULT '05ce0ec9-ce6c-426b-9bc9-b6312886f09c' NOT NULL,
+	"id" text PRIMARY KEY NOT NULL,
 	"organization_id" text NOT NULL,
 	"name" text NOT NULL,
 	"description" text,
@@ -92,7 +95,7 @@ CREATE TABLE "menu" (
 );
 --> statement-breakpoint
 CREATE TABLE "menu_item" (
-	"id" text PRIMARY KEY DEFAULT '8df56f15-7ef6-48ae-b49f-812a2d636b4a' NOT NULL,
+	"id" text PRIMARY KEY NOT NULL,
 	"menu_id" text NOT NULL,
 	"organization_id" text NOT NULL,
 	"name" text NOT NULL,
@@ -110,7 +113,7 @@ CREATE TABLE "menu_item" (
 );
 --> statement-breakpoint
 CREATE TABLE "table" (
-	"id" text PRIMARY KEY DEFAULT 'a466d7bd-8be1-4eff-8768-271ea62b61d7' NOT NULL,
+	"id" text PRIMARY KEY NOT NULL,
 	"number" integer NOT NULL,
 	"name" text,
 	"organization_id" text NOT NULL,
@@ -120,9 +123,20 @@ CREATE TABLE "table" (
 	"updated_at" timestamp NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE "order" (
-	"id" text PRIMARY KEY DEFAULT '235d5032-4f6c-462a-a3ff-b5eb16d7b951' NOT NULL,
+CREATE TABLE "table_session" (
+	"id" text PRIMARY KEY NOT NULL,
 	"organization_id" text NOT NULL,
+	"table_id" text NOT NULL,
+	"table_number" text NOT NULL,
+	"status" text DEFAULT 'active' NOT NULL,
+	"created_at" timestamp DEFAULT now() NOT NULL,
+	"updated_at" timestamp DEFAULT now() NOT NULL
+);
+--> statement-breakpoint
+CREATE TABLE "order" (
+	"id" text PRIMARY KEY NOT NULL,
+	"organization_id" text NOT NULL,
+	"table_session_id" text,
 	"invoice_number" text NOT NULL,
 	"customer_name" text,
 	"customer_phone" text,
@@ -132,22 +146,29 @@ CREATE TABLE "order" (
 	"payment_status" text DEFAULT 'pending' NOT NULL,
 	"payment_method" text,
 	"items" jsonb NOT NULL,
-	"subtotal" integer NOT NULL,
-	"discount" integer DEFAULT 0 NOT NULL,
-	"taxable_amount" integer NOT NULL,
-	"cgst_amount" integer DEFAULT 0 NOT NULL,
-	"sgst_amount" integer DEFAULT 0 NOT NULL,
-	"igst_amount" integer DEFAULT 0 NOT NULL,
-	"round_off" integer DEFAULT 0 NOT NULL,
-	"grand_total" integer NOT NULL,
+	"subtotal" numeric(10, 2) NOT NULL,
+	"discount" numeric(10, 2) DEFAULT 0 NOT NULL,
+	"taxable_amount" numeric(10, 2) NOT NULL,
+	"gst_rate" numeric(10, 2) DEFAULT 0 NOT NULL,
+	"cgst_amount" numeric(10, 2) DEFAULT 0 NOT NULL,
+	"sgst_amount" numeric(10, 2) DEFAULT 0 NOT NULL,
+	"igst_amount" numeric(10, 2) DEFAULT 0 NOT NULL,
+	"round_off" numeric(10, 2) DEFAULT 0 NOT NULL,
+	"grand_total" numeric(10, 2) NOT NULL,
 	"notes" text,
 	"created_at" timestamp DEFAULT now() NOT NULL,
-	"updated_at" timestamp DEFAULT now() NOT NULL,
-	CONSTRAINT "order_invoice_number_unique" UNIQUE("invoice_number")
+	"updated_at" timestamp DEFAULT now() NOT NULL
+);
+--> statement-breakpoint
+CREATE TABLE "order_counter" (
+	"organization_id" text NOT NULL,
+	"year" integer NOT NULL,
+	"last_sequence" integer DEFAULT 0 NOT NULL,
+	CONSTRAINT "order_counter_organization_id_year_pk" PRIMARY KEY("organization_id","year")
 );
 --> statement-breakpoint
 CREATE TABLE "order_item" (
-	"id" text PRIMARY KEY DEFAULT '0798bb28-c6c2-4477-817d-f2ae6bd08d2a' NOT NULL,
+	"id" text PRIMARY KEY NOT NULL,
 	"order_id" text NOT NULL,
 	"menu_item_id" text NOT NULL,
 	"variant" text NOT NULL,
@@ -166,7 +187,10 @@ ALTER TABLE "menu" ADD CONSTRAINT "menu_organization_id_organization_id_fk" FORE
 ALTER TABLE "menu_item" ADD CONSTRAINT "menu_item_menu_id_menu_id_fk" FOREIGN KEY ("menu_id") REFERENCES "public"."menu"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "menu_item" ADD CONSTRAINT "menu_item_organization_id_organization_id_fk" FOREIGN KEY ("organization_id") REFERENCES "public"."organization"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "table" ADD CONSTRAINT "table_organization_id_organization_id_fk" FOREIGN KEY ("organization_id") REFERENCES "public"."organization"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "table_session" ADD CONSTRAINT "table_session_organization_id_organization_id_fk" FOREIGN KEY ("organization_id") REFERENCES "public"."organization"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "table_session" ADD CONSTRAINT "table_session_table_id_table_id_fk" FOREIGN KEY ("table_id") REFERENCES "public"."table"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "order" ADD CONSTRAINT "order_organization_id_organization_id_fk" FOREIGN KEY ("organization_id") REFERENCES "public"."organization"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "order" ADD CONSTRAINT "order_table_session_id_table_session_id_fk" FOREIGN KEY ("table_session_id") REFERENCES "public"."table_session"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "order_item" ADD CONSTRAINT "order_item_order_id_order_id_fk" FOREIGN KEY ("order_id") REFERENCES "public"."order"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "order_item" ADD CONSTRAINT "order_item_menu_item_id_menu_item_id_fk" FOREIGN KEY ("menu_item_id") REFERENCES "public"."menu_item"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 CREATE INDEX "account_user_idx" ON "account" USING btree ("user_id");--> statement-breakpoint
@@ -199,12 +223,19 @@ CREATE INDEX "menu_item_available_idx" ON "menu_item" USING btree ("is_available
 CREATE INDEX "menu_item_vegetarian_idx" ON "menu_item" USING btree ("is_vegetarian");--> statement-breakpoint
 CREATE INDEX "table_id_idx" ON "table" USING btree ("id");--> statement-breakpoint
 CREATE INDEX "table_organization_id_idx" ON "table" USING btree ("organization_id");--> statement-breakpoint
+CREATE INDEX "table_session_id_idx" ON "table_session" USING btree ("id");--> statement-breakpoint
+CREATE INDEX "table_session_org_idx" ON "table_session" USING btree ("organization_id");--> statement-breakpoint
+CREATE INDEX "table_session_table_id_idx" ON "table_session" USING btree ("table_id");--> statement-breakpoint
+CREATE INDEX "table_session_org_table_status_idx" ON "table_session" USING btree ("organization_id","table_id","status");--> statement-breakpoint
+CREATE UNIQUE INDEX "table_session_active_idx" ON "table_session" USING btree ("table_id") WHERE "table_session"."status" = $1;--> statement-breakpoint
 CREATE INDEX "order_id_idx" ON "order" USING btree ("id");--> statement-breakpoint
 CREATE INDEX "order_invoice_idx" ON "order" USING btree ("invoice_number");--> statement-breakpoint
 CREATE INDEX "order_org_idx" ON "order" USING btree ("organization_id");--> statement-breakpoint
+CREATE INDEX "order_org_created_idx" ON "order" USING btree ("organization_id","created_at","id");--> statement-breakpoint
 CREATE INDEX "order_status_idx" ON "order" USING btree ("status");--> statement-breakpoint
 CREATE INDEX "order_payment_status_idx" ON "order" USING btree ("payment_status");--> statement-breakpoint
 CREATE INDEX "order_created_at_idx" ON "order" USING btree ("created_at");--> statement-breakpoint
 CREATE INDEX "order_customer_email_idx" ON "order" USING btree ("customer_email");--> statement-breakpoint
+CREATE INDEX "order_table_session_idx" ON "order" USING btree ("table_session_id");--> statement-breakpoint
 CREATE INDEX "order_item_order_idx" ON "order_item" USING btree ("order_id");--> statement-breakpoint
 CREATE INDEX "order_item_menu_item_idx" ON "order_item" USING btree ("menu_item_id");

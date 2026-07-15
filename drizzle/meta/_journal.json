@@ -5,71 +5,15 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1783159889266,
-      "tag": "0000_salty_devos",
+      "when": 1784106823888,
+      "tag": "0000_colossal_pet_avengers",
       "breakpoints": true
     },
     {
       "idx": 1,
       "version": "7",
-      "when": 1783160985580,
-      "tag": "0001_careless_silverclaw",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1783262908774,
-      "tag": "0002_long_diamondback",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "7",
-      "when": 1783328705003,
-      "tag": "0003_special_brother_voodoo",
-      "breakpoints": true
-    },
-    {
-      "idx": 4,
-      "version": "7",
-      "when": 1783533043974,
-      "tag": "0004_aspiring_argent",
-      "breakpoints": true
-    },
-    {
-      "idx": 5,
-      "version": "7",
-      "when": 1783533538654,
-      "tag": "0005_square_scarecrow",
-      "breakpoints": true
-    },
-    {
-      "idx": 6,
-      "version": "7",
-      "when": 1783620874917,
-      "tag": "0006_cool_albert_cleary",
-      "breakpoints": true
-    },
-    {
-      "idx": 7,
-      "version": "7",
-      "when": 1783960674266,
-      "tag": "0007_confused_leopardon",
-      "breakpoints": true
-    },
-    {
-      "idx": 8,
-      "version": "7",
-      "when": 1784045190066,
-      "tag": "0008_parallel_shard",
-      "breakpoints": true
-    },
-    {
-      "idx": 9,
-      "version": "7",
-      "when": 1784047735530,
-      "tag": "0009_bored_vanisher",
+      "when": 1784106896763,
+      "tag": "0001_sparkling_ultimates",
       "breakpoints": true
     }
   ]
