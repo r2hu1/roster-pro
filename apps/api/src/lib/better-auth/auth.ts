@@ -9,11 +9,11 @@ import { eq } from "drizzle-orm"
 import { redisClient } from "../../core/redis/client.js"
 
 const productId =
-  process.env.APP_ENV === "production"
+  process.env.NODE_ENV === "production"
     ? process.env.PROD_POLAR_MONTHLY_PRODUCT_ID
     : process.env.DEV_POLAR_MONTHLY_PRODUCT_ID
 const webhookSecret =
-  process.env.APP_ENV === "production"
+  process.env.NODE_ENV === "production"
     ? process.env.PROD_POLAR_WEBHOOK_SECRET
     : process.env.DEV_POLAR_WEBHOOK_SECRET
 
