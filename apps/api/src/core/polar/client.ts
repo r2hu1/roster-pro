@@ -18,5 +18,5 @@ console.log({
 export const polarClient = new Polar({
   accessToken,
   server: APP_ENV,
-  // debugLogger: console,
+  debugLogger: console,
 })
