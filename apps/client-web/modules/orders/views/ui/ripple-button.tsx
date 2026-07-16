@@ -30,7 +30,7 @@ export const RippleButton = forwardRef<
             key={id}
             className="pointer-events-none absolute inset-0 rounded-full bg-primary"
             initial={{ scale: 1, opacity: 0.35 }}
-            animate={{ scale: 2.4, opacity: 0 }}
+            animate={{ scale: 1.8, opacity: 0 }}
             transition={{ duration: 2, ease: "easeOut" }}
             onAnimationComplete={() =>
               setRipples((prev) => prev.filter((x) => x !== id))
