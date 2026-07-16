@@ -16,7 +16,7 @@ export const auth = betterAuth({
       process.env.NODE_ENV === "production"
         ? {
             enabled: true,
-            domain: "api.rosterpro.in",
+            domain: ".rosterpro.in",
           }
         : undefined,
   },
