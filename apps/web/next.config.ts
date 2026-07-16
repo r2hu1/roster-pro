@@ -16,12 +16,16 @@ const nextConfig: NextConfig = {
     ],
   },
   async rewrites() {
-    return [
-      {
-        source: "/api/:path*",
-        destination: `${API_URL}/v1/:path*`,
-      },
-    ]
+    return {
+      beforeFiles: [],
+      afterFiles: [
+        {
+          source: "/api/:path*",
+          destination: `${API_URL}/v1/:path*`,
+        },
+      ],
+      fallback: [],
+    }
   },
 }
 
