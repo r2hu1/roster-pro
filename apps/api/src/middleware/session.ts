@@ -29,22 +29,23 @@ export const sessionMiddleware = async (
     )
   }
 
-  let organizationId = session.session.activeOrganizationId
+  let organizationId = session.session.activeOrganizationId ?? null
 
   if (!organizationId) {
     const orgs = await auth.api.listOrganizations({
       headers: c.req.raw.headers,
     })
-    if (orgs) {
+    if (orgs && orgs.length > 0) {
       organizationId = orgs[0].id
-      void auth.api.setActiveOrganization({
-        headers: c.req.raw.headers,
-        body: {
-          organizationId: orgs[0].id,
-        },
-      })
+      void auth.api
+        .setActiveOrganization({
+          headers: c.req.raw.headers,
+          body: {
+            organizationId: orgs[0].id,
+          },
+        })
+        .catch(() => {})
     }
-    organizationId = null;
   }
 
   c.set("user", session?.user ?? null)
