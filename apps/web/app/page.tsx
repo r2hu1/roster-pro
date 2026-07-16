@@ -3,7 +3,8 @@ import { headers } from "next/headers"
 import { redirect } from "next/navigation"
 
 export default async function Page() {
-  const requestHeaders = await headers()
+  const incomingHeaders = await headers()
+  const requestHeaders = { cookie: incomingHeaders.get("cookie") ?? "" }
 
   const { data: session, error: sessionError } = await authClient.getSession({
     fetchOptions: {
