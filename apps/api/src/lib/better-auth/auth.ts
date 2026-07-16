@@ -11,12 +11,15 @@ import { redisClient } from "../../core/redis/client.js"
 export const auth = betterAuth({
   basePath: "/v1/auth",
   trustedOrigins: ["*"],
-  // session: {
-  //   cookieCache: {
-  //     enabled: true,
-  //     refreshCache: true,
-  //   }
-  // },
+  advanced: {
+    crossSubDomainCookies:
+      process.env.NODE_ENV === "production"
+        ? {
+            enabled: true,
+            domain: ".rosterpro.in",
+          }
+        : undefined,
+  },
   secondaryStorage: {
     get: async (key) => redisClient.get(key),
     set: async (key, value, ttl) =>

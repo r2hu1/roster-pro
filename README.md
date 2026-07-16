@@ -59,9 +59,12 @@ Individual apps: `bun run dev:api`, `bun run dev:web`, `bun run dev:client-web`,
 | `bun run dev` | Start all apps in dev mode |
 | `bun run build` | Build all apps |
 | `bun run lint` | Lint all packages |
+| `bun run format` | Format all packages |
 | `bun run typecheck` | TypeScript check all packages |
+| `bun run fix` | Auto-fix lint issues |
 | `bun run db:push` | Push Drizzle schema to DB |
 | `bun run db:migrate` | Run pending migrations |
+| `bun run db:generate` | Generate migration files |
 | `bun run db:studio` | Open Drizzle Studio |
 | `bun run clean` | Clean build artifacts |
 
@@ -74,7 +77,9 @@ Refer to [STRUCTURE.md](./STRUCTURE.md) for full architecture guide.
 - **Runtime**: Bun 1.x
 - **Monorepo**: Turborepo v2
 - **Backend**: Hono, Drizzle ORM, Postgres, Upstash Redis
-- **Auth**: Better Auth (Google OAuth), Polar.sh payments
+- **Auth**: Better Auth (Google OAuth + org plugin + Polar plugin), Redis secondary storage
+- **Payments**: Polar.sh (checkout, portal, webhooks)
+- **Media**: ImageKit (upload/delete)
 - **Frontend**: Next.js 16, React 19, Tailwind v4, shadcn/ui
 - **Data Fetching**: TanStack React Query v5, Axios
 - **Linting**: Biome v2, ESLint 9

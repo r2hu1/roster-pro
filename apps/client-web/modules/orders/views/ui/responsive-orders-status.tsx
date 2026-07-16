@@ -161,7 +161,7 @@ export default function ResponsiveOrdersStatus() {
           </ResponsiveModalDescription>
         </ResponsiveModalHeader>
 
-        <ResponsiveModalBody className="pb-4">
+        <ResponsiveModalBody className="pb-4 no-scrollbar max-h-[60vh] overflow-x-hidden overflow-y-auto">
           {isPending && <Skeleton className="h-24 w-full" />}
           {!isPending && orders.length === 0 ? (
             <div className="flex flex-col items-center justify-center gap-2 py-12 text-muted-foreground">

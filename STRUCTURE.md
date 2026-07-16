@@ -49,7 +49,7 @@ roster-pro/
           ┌─────────────┘   └─────────────┐
           │  HTTP (rewrites)              │ Upstash Realtime
     ┌─────┴──────┐                 ┌──────┴──────┐
-    │  Web (Nx)  │                 │ Client-Web  │
+    │  Web       │                 │ Client-Web  │
     │  port 3001 │                 │  port 3003  │
     └────────────┘                 └─────────────┘
 ```
@@ -110,9 +110,14 @@ routes/user/
 | Redis | `core/redis/client.ts` | Upstash Redis wrapper with SCAN-based pattern delete |
 | ImageKit | `core/imagekit/` | Image upload/delete |
 | Polar | `core/polar/client.ts` | Payment SDK client |
-| Auth | `lib/better-auth/auth.ts` | Better Auth config + Polar plugin |
+| Auth | `lib/better-auth/auth.ts` | Better Auth config + Google OAuth + org plugin + Polar plugin + Redis secondary storage |
 | Crypto | `lib/crypto.ts` | AES-256-GCM encrypt/decrypt (QR tokens) |
 | Realtime | `lib/realtime.ts` | Upstash Realtime pub/sub singleton |
+| Realtime Events | `lib/realtime-events.ts` | Typed publish wrappers (`publishOrderEvent`, `publishTableEvent`) |
+| Logger | `lib/logger.ts` | `routeLogger` — prints registered routes at startup |
+| Utils | `lib/utils.ts` | `zvalidator` middleware, `parseFile`, status code re-exports |
+| Chippers | `lib/chippers.ts` | Pre-generated "chipped" phone number map (1–100) |
+| Scripts | `scripts/migrate-to-sessions.ts` | One-time migration: groups legacy orders into `table_session` |
 
 ### Web (`apps/web`)
 
@@ -124,9 +129,10 @@ Restaurant owner dashboard. Next.js 16 with App Router.
 app/
   (dashboard)/          Authenticated pages (layout with sidebar)
   (onboarding)/         Auth, subscription setup
-  api/                  Next.js API routes (auth helpers)
-  layout.tsx            Root layout
-  page.tsx              Landing / redirect
+  api/
+    realtime/route.ts   Upstash Realtime SSE endpoint (org channel auth)
+  layout.tsx            Root layout (TooltipProvider, Toaster)
+  page.tsx              Landing / redirect (checks session → org → subscription)
 ```
 
 **Feature modules** (under `modules/`):
@@ -149,13 +155,47 @@ app/
 
 ### Client-Web (`apps/client-web`)
 
-Customer-facing menu ordering per restaurant. Next.js 16.
+Customer-facing menu ordering per restaurant. Next.js 16, port 3003. QR-code-driven — table token decodes to org + table.
+
+```
+app/
+  page.tsx              Redirect to last-visited token or marketing
+  [token]/              Decodes table token, identifies org & table
+    layout.tsx          ReactQuery, Table, Cart, OrdersStream providers
+    page.tsx            Menu browser + live order status
+    cart/page.tsx       Cart with checkout
+```
+
+**Modules:**
+
+| Module | Purpose |
+|--------|---------|
+| `menu/` | Menu grid/list, filters, item modal, virtual rows |
+| `cart/` | Cart context, cart sheet, checkout flow |
+| `orders/` | Orders stream provider, live status UI |
+| `providers/` | React Query, table token provider |
+
+**Hooks:** `useMenus`, `useCreateOrder`, `useCreateTableOrder`, `useOrder`, `useActiveOrders`, `useActiveOrdersStream`, `useDecodeToken`, `useUpdateOrder`
 
 **Rewrites:** Same pattern as web.
 
 ### Marketing (`apps/marketing`)
 
-Public landing page. No API dependency.
+Public landing page. No API dependency. Next.js 16, port 3002.
+
+```
+app/
+  page.tsx              Landing (Hero, Stats, Features, Testimonials, CTA)
+  about/                About page
+  contact/              Contact page
+  documentation/        Documentation page
+  privacy-policy/       Privacy policy
+  terms/                Terms & conditions
+```
+
+**Modules:** `home/` — 16 UI components: hero, features, stats, testimonials, CTA, about, contact, docs, legal pages.
+
+Only workspace deps: `@workspace/ui`, `@workspace/eslint-config`, `@workspace/typescript-config`.
 
 ## Packages
 
@@ -167,9 +207,10 @@ Single source of truth for all contracts. Zero runtime dependencies (Zod only).
 src/
   enums/            OrderStatus, PaymentStatus, TableStatus, Role
   constants/        HTTP_STATUS_CODES, PAGINATION, LIMITS, REGEX
-  schemas/          Zod schemas organized by feature
+  schemas/          Zod schemas organized by feature (8 domains)
   types/            Backward-compatible re-exports
-  utils/            Formatters
+  utils/            Formatters (formatCurrency, formatPrice)
+  realtime/         Channel builders, event schema, auth helper
   index.ts          Top-level barrel
 ```
 
@@ -190,7 +231,27 @@ UpdateXxxSchema       PUT/PATCH request body
 DeleteXxxSchema       DELETE request body
 XxxResponseSchema     Single object response
 XxxListResponseSchema Array response
+XxxPageSchema         Cursor-paginated response
 ```
+
+**Additional schemas not in 3-file pattern:**
+
+| Domain | Notable schemas |
+|--------|----------------|
+| `menu/` | `MenuWithItemsResponseSchema` — menu + items array |
+| `order/` | `CreateTableOrderSchema` — frontend table ordering; `OrderPageSchema` — cursor pagination; `OrderStatsSchema` — status/payment breakdown; `InvoiceData` — print template interface |
+| `order/order-item/` | `OrderItemSchema` with `half | full` variant |
+| `analytics/` | `AnalyticsQuerySchema`, `AnalyticsResponseSchema` (summary, revenue hourly/daily, top items, table stats, status/payment breakdowns) |
+| `review/` | `ReviewSchema`, `CreateReviewSchema` (rating 1–5) |
+| `user/` | `UserSchema`, `SessionSchema`, `AccountSchema` (OAuth tokens) |
+
+**Realtime module** (`src/realtime/`):
+
+| Export | Purpose |
+|--------|---------|
+| `realtimeSchema` | Typed event map (`order.*`, `table.*`, `analytics.*`) |
+| `channels` | Factory: `orders(orgId)`, `order(orgId, orderId)`, `table(orgId)`, `analytics(orgId)` |
+| `isChannelAuthorized` | Validates channel belongs to org |
 
 **Import paths:**
 
@@ -292,8 +353,8 @@ Invalidation uses `delPattern` (SCAN-based) which can be slow at scale.
 |-------------|--------|
 | `auth.ts` | user, session, account, verification, organization, member, invitation |
 | `menu.ts` | menu, menu_item |
-| `table.ts` | table |
-| `order.ts` | order, order_item, order_counter |
+| `table.ts` | table, table_session |
+| `order.ts` | order (JSONB items), order_item (normalized — unused in logic), order_counter |
 
 All tables have UUID primary keys (`$defaultFn(() => uuidv4())`), organization-scoped via `organizationId` FK with cascade delete, and composite indexes on `(organizationId, createdAt)` for paginated queries.
 
@@ -321,6 +382,7 @@ No CI/CD pipeline configured yet. Manual deploy only.
 ## Environment Variables
 
 See `.env.example` in each app:
-- `apps/api/.env.example` — DATABASE_URL, BETTER_AUTH_SECRET, GOOGLE_CLIENT_*, UPSTASH_REDIS_*, POLAR_*, IMAGEKIT_*, ENCRYPTION_KEY
-- `apps/web/.env.example` — API_URL, NEXT_PUBLIC_* URLs, UPSTASH_REDIS_*
-- `apps/client-web/.env.example` — API_URL, NEXT_PUBLIC_* URLs
+- `apps/api/.env.example` — DATABASE_URL, BETTER_AUTH_SECRET, BETTER_AUTH_URL, GOOGLE_CLIENT_*, UPSTASH_REDIS_*, UPSTASH_REALTIME_*, POLAR_*, IMAGEKIT_*, ENCRYPTION_KEY
+- `apps/web/.env.example` — API_URL, NEXT_PUBLIC_* URLs, UPSTASH_REDIS_*, UPSTASH_REALTIME_*
+- `apps/client-web/.env.example` — API_URL, NEXT_PUBLIC_* URLs, UPSTASH_REDIS_*, UPSTASH_REALTIME_*
+- `apps/marketing/.env.example` — (minimal, no API dependency)
