@@ -1,3 +1,5 @@
+"use client"
+
 import { SidebarTrigger } from "@workspace/ui/components/sidebar"
 
 export default function PageHeader({
