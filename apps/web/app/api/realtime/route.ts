@@ -24,15 +24,16 @@ async function resolveOrganizationId(request: Request): Promise<string | null> {
   if (!cookie) return null
 
   try {
-    const res = await fetch(`${API_URL}/v1/auth/get-session`, {
+    const res = await fetch(`${API_URL}/v1/organization`, {
       headers: { cookie },
       cache: "no-store",
     })
     if (!res.ok) return null
     const data = (await res.json()) as {
-      user?: { organizationId?: string | null } | null
+      data?: { id?: string | null } | null
     } | null
-    return data?.user?.organizationId ?? null
+    console.log(data)
+    return data?.data?.id ?? null
   } catch (err) {
     console.error("[realtime] Session resolution failed:", err)
     return null
