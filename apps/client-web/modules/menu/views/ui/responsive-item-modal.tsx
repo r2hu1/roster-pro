@@ -20,6 +20,7 @@ import { ButtonGroup } from "@workspace/ui/components/button-group"
 import { Badge } from "@workspace/ui/components/badge"
 import {
   IconCircleCheck,
+  IconCircleCheckFilled,
   IconMinus,
   IconPlus,
   IconShoppingCartPlus,
@@ -55,11 +56,6 @@ export default function ResponsiveItemModal({ item, children }: Props) {
       <ResponsiveModalContent thumbClassName="mt-1">
         <ResponsiveModalHeader>
           <ResponsiveModalTitle>{item.name}</ResponsiveModalTitle>
-          {item.description && (
-            <ResponsiveModalDescription>
-              {item.description}
-            </ResponsiveModalDescription>
-          )}
         </ResponsiveModalHeader>
 
         <ResponsiveModalBody className="max-h-[80vh] overflow-y-scroll no-scrollbar">
@@ -107,26 +103,33 @@ export default function ResponsiveItemModal({ item, children }: Props) {
                 <Button
                   type="button"
                   variant={variant === "half" ? "default" : "secondary"}
-                  size="sm"
                   onClick={() => setVariant("half")}
+                  className="h-8!"
+                  size="sm"
                 >
-                  {variant === "half" && <IconCircleCheck />} Half ₹
+                  {variant === "half" && <IconCircleCheckFilled />} Half ₹
                   {item.price.half}
                 </Button>
                 <Button
                   type="button"
                   variant={variant === "full" ? "default" : "secondary"}
+                  className="h-8!"
                   size="sm"
                   onClick={() => setVariant("full")}
                 >
-                  {variant === "full" && <IconCircleCheck />} Full ₹
-                  {item.price.full}
+                  Full ₹{item.price.full}
+                  {variant === "full" && <IconCircleCheckFilled />}
                 </Button>
               </ButtonGroup>
             </div>
 
             {item.description && (
-              <p className="text-sm capitalize">{item.description}</p>
+              <div className="space-y-1">
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                  Description
+                </p>
+                <p className="text-sm capitalize">{item.description}</p>
+              </div>
             )}
 
             {item.ingredients && item.ingredients.length > 0 && (
@@ -134,9 +137,13 @@ export default function ResponsiveItemModal({ item, children }: Props) {
                 <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
                   Ingredients
                 </p>
-                <p className="text-sm capitalize">
-                  {item.ingredients.join(", ")}
-                </p>
+                <div className="flex gap-2 flex-wrap">
+                  {item.ingredients.map((i) => (
+                    <Badge variant="secondary" key={i}>
+                      {i}
+                    </Badge>
+                  ))}
+                </div>
               </div>
             )}
           </div>
