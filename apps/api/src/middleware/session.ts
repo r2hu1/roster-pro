@@ -35,24 +35,16 @@ export const sessionMiddleware = async (
     const orgs = await auth.api.listOrganizations({
       headers: c.req.raw.headers,
     })
-    if (!orgs || orgs.length === 0) {
-      return c.json(
-        {
-          status: "error",
-          data: null,
-          code: HTTP_STATUS_CODES.INTERNAL_SERVER_ERROR,
-          message: "No organizations found",
+    if (orgs) {
+      organizationId = orgs[0].id
+      void auth.api.setActiveOrganization({
+        headers: c.req.raw.headers,
+        body: {
+          organizationId: orgs[0].id,
         },
-        HTTP_STATUS_CODES.INTERNAL_SERVER_ERROR
-      )
+      })
     }
-    organizationId = orgs[0].id
-    void auth.api.setActiveOrganization({
-      headers: c.req.raw.headers,
-      body: {
-        organizationId: orgs[0].id,
-      },
-    })
+    organizationId = null;
   }
 
   c.set("user", session?.user ?? null)
