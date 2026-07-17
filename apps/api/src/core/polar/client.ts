@@ -5,5 +5,5 @@ export const APP_ENV = process.env.NODE_ENV === "production" ? "production" : "s
 export const polarClient = new Polar({
   accessToken: process.env.POLAR_ACCESS_TOKEN,
   server: APP_ENV,
-  debugLogger: console,
+  // debugLogger: console,
 })

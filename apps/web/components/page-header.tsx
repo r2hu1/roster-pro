@@ -14,12 +14,12 @@ export default function PageHeader({
   actions?: React.ReactNode
 }) {
   return (
-    <div className="mb-6 flex items-center justify-between">
+    <div className="mb-6 gap-5 flex items-center justify-between">
       <div className="flex items-center gap-2">
         <SidebarTrigger />
         <div className="grid gap-0">
           <h1 className="text-sm text-foreground/80 font-medium">{title}</h1>
-          <p className="text-xs text-muted-foreground">{description}</p>
+          <p className="text-xs text-muted-foreground truncate">{description}</p>
         </div>
       </div>
       {actions && <div>{actions}</div>}
