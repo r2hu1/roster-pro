@@ -32,32 +32,11 @@ const navs = [
 ]
 
 export default function SettingsNavbar() {
-  const { open } = useSidebar()
-  const handleLogout = async () => {
-    try {
-      await authClient.signOut()
-      window.location.href = "/"
-    } catch (error) {
-      toast.error("Failed to logout", {
-        description: error instanceof Error ? error.message : String(error),
-      })
-    }
-  }
-
   const [tab, setTab] = useQueryState("tab", {
     defaultValue: "general",
   })
 
   return (
-    <div className="space-y-5">
-      <PageHeader
-        title="Settings"
-        actions={
-          <Button onClick={handleLogout}>
-            Logout <IconLogout />
-          </Button>
-        }
-      />
       <ItemGroup className="gap-1 max-w-60 w-full">
         {navs.map((nav) => (
           <Button
@@ -71,6 +50,5 @@ export default function SettingsNavbar() {
           </Button>
         ))}
       </ItemGroup>
-    </div>
   )
 }

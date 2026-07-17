@@ -13,6 +13,7 @@ export const OrganizationSchema = z.object({
   address: z.string().nullable(),
   gstin: z.string().nullable(),
   hsnSac: z.number().nullable(),
+  gstRate: z.number().nullable(),
   phone: z.string().nullable(),
 })
 

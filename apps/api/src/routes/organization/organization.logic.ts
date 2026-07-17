@@ -132,21 +132,26 @@ export const organizationLogic = {
       }
     }
 
+    const updateData: Record<string, unknown> = {
+      logo,
+      logoKey,
+    }
+    if ("name" in body) updateData.name = body.name
+    if ("phone" in body) updateData.phone = body.phone
+    if ("address" in body) updateData.address = body.address
+    if ("gstin" in body) updateData.gstin = body.gstin
+    if ("hsnSac" in body) updateData.hsnSac = body.hsnSac
+    if ("gstRate" in body) updateData.gstRate = body.gstRate
+    if ("websiteId" in body) updateData.websiteId = body.websiteId
+    if (body.metadata !== undefined) {
+      updateData.metadata = body.metadata
+        ? JSON.stringify(body.metadata)
+        : null
+    }
+
     const [updatedOrg] = await db
       .update(organization)
-      .set({
-        name: body.name ?? getOrg.name,
-        logo,
-        logoKey,
-        address: body.address ?? getOrg.address,
-        metadata: body.metadata
-          ? JSON.stringify(body.metadata)
-          : getOrg.metadata,
-        hsnSac: body.hsnSac ?? getOrg.hsnSac,
-        gstin: body.gstin ?? getOrg.gstin,
-        websiteId: body.websiteId ?? getOrg.websiteId,
-        gstRate: body.gstRate ?? getOrg.gstRate,
-      })
+      .set(updateData)
       .where(eq(organization.id, getOrg.id))
       .returning()
 
