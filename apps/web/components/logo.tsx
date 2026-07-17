@@ -12,7 +12,12 @@ export const Logo = ({
 }) => {
   return (
     <Image
-      src={src ?? (type === "icon" ? "/assets/roster-pro-logo.jpeg" : "/assets/roster-pro-logo-full.jpeg")}
+      src={
+        src ??
+        (type === "icon"
+          ? "/assets/roster-pro-logo.jpeg"
+          : "/assets/roster-pro-logo-full.jpeg")
+      }
       height={100}
       preload
       unoptimized

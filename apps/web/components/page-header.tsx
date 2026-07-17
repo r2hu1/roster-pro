@@ -19,7 +19,9 @@ export default function PageHeader({
         <SidebarTrigger />
         <div className="grid gap-0">
           <h1 className="text-sm text-foreground/80 font-medium">{title}</h1>
-          <p className="text-xs text-muted-foreground truncate">{description}</p>
+          <p className="text-xs text-muted-foreground truncate">
+            {description}
+          </p>
         </div>
       </div>
       {actions && <div>{actions}</div>}

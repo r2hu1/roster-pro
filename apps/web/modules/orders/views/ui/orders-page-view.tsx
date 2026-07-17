@@ -105,7 +105,10 @@ export default function OrdersPageView() {
   const sessionCounts = new Map<string, number>()
   for (const o of orders) {
     if (o.tableSessionId) {
-      sessionCounts.set(o.tableSessionId, (sessionCounts.get(o.tableSessionId) ?? 0) + 1)
+      sessionCounts.set(
+        o.tableSessionId,
+        (sessionCounts.get(o.tableSessionId) ?? 0) + 1
+      )
     }
   }
   const isMultiRound = (o: (typeof orders)[number]) =>
@@ -120,14 +123,16 @@ export default function OrdersPageView() {
       <div className="fixed inset-0 flex flex-col">
         <div className="shrink-0 border-b backdrop-blur px-4 sm:px-6 py-3 flex items-center justify-between gap-4">
           <div className="flex items-center gap-3 min-w-0">
-            <Logo src={organization?.logo} className="h-8 sm:h-14 shrink-0" type="icon" />
+            <Logo
+              src={organization?.logo}
+              className="h-8 sm:h-14 shrink-0"
+              type="icon"
+            />
             <div className="min-w-0">
               <h1 className="text-lg sm:text-xl font-semibold leading-tight truncate">
                 {organization?.name}
               </h1>
-              <p className="text-xs sm:text-sm truncate">
-                Live Orders
-              </p>
+              <p className="text-xs sm:text-sm truncate">Live Orders</p>
             </div>
           </div>
           <div className="flex items-center gap-4 shrink-0">
@@ -260,7 +265,11 @@ export default function OrdersPageView() {
             )}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {orders.map((order) => (
-                <OrderCard key={order.id} order={order} multiRound={isMultiRound(order)} />
+                <OrderCard
+                  key={order.id}
+                  order={order}
+                  multiRound={isMultiRound(order)}
+                />
               ))}
             </div>
             <LoadMoreSentinel

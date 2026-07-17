@@ -5,6 +5,7 @@ import { cn } from "@workspace/ui/lib/utils"
 import { TooltipProvider } from "@workspace/ui/components/tooltip"
 import { Toaster } from "sonner"
 import { Realtime } from "@/components/realtime-provider"
+import { NuqsAdapter } from "nuqs/adapters/next/app"
 
 const instrumentSans = Instrument_Sans({
   subsets: ["latin"],
@@ -33,10 +34,12 @@ export default function RootLayout({
       )}
     >
       <body>
-        <TooltipProvider>
-          <Realtime>{children}</Realtime>
-        </TooltipProvider>
-        <Toaster />
+        <NuqsAdapter>
+          <TooltipProvider>
+            <Realtime>{children}</Realtime>
+          </TooltipProvider>
+          <Toaster />
+        </NuqsAdapter>
       </body>
     </html>
   )

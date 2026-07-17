@@ -1,11 +1,14 @@
 "use client"
 
+import { authClient } from "@/lib/better-auth/client"
 import { useKitchenMode } from "@/modules/providers/kitchen-mode"
+import { useSession } from "@/modules/providers/session-provider"
 import {
   IconCreditCard,
   IconDotsVertical,
   IconLogout,
   IconNotification,
+  IconSettings,
   IconUserCircle,
 } from "@tabler/icons-react"
 import { OrganizationResponse } from "@workspace/shared/schemas/organization/response"
@@ -32,10 +35,25 @@ import {
   useSidebar,
 } from "@workspace/ui/components/sidebar"
 import { Switch } from "@workspace/ui/components/switch"
+import { useRouter } from "next/navigation"
+import { toast } from "sonner"
 
 export function NavUser({ org }: { org: OrganizationResponse }) {
   const { isMobile } = useSidebar()
   const { kitchenMode, setKitchenMode } = useKitchenMode()
+
+  const handleLogout = async () => {
+    try {
+      await authClient.signOut()
+      window.location.href = "/"
+    } catch (error) {
+      toast.error("Failed to logout", {
+        description: error instanceof Error ? error.message : String(error),
+      })
+    }
+  }
+
+  const router = useRouter()
 
   return (
     <SidebarMenu className="space-y-3">
@@ -90,21 +108,27 @@ export function NavUser({ org }: { org: OrganizationResponse }) {
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuItem>
+              <DropdownMenuItem
+                onSelect={() => router.push(`/${org.id}/settings?tab=accounts`)}
+              >
                 <IconUserCircle />
                 Account
               </DropdownMenuItem>
-              <DropdownMenuItem>
+              <DropdownMenuItem
+                onSelect={() => router.push(`/${org.id}/settings?tab=billing`)}
+              >
                 <IconCreditCard />
                 Billing
               </DropdownMenuItem>
-              <DropdownMenuItem>
-                <IconNotification />
-                Notifications
+              <DropdownMenuItem
+                onSelect={() => router.push(`/${org.id}/settings?tab=general`)}
+              >
+                <IconSettings />
+                Settings
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
+            <DropdownMenuItem onSelect={handleLogout}>
               <IconLogout />
               Log out
             </DropdownMenuItem>
