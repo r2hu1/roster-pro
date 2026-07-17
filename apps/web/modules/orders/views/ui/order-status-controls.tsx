@@ -2,13 +2,10 @@
 
 import { useState } from "react"
 import type { OrderStatus, PaymentStatus } from "@workspace/shared/enums"
-import {
-  NativeSelect,
-  NativeSelectOption,
-} from "@workspace/ui/components/native-select"
 import { updateOrderStatus, updateOrder } from "../../api/orders"
 import { Button } from "@workspace/ui/components/button"
-import { ButtonGroup } from "@workspace/ui/components/button-group"
+import { Loader } from "@workspace/ui/components/loader"
+import { toast } from "sonner"
 
 export function OrderStatusSelect({
   orderId,
@@ -18,6 +15,22 @@ export function OrderStatusSelect({
   initial: OrderStatus
 }) {
   const [value, setValue] = useState(initial)
+  const [pending, setPending] = useState<OrderStatus | null>(null)
+
+  async function handleUpdate(s: OrderStatus) {
+    if (s === value || pending) return
+    const previous = value
+    setValue(s)
+    setPending(s)
+    try {
+      await updateOrderStatus(orderId, s, "")
+    } catch {
+      setValue(previous)
+      toast.error("Failed to update order status")
+    } finally {
+      setPending(null)
+    }
+  }
 
   return (
     <div className="grid gap-1.5">
@@ -37,9 +50,10 @@ export function OrderStatusSelect({
           ] as OrderStatus[]
         ).map((s) => (
           <Button
-            className="capitalize rounded-md!"
-            variant={initial !== s ? "secondary" : "default"}
-            onClick={() => updateOrderStatus(orderId, s, "")}
+            className="capitalize rounded-md! disabled:opacity-100!"
+            variant={value !== s ? "secondary" : "default"}
+            disabled={pending !== null}
+            onClick={() => handleUpdate(s)}
             key={s}
             value={s}
           >
@@ -59,6 +73,22 @@ export function PaymentStatusSelect({
   initial: PaymentStatus
 }) {
   const [value, setValue] = useState(initial)
+  const [pending, setPending] = useState<PaymentStatus | null>(null)
+
+  async function handleUpdate(s: PaymentStatus) {
+    if (s === value || pending) return
+    const previous = value
+    setValue(s)
+    setPending(s)
+    try {
+      await updateOrder({ id: orderId, paymentStatus: s })
+    } catch {
+      setValue(previous)
+      toast.error("Failed to update payment status")
+    } finally {
+      setPending(null)
+    }
+  }
 
   return (
     <div className="grid gap-1.5">
@@ -70,10 +100,10 @@ export function PaymentStatusSelect({
         {(["pending", "paid", "failed", "refunded"] as PaymentStatus[]).map(
           (s) => (
             <Button
-              disabled={s === initial}
+              disabled={s === value || pending !== null}
               className="capitalize disabled:opacity-100 rounded-md!"
-              variant={initial !== s ? "secondary" : "default"}
-              onClick={() => updateOrder({ id: orderId, paymentStatus: s })}
+              variant={value !== s ? "secondary" : "default"}
+              onClick={() => handleUpdate(s)}
               key={s}
               value={s}
             >
