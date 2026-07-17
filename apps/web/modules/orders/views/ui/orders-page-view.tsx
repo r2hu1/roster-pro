@@ -111,13 +111,13 @@ export default function OrdersPageView() {
       <div className="fixed inset-0 flex flex-col">
         <div className="shrink-0 border-b backdrop-blur px-4 sm:px-6 py-3 flex items-center justify-between gap-4">
           <div className="flex items-center gap-3 min-w-0">
-            <Logo className="h-8 sm:h-14 shrink-0" type="icon" />
+            <Logo src={organization?.logo} className="h-8 sm:h-14 shrink-0" type="icon" />
             <div className="min-w-0">
               <h1 className="text-lg sm:text-xl font-semibold leading-tight truncate">
-                Live Orders
+                {organization?.name}
               </h1>
               <p className="text-xs sm:text-sm truncate">
-                {organization?.name}
+                Live Orders
               </p>
             </div>
           </div>
@@ -248,7 +248,7 @@ export default function OrdersPageView() {
                 ))}
               </div>
             )}
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {orders.map((order) => (
                 <OrderCard key={order.id} order={order} />
               ))}

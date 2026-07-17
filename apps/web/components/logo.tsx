@@ -4,17 +4,15 @@ import Image from "next/image"
 export const Logo = ({
   className,
   type,
+  src,
 }: {
   className?: string
   type?: "full" | "icon"
+  src?: string
 }) => {
   return (
     <Image
-      src={
-        type === "icon"
-          ? "/assets/roster-pro-logo.jpeg"
-          : "/assets/roster-pro-logo-full.jpeg"
-      }
+      src={src ?? (type === "icon" ? "/assets/roster-pro-logo.jpeg" : "/assets/roster-pro-logo-full.jpeg")}
       height={100}
       preload
       unoptimized

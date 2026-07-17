@@ -55,14 +55,14 @@ export function NavUser({ org }: { org: OrganizationResponse }) {
               size="lg"
               className="bg-background shadow-sm text-foreground"
             >
-              <Avatar className="h-8 w-8 rounded-lg grayscale">
+              <Avatar className="h-8 w-8 rounded-lg">
                 <AvatarImage src={org?.logo ?? ""} alt={org?.name} />
                 <AvatarFallback className="rounded-lg">CN</AvatarFallback>
               </Avatar>
-              <div className="grid flex-1 text-left text-sm leading-tight">
+              <div className="grid flex-1 truncate text-left text-sm leading-tight">
                 <span className="truncate font-medium">{org?.name}</span>
                 <span className="truncate text-xs text-muted-foreground">
-                  {org?.phone ?? org?.address}
+                  {org?.address}
                 </span>
               </div>
               <IconDotsVertical className="ml-auto size-4" />
@@ -80,10 +80,10 @@ export function NavUser({ org }: { org: OrganizationResponse }) {
                   <AvatarImage src={org?.logo ?? ""} alt={org?.name} />
                   <AvatarFallback className="rounded-lg">CN</AvatarFallback>
                 </Avatar>
-                <div className="grid flex-1 text-left text-sm leading-tight">
+                <div className="grid flex-1 truncate text-left text-sm leading-tight">
                   <span className="truncate font-medium">{org?.name}</span>
                   <span className="truncate text-xs text-muted-foreground">
-                    {org?.phone ?? org?.address}
+                    {org?.address}
                   </span>
                 </div>
               </div>

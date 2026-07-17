@@ -27,7 +27,7 @@ export default function OrdersInfo({
   return (
     <Sheet>
       <SheetTrigger asChild>{children}</SheetTrigger>
-      <SheetContent>
+      <SheetContent side="right" className="flex flex-col w-full sm:max-w-md!">
         <SheetHeader className="border-b">
           <SheetTitle className="flex items-center gap-2">
             <span className="text-muted-foreground text-sm font-normal">

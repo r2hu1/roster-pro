@@ -1,23 +1,12 @@
 "use client"
 
 import { useState } from "react"
-import {
-  ResponsiveModal,
-  ResponsiveModalTrigger,
-  ResponsiveModalContent,
-  ResponsiveModalHeader,
-  ResponsiveModalTitle,
-  ResponsiveModalDescription,
-  ResponsiveModalBody,
-  ResponsiveModalFooter,
-} from "@workspace/ui/components/responsive-modal"
 import { Button } from "@workspace/ui/components/button"
 import { Input } from "@workspace/ui/components/input"
 import { Label } from "@workspace/ui/components/label"
 import { Textarea } from "@workspace/ui/components/textarea"
 import {
   NativeSelect,
-  NativeSelectOptGroup,
   NativeSelectOption,
 } from "@workspace/ui/components/native-select"
 import { toast } from "sonner"
@@ -26,6 +15,8 @@ import { Loader } from "@workspace/ui/components/loader"
 import { IconTrash, IconPlus } from "@tabler/icons-react"
 import api from "@/lib/axios"
 import { useSession } from "@/modules/providers/session-provider"
+import { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle, SheetTrigger } from "@workspace/ui/components/sheet"
+import { ScrollArea } from "@workspace/ui/components/scroll-area"
 
 interface MenuItem {
   id: string
@@ -195,24 +186,25 @@ export default function CreateManualOrderModal({
   }
 
   return (
-    <ResponsiveModal
+    <Sheet
       open={open}
       onOpenChange={(v) => {
         setOpen(v)
         if (!v) reset()
       }}
     >
-      <ResponsiveModalTrigger asChild>{children}</ResponsiveModalTrigger>
+      <SheetTrigger asChild>{children}</SheetTrigger>
 
-      <ResponsiveModalContent>
-        <ResponsiveModalHeader>
-          <ResponsiveModalTitle>Create Manual Order</ResponsiveModalTitle>
-          <ResponsiveModalDescription>
+      <SheetContent side="right" className="flex flex-col w-full sm:max-w-md!">
+        <SheetHeader>
+          <SheetTitle>Create Manual Order</SheetTitle>
+          <SheetDescription>
             Add items and details to create a new order.
-          </ResponsiveModalDescription>
-        </ResponsiveModalHeader>
+          </SheetDescription>
+        </SheetHeader>
 
-        <ResponsiveModalBody className="max-h-130 overflow-y-scroll no-scrollbar">
+        <ScrollArea className="overflow-y-scroll flex-1">
+        <div className="px-3">
           <div className="px-1.5 space-y-4 ">
             <div className="space-y-2">
               <Label htmlFor="table">Table</Label>
@@ -343,7 +335,10 @@ export default function CreateManualOrderModal({
                 onChange={(e) => setNotes(e.target.value)}
               />
             </div>
-
+          </div>
+        </div>
+        </ScrollArea>
+        <SheetFooter>
             <div className="space-y-1 border-t pt-3">
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Subtotal</span>
@@ -354,29 +349,15 @@ export default function CreateManualOrderModal({
                 <span>₹{subtotal.toFixed(2)}</span>
               </div>
             </div>
-          </div>
-        </ResponsiveModalBody>
-
-        <ResponsiveModalFooter>
-          <Button
-            variant="secondary"
-            disabled={pending}
-            onClick={() => {
-              setOpen(false)
-              reset()
-            }}
-          >
-            Cancel
-          </Button>
           <Button
             disabled={pending || !tableNumber || orderItems.length === 0}
             onClick={handleCreate}
           >
-            Create Order
+            Place Order
             {pending && <Loader />}
           </Button>
-        </ResponsiveModalFooter>
-      </ResponsiveModalContent>
-    </ResponsiveModal>
+        </SheetFooter>
+      </SheetContent>
+    </Sheet>
   )
 }
