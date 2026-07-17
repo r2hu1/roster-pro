@@ -84,7 +84,7 @@ export function OrdersFilters({
       </div>
       <InputGroup className="w-full">
         <InputGroupInput
-          placeholder="Search orders..."
+          placeholder="Search orders by number..."
           value={search}
           onChange={(e) => onSearchChange(e.target.value)}
         />
