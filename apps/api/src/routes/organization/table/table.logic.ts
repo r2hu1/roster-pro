@@ -101,7 +101,7 @@ export const tableLogic = {
       })
       .returning()
 
-    await redisClient.delPattern(`${TABLE_CACHE_PREFIX}*:${organizationId}`)
+    await redisClient.del(`${TABLE_CACHE_PREFIX}all:${organizationId}`)
 
     publishTableEvent(organizationId, "table.status", {
       id: created.id,

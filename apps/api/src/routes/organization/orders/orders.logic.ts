@@ -59,7 +59,7 @@ async function emitTableStatus(organizationId: string, tableNumber: string) {
   }
 
   try {
-    await redisClient.delPattern(`${TABLE_CACHE_PREFIX}*:${organizationId}`)
+    await redisClient.del(`${TABLE_CACHE_PREFIX}all:${organizationId}`)
   } catch (err) {
     console.error("Failed to invalidate table cache", err)
   }
@@ -795,6 +795,8 @@ export const orderLogic = {
         organizationId,
         updated.tableNumber,
         updated.tableSessionId
+      ).catch((err) =>
+        console.error("Failed to release table after order update", err)
       )
     }
 
@@ -819,12 +821,13 @@ export const orderLogic = {
       }
     }
 
-    const [existing] = await db
-      .select()
-      .from(order)
+    const [updated] = await db
+      .update(order)
+      .set({ status, updatedAt: new Date() })
       .where(and(eq(order.id, id), eq(order.organizationId, organizationId)))
+      .returning()
 
-    if (!existing) {
+    if (!updated) {
       return {
         status: "error",
         code: HTTP_STATUS_CODES.NOT_FOUND,
@@ -832,17 +835,13 @@ export const orderLogic = {
       }
     }
 
-    const [updated] = await db
-      .update(order)
-      .set({ status, updatedAt: new Date() })
-      .where(and(eq(order.id, id), eq(order.organizationId, organizationId)))
-      .returning()
-
     if (status === "completed" || status === "cancelled") {
       void releaseTableIfNeeded(
         organizationId,
         updated.tableNumber,
         updated.tableSessionId
+      ).catch((err) =>
+        console.error("Failed to release table after status update", err)
       )
     } else if (!isParcelOrder(updated.tableNumber)) {
       void db
@@ -854,7 +853,8 @@ export const orderLogic = {
             eq(tableSchema.organizationId, organizationId)
           )
         )
-      void emitTableStatus(organizationId, updated.tableNumber)
+        .then(() => emitTableStatus(organizationId, updated.tableNumber))
+        .catch((err) => console.error("Failed to mark table occupied", err))
     }
 
     void redisClient.del(`${ORDER_CACHE_PREFIX}${organizationId}:${id}`)
@@ -1210,7 +1210,7 @@ export const orderLogic = {
     })
 
     try {
-      await redisClient.delPattern(`${TABLE_CACHE_PREFIX}*:${organizationId}`)
+      await redisClient.del(`${TABLE_CACHE_PREFIX}all:${organizationId}`)
       await redisClient.del(`${ORDER_CACHE_PREFIX}all:${organizationId}`)
       for (const ord of sessionOrders) {
         await redisClient.del(

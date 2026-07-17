@@ -139,8 +139,9 @@ export const menuItemLogic = {
       })
       .returning()
 
-    await redisClient.delPattern(`${MENU_ITEMS_CACHE_PREFIX}*:${body.menuId}`)
-    await redisClient.delPattern(`${MENU_CACHE_PREFIX}*:${organizationId}`)
+    await redisClient.del(`${MENU_ITEMS_CACHE_PREFIX}all:${body.menuId}`)
+    await redisClient.del(`${MENU_CACHE_PREFIX}all:${organizationId}`)
+    await redisClient.del(`${MENU_CACHE_PREFIX}with-items:${organizationId}`)
 
     return { status: "success", code: HTTP_STATUS_CODES.CREATED, data: created }
   },
@@ -217,10 +218,9 @@ export const menuItemLogic = {
       .returning()
 
     await redisClient.del(`${MENU_ITEMS_CACHE_PREFIX}${body.id}`)
-    await redisClient.delPattern(
-      `${MENU_ITEMS_CACHE_PREFIX}all:${existing.menuId}`
-    )
-    await redisClient.delPattern(`${MENU_CACHE_PREFIX}*:${organizationId}`)
+    await redisClient.del(`${MENU_ITEMS_CACHE_PREFIX}all:${existing.menuId}`)
+    await redisClient.del(`${MENU_CACHE_PREFIX}all:${organizationId}`)
+    await redisClient.del(`${MENU_CACHE_PREFIX}with-items:${organizationId}`)
 
     return { status: "success", code: HTTP_STATUS_CODES.OK, data: updated }
   },
@@ -256,10 +256,9 @@ export const menuItemLogic = {
     await db.delete(menuItem).where(eq(menuItem.id, id))
 
     await redisClient.del(`${MENU_ITEMS_CACHE_PREFIX}${id}`)
-    await redisClient.delPattern(
-      `${MENU_ITEMS_CACHE_PREFIX}all:${existing.menuId}`
-    )
-    await redisClient.delPattern(`${MENU_CACHE_PREFIX}*:${organizationId}`)
+    await redisClient.del(`${MENU_ITEMS_CACHE_PREFIX}all:${existing.menuId}`)
+    await redisClient.del(`${MENU_CACHE_PREFIX}all:${organizationId}`)
+    await redisClient.del(`${MENU_CACHE_PREFIX}with-items:${organizationId}`)
 
     return { status: "success", code: HTTP_STATUS_CODES.NO_CONTENT }
   },
