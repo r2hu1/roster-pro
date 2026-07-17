@@ -87,7 +87,7 @@ export default function PrintReceiptVersionModal({
           </ResponsiveModalDescription>
         </ResponsiveModalHeader>
 
-        <div className="grid gap-3 px-4 pb-2 md:px-0 pb-4">
+        <div className="grid gap-3 px-4 md:pb-0 md:px-0 pb-4">
           <Button
             variant="outline"
             className="h-auto flex-col items-start gap-1 p-3! relative"

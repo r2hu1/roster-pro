@@ -20,11 +20,14 @@ import { isParcelOrder } from "@workspace/shared/constants/index"
 
 export default function OrdersInfo({
   order,
+  multiRound = false,
   children,
 }: {
   order: OrderResponse
+  multiRound?: boolean
   children: React.ReactNode
 }) {
+  const showSession = Boolean(order.tableSessionId) && multiRound
   return (
     <Sheet>
       <SheetTrigger asChild>{children}</SheetTrigger>
@@ -35,7 +38,7 @@ export default function OrdersInfo({
               Order
             </span>
             <span className="font-mono text-sm">{order.invoiceNumber}</span>
-            {order.tableSessionId && (
+            {showSession && (
               <span className="ml-auto mr-6 text-xs font-medium text-amber-600 bg-amber-50 dark:text-amber-400 dark:bg-amber-950 px-2 py-0.5 rounded-full border border-amber-200 dark:border-amber-800">
                 Session
               </span>
@@ -58,7 +61,7 @@ export default function OrdersInfo({
                     : order.tableNumber}
                 </span>
               </div>
-              {order.tableSessionId && (
+              {showSession && (
                 <div className="rounded-lg border border-amber-200 dark:border-amber-800 bg-amber-50/50 dark:bg-amber-950/30 p-3 space-y-1">
                   <div className="flex items-center gap-1.5">
                     <svg
@@ -133,7 +136,7 @@ export default function OrdersInfo({
             </p>
             <PrintReceiptVersionModal
               orderId={order.id}
-              sessionId={order.tableSessionId}
+              sessionId={multiRound ? order.tableSessionId : null}
             >
               <Button size="lg" variant="default">
                 <IconPrinter />

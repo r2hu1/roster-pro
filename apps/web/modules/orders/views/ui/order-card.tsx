@@ -73,9 +73,11 @@ function RenderUpdateStatusButton({
 export function OrderCard({
   order,
   status,
+  multiRound = false,
 }: {
   order: Order
   status?: string
+  multiRound?: boolean
 }) {
   const time = new Date(order.createdAt).toLocaleTimeString("en-IN", {
     hour: "2-digit",
@@ -83,7 +85,7 @@ export function OrderCard({
   })
 
   return (
-    <OrdersInfo order={order}>
+    <OrdersInfo order={order} multiRound={multiRound}>
       <div className="rounded-lg border hover:shadow-sm bg-background">
         <div
           className={cn(

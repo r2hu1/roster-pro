@@ -101,6 +101,16 @@ export default function OrdersPageView() {
     search: debouncedSearch,
   })
 
+  // Sessions with 2+ orders in the loaded list are multi-round
+  const sessionCounts = new Map<string, number>()
+  for (const o of orders) {
+    if (o.tableSessionId) {
+      sessionCounts.set(o.tableSessionId, (sessionCounts.get(o.tableSessionId) ?? 0) + 1)
+    }
+  }
+  const isMultiRound = (o: (typeof orders)[number]) =>
+    !!o.tableSessionId && (sessionCounts.get(o.tableSessionId) ?? 0) > 1
+
   const handleLoadMore = useCallback(() => {
     void loadMore()
   }, [loadMore])
@@ -175,6 +185,7 @@ export default function OrdersPageView() {
                     key={order.id}
                     order={order}
                     status={activeFilter.toLowerCase()}
+                    multiRound={isMultiRound(order)}
                   />
                 ))}
               </div>
@@ -249,7 +260,7 @@ export default function OrdersPageView() {
             )}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {orders.map((order) => (
-                <OrderCard key={order.id} order={order} />
+                <OrderCard key={order.id} order={order} multiRound={isMultiRound(order)} />
               ))}
             </div>
             <LoadMoreSentinel
