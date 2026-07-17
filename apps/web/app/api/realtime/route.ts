@@ -32,7 +32,6 @@ async function resolveOrganizationId(request: Request): Promise<string | null> {
     const data = (await res.json()) as {
       data?: { id?: string | null } | null
     } | null
-    console.log(data)
     return data?.data?.id ?? null
   } catch (err) {
     console.error("[realtime] Session resolution failed:", err)
