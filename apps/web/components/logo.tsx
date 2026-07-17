@@ -8,7 +8,7 @@ export const Logo = ({
 }: {
   className?: string
   type?: "full" | "icon"
-  src?: string
+  src?: string | null | undefined
 }) => {
   return (
     <Image

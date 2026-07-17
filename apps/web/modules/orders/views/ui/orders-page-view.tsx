@@ -20,7 +20,6 @@ import { Logo } from "@/components/logo"
 import { useSession } from "@/modules/providers/session-provider"
 import { cn } from "@workspace/ui/lib/utils"
 import { Loader } from "@workspace/ui/components/loader"
-import { OrderStatus } from "@workspace/shared/enums"
 
 const SEARCH_DEBOUNCE_MS = 350
 

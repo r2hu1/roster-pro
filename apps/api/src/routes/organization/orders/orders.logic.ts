@@ -791,7 +791,7 @@ export const orderLogic = {
       .returning()
 
     if (updated.status === "completed" || updated.status === "cancelled") {
-      await releaseTableIfNeeded(
+      void releaseTableIfNeeded(
         organizationId,
         updated.tableNumber,
         updated.tableSessionId
@@ -839,13 +839,13 @@ export const orderLogic = {
       .returning()
 
     if (status === "completed" || status === "cancelled") {
-      await releaseTableIfNeeded(
+      void releaseTableIfNeeded(
         organizationId,
         updated.tableNumber,
         updated.tableSessionId
       )
     } else if (!isParcelOrder(updated.tableNumber)) {
-      await db
+      void db
         .update(tableSchema)
         .set({ status: "occupied" })
         .where(

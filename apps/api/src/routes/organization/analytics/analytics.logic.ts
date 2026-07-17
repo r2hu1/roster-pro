@@ -3,6 +3,7 @@ import { db } from "../../../core/db/client.js"
 import { order } from "../../../core/db/schemas/order.js"
 import { tableSchema } from "../../../core/db/schemas/table.js"
 import { HTTP_STATUS_CODES } from "../../../lib/utils.js"
+import { isParcelOrder } from "@workspace/shared/constants/index"
 import type {
   AnalyticsQueryDto,
   AnalyticsResponse,
@@ -214,6 +215,7 @@ export const analyticsLogic = {
         { orderCount: number; totalSpent: number }
       >()
       for (const o of orders) {
+        if (isParcelOrder(o.tableNumber)) continue
         const entry = tableMap.get(o.tableNumber) ?? {
           orderCount: 0,
           totalSpent: 0,
