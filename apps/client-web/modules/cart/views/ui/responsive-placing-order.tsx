@@ -168,6 +168,7 @@ export default function ResponsivePlacingOrder({
         onInteractOutside={(e: unknown) => {
           if (!dismissible) (e as Event).preventDefault()
         }}
+        thumbClassName="mt-1"
       >
         <ResponsiveModalHeader>
           <ResponsiveModalTitle>
