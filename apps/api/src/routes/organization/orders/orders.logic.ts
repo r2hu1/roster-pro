@@ -31,10 +31,13 @@ import {
   publishTableEvent,
 } from "../../../lib/realtime-events.js"
 import { menuItem, type Price } from "../../../core/db/schemas/menu.js"
+import { isParcelOrder } from "@workspace/shared/constants/index"
 
 const TABLE_CACHE_PREFIX = "table:"
 
 async function emitTableStatus(organizationId: string, tableNumber: string) {
+  if (isParcelOrder(tableNumber)) return
+
   const [table] = await db
     .select({
       id: tableSchema.id,
@@ -67,6 +70,7 @@ async function releaseTableIfNeeded(
   tableNumber: string,
   tableSessionId: string | null
 ) {
+  if (isParcelOrder(tableNumber)) return
   if (!tableSessionId) {
     await db
       .update(tableSchema)
@@ -235,15 +239,17 @@ async function insertOrderInTransaction(
     })
     .returning()
 
-  await tx
-    .update(tableSchema)
-    .set({ status: "occupied" })
-    .where(
-      and(
-        eq(tableSchema.number, Number(data.tableNumber)),
-        eq(tableSchema.organizationId, data.organizationId)
+  if (!isParcelOrder(data.tableNumber)) {
+    await tx
+      .update(tableSchema)
+      .set({ status: "occupied" })
+      .where(
+        and(
+          eq(tableSchema.number, Number(data.tableNumber)),
+          eq(tableSchema.organizationId, data.organizationId)
+        )
       )
-    )
+  }
 
   return result
 }
@@ -838,7 +844,7 @@ export const orderLogic = {
         updated.tableNumber,
         updated.tableSessionId
       )
-    } else {
+    } else if (!isParcelOrder(updated.tableNumber)) {
       await db
         .update(tableSchema)
         .set({ status: "occupied" })

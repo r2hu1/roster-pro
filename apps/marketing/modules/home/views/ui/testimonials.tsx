@@ -55,7 +55,7 @@ export const Testimonials = () => {
             Loved by hundreds of restaurant owners.
           </h2>
           <p className="mt-2 text-balance text-lg text-muted-foreground tracking-[-0.015em] sm:mt-4">
-            Their experiences speak louder than words, and we're proud to be
+            Their experiences speak louder than words, and we{"'"}re proud to be
             part of their journey.
           </p>
         </div>

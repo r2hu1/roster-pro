@@ -26,3 +26,8 @@ export const LIMITS = {
 export const REGEX = {
   SLUG: /^[a-z0-9]+(?:-[a-z0-9]+)*$/,
 } as const
+
+export const PARCEL_TABLE_NUMBER = "parcel" as const
+
+export const isParcelOrder = (tableNumber: string | null | undefined) =>
+  tableNumber === PARCEL_TABLE_NUMBER

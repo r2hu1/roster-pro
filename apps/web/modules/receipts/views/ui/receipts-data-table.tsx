@@ -23,6 +23,7 @@ import {
 import { Button } from "@workspace/ui/components/button"
 import { IconChevronLeft, IconChevronRight } from "@tabler/icons-react"
 import { formatCurrency } from "@workspace/shared/utils/formatter"
+import { isParcelOrder } from "@workspace/shared/constants/index"
 import PrintReceiptVersionModal from "@/modules/orders/views/ui/print-recipts-version-responsive-modal"
 
 export const columns: ColumnDef<OrderResponse>[] = [
@@ -61,7 +62,11 @@ export const columns: ColumnDef<OrderResponse>[] = [
     accessorKey: "tableNumber",
     header: "Table",
     cell: ({ row }) => (
-      <span className="font-semibold">{row.getValue("tableNumber")}</span>
+      <span className="font-semibold">
+        {isParcelOrder(row.getValue("tableNumber"))
+          ? "Parcel"
+          : row.getValue("tableNumber")}
+      </span>
     ),
   },
   {

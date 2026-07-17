@@ -3,17 +3,11 @@ import { cn } from "@workspace/ui/lib/utils"
 import {
   AppWindow,
   ArrowUpRightIcon,
-  BinocularsIcon,
   ChartArea,
   ChefHat,
-  GlobeIcon,
-  HouseIcon,
-  LockIcon,
   ReceiptText,
   RockingChair,
   ScanQrCode,
-  ShieldCheckIcon,
-  ZapIcon,
 } from "lucide-react"
 import Link from "next/link"
 

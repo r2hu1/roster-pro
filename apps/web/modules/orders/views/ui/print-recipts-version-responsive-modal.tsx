@@ -8,7 +8,6 @@ import {
   ResponsiveModalHeader,
   ResponsiveModalTitle,
   ResponsiveModalDescription,
-  ResponsiveModalFooter,
 } from "@workspace/ui/components/responsive-modal"
 import { Button } from "@workspace/ui/components/button"
 import { Loader } from "@workspace/ui/components/loader"

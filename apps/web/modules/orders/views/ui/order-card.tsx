@@ -4,12 +4,12 @@ import type { z } from "zod"
 import {
   statusDotStyles,
   statusTextStyles,
-  paymentStyles,
   statusStyles,
 } from "./orders-constants"
 import OrdersInfo from "./orders-info"
 import { Button } from "@workspace/ui/components/button"
 import { updateOrder } from "../../api/orders"
+import { isParcelOrder } from "@workspace/shared/constants/index"
 
 type Order = z.infer<typeof OrderSchema>
 
@@ -95,7 +95,9 @@ export function OrderCard({
           <div className="flex items-start justify-between">
             <div>
               <p className="text-base font-semibold leading-tight">
-                Table {order.tableNumber}
+                {isParcelOrder(order.tableNumber)
+                  ? "Parcel"
+                  : `Table ${order.tableNumber}`}
               </p>
               <p className="text-xs text-muted-foreground">
                 {order.invoiceNumber}

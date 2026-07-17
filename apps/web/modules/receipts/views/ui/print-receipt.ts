@@ -1,5 +1,6 @@
 import type { InvoiceData } from "@workspace/shared/schemas/order/index"
 import { formatCurrency } from "@workspace/shared/utils/formatter"
+import { isParcelOrder } from "@workspace/shared/constants/index"
 
 function escapeHtml(value: string) {
   return value
@@ -198,8 +199,8 @@ export function generateReceiptHtml(invoice: InvoiceData) {
   </div>
 
   <div class="row">
-    <span>Table</span>
-    <span>${esc(invoice.customer.tableNumber)}</span>
+    <span>${isParcelOrder(invoice.customer.tableNumber) ? "Order Type" : "Table"}</span>
+    <span>${isParcelOrder(invoice.customer.tableNumber) ? "Parcel" : esc(invoice.customer.tableNumber)}</span>
   </div>
 
   <div class="row">

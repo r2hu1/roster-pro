@@ -15,7 +15,8 @@ import { OrderTotalsSummary } from "./order-totals-summary"
 import PrintReceiptVersionModal from "./print-recipts-version-responsive-modal"
 import { Button } from "@workspace/ui/components/button"
 import { IconPrinter } from "@tabler/icons-react"
-import { ScrollArea, ScrollBar } from "@workspace/ui/components/scroll-area"
+import { ScrollArea } from "@workspace/ui/components/scroll-area"
+import { isParcelOrder } from "@workspace/shared/constants/index"
 
 export default function OrdersInfo({
   order,
@@ -47,10 +48,14 @@ export default function OrdersInfo({
             <div className="space-y-3">
               <div className="grid gap-1.5">
                 <span className="text-muted-foreground font-medium text-sm">
-                  Table Number
+                  {isParcelOrder(order.tableNumber)
+                    ? "Order Type"
+                    : "Table Number"}
                 </span>
                 <span className="text-3xl font-semibold">
-                  {order.tableNumber}
+                  {isParcelOrder(order.tableNumber)
+                    ? "Parcel"
+                    : order.tableNumber}
                 </span>
               </div>
               {order.tableSessionId && (

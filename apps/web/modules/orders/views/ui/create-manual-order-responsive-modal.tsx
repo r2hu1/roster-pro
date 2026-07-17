@@ -17,6 +17,7 @@ import api from "@/lib/axios"
 import { useSession } from "@/modules/providers/session-provider"
 import { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle, SheetTrigger } from "@workspace/ui/components/sheet"
 import { ScrollArea } from "@workspace/ui/components/scroll-area"
+import { PARCEL_TABLE_NUMBER } from "@workspace/shared/constants/index"
 
 interface MenuItem {
   id: string
@@ -49,6 +50,7 @@ export default function CreateManualOrderModal({
   const [open, setOpen] = useState(false)
   const [pending, setPending] = useState(false)
 
+  const [orderType, setOrderType] = useState<"dine-in" | "parcel">("dine-in")
   const [tableNumber, setTableNumber] = useState("")
   const [customerName, setCustomerName] = useState("")
   const [notes, setNotes] = useState("")
@@ -82,6 +84,7 @@ export default function CreateManualOrderModal({
   })
 
   function reset() {
+    setOrderType("dine-in")
     setTableNumber("")
     setCustomerName("")
     setNotes("")
@@ -128,11 +131,12 @@ export default function CreateManualOrderModal({
   )
 
   async function handleCreate() {
+    const isParcel = orderType === "parcel"
     if (!organization?.id) {
       toast.error("Organization not found")
       return
     }
-    if (!tableNumber) {
+    if (!isParcel && !tableNumber) {
       toast.error("Please select a table")
       return
     }
@@ -146,7 +150,7 @@ export default function CreateManualOrderModal({
     try {
       const res = await api.post("/organization/orders", {
         organizationId: organization.id,
-        tableNumber,
+        tableNumber: isParcel ? PARCEL_TABLE_NUMBER : tableNumber,
         customerName: customerName.trim() || null,
         notes: notes.trim() || null,
         items: orderItems.map((item) => ({
@@ -207,6 +211,24 @@ export default function CreateManualOrderModal({
         <div className="px-3">
           <div className="px-1.5 space-y-4 ">
             <div className="space-y-2">
+              <Label htmlFor="orderType">Order Type</Label>
+              <NativeSelect
+                id="orderType"
+                className="w-full"
+                value={orderType}
+                onChange={(e) => {
+                  const type = e.target.value as "dine-in" | "parcel"
+                  setOrderType(type)
+                  if (type === "parcel") setTableNumber("")
+                }}
+              >
+                <NativeSelectOption value="dine-in">Dine-in</NativeSelectOption>
+                <NativeSelectOption value="parcel">Parcel</NativeSelectOption>
+              </NativeSelect>
+            </div>
+
+            {orderType === "dine-in" && (
+            <div className="space-y-2">
               <Label htmlFor="table">Table</Label>
               <NativeSelect
                 className="w-full"
@@ -223,6 +245,7 @@ export default function CreateManualOrderModal({
                 ))}
               </NativeSelect>
             </div>
+            )}
 
             <div className="space-y-2">
               <Label htmlFor="customerName">
@@ -350,7 +373,11 @@ export default function CreateManualOrderModal({
               </div>
             </div>
           <Button
-            disabled={pending || !tableNumber || orderItems.length === 0}
+            disabled={
+              pending ||
+              (orderType === "dine-in" && !tableNumber) ||
+              orderItems.length === 0
+            }
             onClick={handleCreate}
           >
             Place Order
