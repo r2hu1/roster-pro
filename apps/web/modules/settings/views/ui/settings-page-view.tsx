@@ -8,6 +8,8 @@ import { IconLogout } from "@tabler/icons-react"
 import PageHeader from "@/components/page-header"
 import { authClient } from "@/lib/better-auth/client"
 import { toast } from "sonner"
+import BillingSettings from "./billing-settings"
+import SubscriptionSettings from "./subscription-settings"
 
 export default function SettingPageView() {
   const { organization, isLoading } = useSession()
@@ -46,12 +48,8 @@ export default function SettingPageView() {
         <SettingsNavbar />
         <div className="flex-1 min-w-0">
           {tab === "general" && <GeneralSettings />}
-          {tab === "preferences" && (
-            <p className="text-muted-foreground text-sm">Coming soon</p>
-          )}
-          {tab === "billing" && (
-            <p className="text-muted-foreground text-sm">Coming soon</p>
-          )}
+          {tab === "billing" && <BillingSettings />}
+          {tab === "subscription" && <SubscriptionSettings />}
           {tab === "support" && (
             <p className="text-muted-foreground text-sm">Coming soon</p>
           )}

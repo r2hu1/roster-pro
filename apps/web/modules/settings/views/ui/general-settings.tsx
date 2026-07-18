@@ -26,9 +26,6 @@ export default function GeneralSettings() {
   const [name, setName] = useState("")
   const [phone, setPhone] = useState("")
   const [address, setAddress] = useState("")
-  const [gstin, setGstin] = useState("")
-  const [hsnSac, setHsnSac] = useState("")
-  const [gstRate, setGstRate] = useState("")
   const [logoFile, setLogoFile] = useState<File | null>(null)
   const [isSaving, setIsSaving] = useState(false)
 
@@ -37,9 +34,6 @@ export default function GeneralSettings() {
     setName(organization.name ?? "")
     setPhone(organization.phone ?? "")
     setAddress(organization.address ?? "")
-    setGstin(organization.gstin ?? "")
-    setHsnSac(organization.hsnSac != null ? String(organization.hsnSac) : "")
-    setGstRate(organization.gstRate != null ? String(organization.gstRate) : "")
   }, [organization])
 
   const handleLogoChange = useCallback((file: File | null) => {
@@ -55,16 +49,6 @@ export default function GeneralSettings() {
     if (phone !== (organization.phone ?? "")) changed.phone = phone || null
     if (address !== (organization.address ?? ""))
       changed.address = address || null
-    if (gstin !== (organization.gstin ?? "")) changed.gstin = gstin || null
-
-    const curHsn =
-      organization.hsnSac != null ? String(organization.hsnSac) : ""
-    if (hsnSac !== curHsn) changed.hsnSac = hsnSac || ""
-
-    const curGst =
-      organization.gstRate != null ? String(organization.gstRate) : ""
-    if (gstRate !== curGst) changed.gstRate = gstRate || ""
-
     const hasTextChanges = Object.keys(changed).length > 0
     const hasLogoChange = logoFile !== null
 
@@ -112,9 +96,9 @@ export default function GeneralSettings() {
             <DnDImageInput
               onChange={handleLogoChange}
               defaultPreview={organization?.logo}
-              previewClassName="size-40"
+              previewClassName="size-30"
             />
-            <FieldDescription>
+            <FieldDescription className="text-xs pt-2">
               JPEG, PNG, WebP, or GIF. Recommended size: 512×512px.
             </FieldDescription>
           </FieldContent>
@@ -153,51 +137,6 @@ export default function GeneralSettings() {
               onChange={(e) => setAddress(e.target.value)}
               placeholder="Full restaurant address"
               className="min-h-20"
-            />
-          </FieldContent>
-        </Field>
-      </FieldGroup>
-
-      <FieldGroup className="bg-card border p-4 rounded-lg">
-        <Field>
-          <FieldLabel>GSTIN</FieldLabel>
-          <FieldContent>
-            <Input
-              value={gstin}
-              onChange={(e) => setGstin(e.target.value)}
-              placeholder="22AAAAA0000A1Z5"
-            />
-            <FieldDescription>
-              Goods and Services Tax Identification Number
-            </FieldDescription>
-          </FieldContent>
-        </Field>
-
-        <Field>
-          <FieldLabel>HSN/SAC</FieldLabel>
-          <FieldContent>
-            <Input
-              value={hsnSac}
-              onChange={(e) => setHsnSac(e.target.value)}
-              placeholder="996331"
-              type="number"
-            />
-            <FieldDescription>
-              Harmonized System of Nomenclature code
-            </FieldDescription>
-          </FieldContent>
-        </Field>
-
-        <Field>
-          <FieldLabel>GST Rate (%)</FieldLabel>
-          <FieldContent>
-            <Input
-              value={gstRate}
-              onChange={(e) => setGstRate(e.target.value)}
-              placeholder="5"
-              type="number"
-              min="0"
-              max="100"
             />
           </FieldContent>
         </Field>
