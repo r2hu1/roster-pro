@@ -28,13 +28,13 @@ export const Hero = () => {
 
           <div className="flex items-center gap-2 justify-center">
             <Button asChild size="lg" variant="secondary">
-              <Link href="https://cal.com/roster-pro/product-demo-possible-partnership">
-                <span className="btn-label">Schedule Meeting</span>
+              <Link href={`${process.env.NEXT_PUBLIC_APP_URL}`}>
+                <span className="btn-label">Get Started</span>
               </Link>
             </Button>
             <Button asChild size="lg">
               <Link href="https://cal.com/roster-pro/product-demo-possible-partnership">
-                Get Started <ArrowUpRight />
+                Schedule Demo <ArrowUpRight />
               </Link>
             </Button>
           </div>

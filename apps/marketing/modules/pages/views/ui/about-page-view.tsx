@@ -34,7 +34,7 @@ const teamStats = [
   { label: "Support", value: "24/7" },
 ]
 
-export default function AboutPage() {
+export default function AboutPageView() {
   return (
     <div className="flex min-h-screen flex-col">
       {/* Hero */}

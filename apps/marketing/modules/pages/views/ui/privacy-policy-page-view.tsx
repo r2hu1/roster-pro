@@ -19,7 +19,7 @@ const sections = [
   { id: "contact", title: "Contact Us" },
 ]
 
-export default function PrivacyPolicy() {
+export default function PrivacyPolicyPageView() {
   const [activeId, setActiveId] = useState("")
 
   useEffect(() => {

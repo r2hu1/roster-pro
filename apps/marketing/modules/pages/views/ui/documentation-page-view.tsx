@@ -66,7 +66,7 @@ const faqs = [
   },
 ]
 
-export default function DocumentationPage() {
+export default function DocumentationPageView() {
   const [openIndex, setOpenIndex] = useState<number | null>(null)
 
   return (

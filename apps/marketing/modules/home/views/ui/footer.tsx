@@ -43,7 +43,7 @@ export const Footer = () => {
                 {section.links.map((link) => (
                   <li key={link}>
                     <a
-                      href="#"
+                      href={`/${link.toLowerCase()}`}
                       className="text-sm hover:underline transition-colors"
                     >
                       {link}

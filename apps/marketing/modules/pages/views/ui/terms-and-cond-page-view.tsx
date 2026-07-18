@@ -25,7 +25,7 @@ const sections = [
   { id: "contact", title: "Contact Us" },
 ]
 
-export default function TermsAndConditions() {
+export default function TermsAndConditionsPageView() {
   const [activeId, setActiveId] = useState("")
 
   useEffect(() => {

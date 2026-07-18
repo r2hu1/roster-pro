@@ -29,7 +29,7 @@ const contactMethods = [
   },
 ]
 
-export default function ContactPage() {
+export default function ContactPageView() {
   const [submitted, setSubmitted] = useState(false)
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
