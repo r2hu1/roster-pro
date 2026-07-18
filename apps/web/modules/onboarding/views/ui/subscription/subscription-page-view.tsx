@@ -148,8 +148,8 @@ export default function SubscriptionPageView() {
             className="h-10 w-full"
             size="lg"
           >
-            {loading ? <Loader /> : "Subscribe Now"}
-            {!loading && <ArrowRight className="size-3.5" />}
+            Subscribe Now
+            {loading ? <Loader /> : <ArrowRight className="size-3.5" />}
           </Button>
         </div>
 
