@@ -20,6 +20,7 @@ import {
   IconCircleCheck,
   IconAlertTriangle,
 } from "@tabler/icons-react"
+import { Skeleton } from "@workspace/ui/components/skeleton"
 
 export default function SubscriptionSettings() {
   const { organization, isLoading } = useSession()
@@ -37,9 +38,7 @@ export default function SubscriptionSettings() {
 
   if (isLoading || isPending) {
     return (
-      <div className="flex items-center justify-center py-12">
-        <p className="text-sm text-muted-foreground">Loading subscription...</p>
-      </div>
+      <Skeleton className="w-full h-100"/>
     )
   }
 
