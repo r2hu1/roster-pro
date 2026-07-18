@@ -5,6 +5,7 @@ import "@workspace/ui/globals.css"
 import { cn } from "@workspace/ui/lib/utils"
 import { Footer } from "@/modules/home/views/ui/footer"
 import { Header } from "@/modules/home/views/ui/header"
+import { Analytics } from "@vercel/analytics/next"
 
 const fontSans = Instrument_Sans({
   subsets: ["latin"],
@@ -45,6 +46,7 @@ export default function RootLayout({
         <Header />
         {children}
         <Footer />
+        <Analytics />
       </body>
     </html>
   )
