@@ -50,51 +50,52 @@ organizationRouter.post(
   }
 )
 
-organizationRouter.put(
-  "/",
-  sessionMiddleware,
-  async (c) => {
-    const headers = c.req.raw.headers
+organizationRouter.put("/", sessionMiddleware, async (c) => {
+  const headers = c.req.raw.headers
 
-    let body: Record<string, unknown> = {}
-    let file: File | undefined
+  let body: Record<string, unknown> = {}
+  let file: File | undefined
 
-    const contentType = c.req.header("content-type") ?? ""
+  const contentType = c.req.header("content-type") ?? ""
 
-    if (contentType.includes("multipart/form-data")) {
-      const parsed = await c.req.parseBody()
-      file = parsed.logo instanceof File ? parsed.logo : undefined
-      for (const [key, val] of Object.entries(parsed)) {
-        if (key !== "logo" && typeof val === "string") body[key] = val === "" ? null : val
-      }
-      if (typeof body.hsnSac === "string") body.hsnSac = Number(body.hsnSac)
-      if (typeof body.gstRate === "string") body.gstRate = Number(body.gstRate)
-      if (body.name === null) delete body.name
-    } else {
-      try {
-        body = await c.req.json()
-      } catch {
-        return c.json(
-          { status: "error", code: 400, message: "Invalid JSON body" },
-          400
-        )
-      }
+  if (contentType.includes("multipart/form-data")) {
+    const parsed = await c.req.parseBody()
+    file = parsed.logo instanceof File ? parsed.logo : undefined
+    for (const [key, val] of Object.entries(parsed)) {
+      if (key !== "logo" && typeof val === "string")
+        body[key] = val === "" ? null : val
     }
-
-    const parsedResult = updateOrganizationSchema.safeParse(body)
-    if (!parsedResult.success) {
+    if (typeof body.hsnSac === "string") body.hsnSac = Number(body.hsnSac)
+    if (typeof body.gstRate === "string") body.gstRate = Number(body.gstRate)
+    if (body.name === null) delete body.name
+  } else {
+    try {
+      body = await c.req.json()
+    } catch {
       return c.json(
-        {
-          status: "error",
-          code: 400,
-          message: "Validation failed",
-          errors: parsedResult.error.flatten().fieldErrors,
-        },
+        { status: "error", code: 400, message: "Invalid JSON body" },
         400
       )
     }
-
-    const result = await organizationLogic.update(headers, parsedResult.data, file)
-    return c.json(result, result.code)
   }
-)
+
+  const parsedResult = updateOrganizationSchema.safeParse(body)
+  if (!parsedResult.success) {
+    return c.json(
+      {
+        status: "error",
+        code: 400,
+        message: "Validation failed",
+        errors: parsedResult.error.flatten().fieldErrors,
+      },
+      400
+    )
+  }
+
+  const result = await organizationLogic.update(
+    headers,
+    parsedResult.data,
+    file
+  )
+  return c.json(result, result.code)
+})

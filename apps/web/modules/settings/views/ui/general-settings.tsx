@@ -53,13 +53,16 @@ export default function GeneralSettings() {
     const changed: Record<string, string | null> = {}
     if (name !== (organization.name ?? "")) changed.name = name || null
     if (phone !== (organization.phone ?? "")) changed.phone = phone || null
-    if (address !== (organization.address ?? "")) changed.address = address || null
+    if (address !== (organization.address ?? ""))
+      changed.address = address || null
     if (gstin !== (organization.gstin ?? "")) changed.gstin = gstin || null
 
-    const curHsn = organization.hsnSac != null ? String(organization.hsnSac) : ""
+    const curHsn =
+      organization.hsnSac != null ? String(organization.hsnSac) : ""
     if (hsnSac !== curHsn) changed.hsnSac = hsnSac || ""
 
-    const curGst = organization.gstRate != null ? String(organization.gstRate) : ""
+    const curGst =
+      organization.gstRate != null ? String(organization.gstRate) : ""
     if (gstRate !== curGst) changed.gstRate = gstRate || ""
 
     const hasTextChanges = Object.keys(changed).length > 0
@@ -85,11 +88,15 @@ export default function GeneralSettings() {
       setLogoFile(null)
       toast.success("Settings saved")
     } catch (err) {
-      const message = isAxiosError(err) && err.response?.data && typeof err.response.data === "object" && "message" in err.response.data
-        ? String(err.response.data.message)
-        : err instanceof Error
-          ? err.message
-          : "Failed to save settings"
+      const message =
+        isAxiosError(err) &&
+        err.response?.data &&
+        typeof err.response.data === "object" &&
+        "message" in err.response.data
+          ? String(err.response.data.message)
+          : err instanceof Error
+            ? err.message
+            : "Failed to save settings"
       toast.error(message)
     } finally {
       setIsSaving(false)
@@ -118,7 +125,11 @@ export default function GeneralSettings() {
         <Field>
           <FieldLabel>Restaurant Name</FieldLabel>
           <FieldContent>
-            <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="My Restaurant" />
+            <Input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="My Restaurant"
+            />
           </FieldContent>
         </Field>
 
@@ -156,7 +167,9 @@ export default function GeneralSettings() {
               onChange={(e) => setGstin(e.target.value)}
               placeholder="22AAAAA0000A1Z5"
             />
-            <FieldDescription>Goods and Services Tax Identification Number</FieldDescription>
+            <FieldDescription>
+              Goods and Services Tax Identification Number
+            </FieldDescription>
           </FieldContent>
         </Field>
 
@@ -169,7 +182,9 @@ export default function GeneralSettings() {
               placeholder="996331"
               type="number"
             />
-            <FieldDescription>Harmonized System of Nomenclature code</FieldDescription>
+            <FieldDescription>
+              Harmonized System of Nomenclature code
+            </FieldDescription>
           </FieldContent>
         </Field>
 

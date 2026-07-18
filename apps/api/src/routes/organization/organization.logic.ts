@@ -144,9 +144,7 @@ export const organizationLogic = {
     if ("gstRate" in body) updateData.gstRate = body.gstRate
     if ("websiteId" in body) updateData.websiteId = body.websiteId
     if (body.metadata !== undefined) {
-      updateData.metadata = body.metadata
-        ? JSON.stringify(body.metadata)
-        : null
+      updateData.metadata = body.metadata ? JSON.stringify(body.metadata) : null
     }
 
     const [updatedOrg] = await db

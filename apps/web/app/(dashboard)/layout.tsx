@@ -10,14 +10,12 @@ export default async function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <ReactQueryProvider>
-      <SessionProvider>
-        <SubscriptionMiddleware>
-          <KitchenModeProvider>
-            <DashboardShell>{children}</DashboardShell>
-          </KitchenModeProvider>
-        </SubscriptionMiddleware>
-      </SessionProvider>
-    </ReactQueryProvider>
+    <SessionProvider>
+      <SubscriptionMiddleware>
+        <KitchenModeProvider>
+          <DashboardShell>{children}</DashboardShell>
+        </KitchenModeProvider>
+      </SubscriptionMiddleware>
+    </SessionProvider>
   )
 }

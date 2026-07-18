@@ -42,7 +42,7 @@ export default function SettingPageView() {
           </Button>
         }
       />
-      <div className="flex gap-20">
+      <div className="md:flex grid gap-10">
         <SettingsNavbar />
         <div className="flex-1 min-w-0">
           {tab === "general" && <GeneralSettings />}

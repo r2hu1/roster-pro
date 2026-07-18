@@ -13,7 +13,8 @@ export const auth = betterAuth({
   trustedOrigins: ["*"],
   advanced: {
     crossSubDomainCookies:
-      process.env.NODE_ENV === "production"
+      process.env.NODE_ENV === "production" &&
+      process.env.BETTER_AUTH_URL !== "http://localhost:3000"
         ? {
             enabled: true,
             domain: ".rosterpro.in",

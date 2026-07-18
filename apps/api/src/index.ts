@@ -25,12 +25,15 @@ const app = new Hono<AppEnv>()
   .use(corsMiddleware)
   .on(["POST", "GET"], "/auth/*", async (c) => auth.handler(c.req.raw))
   .get("/status", (c) => {
-    return c.json({
-      status: "ok",
-      code: 200,
-      message: "Alive 👍!",
-      timestamp: new Date().toISOString(),
-    }, 200)
+    return c.json(
+      {
+        status: "ok",
+        code: 200,
+        message: "Alive 👍!",
+        timestamp: new Date().toISOString(),
+      },
+      200
+    )
   })
 
 app.onError(onError)

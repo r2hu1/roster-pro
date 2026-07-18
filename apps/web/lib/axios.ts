@@ -1,4 +1,5 @@
 import axios, { AxiosError, type AxiosInstance } from "axios"
+import { toast } from "sonner"
 
 const api: AxiosInstance = axios.create({
   baseURL: "/api/",
@@ -18,11 +19,13 @@ api.interceptors.request.use(
 
 api.interceptors.response.use(
   (response) => response,
-  (error: AxiosError) => {
+  (error: any) => {
     if (error.response) {
-      console.error("API Error:", error.response.data)
+      toast.error(error?.response?.data?.message ?? "Something went wrong")
+      // console.error("API Error:", error.response.data)
     } else {
-      console.error("Network/Unknown Error:", error.message)
+      toast.error("Network/Unknown Error")
+      // console.error("Network/Unknown Error:", error.message)
     }
     return Promise.reject(error)
   }
