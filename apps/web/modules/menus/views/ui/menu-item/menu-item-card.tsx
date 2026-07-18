@@ -14,11 +14,11 @@ import {
   DropdownMenuItem,
 } from "@workspace/ui/components/dropdown-menu"
 import type { MenuItemResponse } from "@workspace/shared/schemas/menu/menu-item/response"
-import { IconDotsVertical, IconPencil, IconTrash } from "@tabler/icons-react"
 import EditMenuItem from "./edit-menu-item"
 import DeleteItem from "./delete-menu-item"
 import MenuItemInfo from "./menu-item-info"
 import { useState } from "react"
+import { MoreH, Pen, Trash2 } from "reicon-react"
 
 export default function ItemCard({ item }: { item: MenuItemResponse }) {
   const [editOpen, setEditOpen] = useState(false)
@@ -87,7 +87,7 @@ export default function ItemCard({ item }: { item: MenuItemResponse }) {
             variant="secondary"
             className="bg-card shrink-0"
           >
-            <IconDotsVertical className="size-4" />
+            <MoreH className="size-4 rotate-90" weight="Filled" />
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
@@ -102,7 +102,7 @@ export default function ItemCard({ item }: { item: MenuItemResponse }) {
               }}
             >
               Edit
-              <IconPencil className="ml-auto size-3.5" />
+              <Pen className="ml-auto size-3.5" />
             </DropdownMenuItem>
             <DeleteItem itemId={item.id}>
               <DropdownMenuItem
@@ -110,7 +110,7 @@ export default function ItemCard({ item }: { item: MenuItemResponse }) {
                 variant="destructive"
               >
                 Delete
-                <IconTrash className="ml-auto size-3.5" />
+                <Trash2 className="ml-auto size-3.5" />
               </DropdownMenuItem>
             </DeleteItem>
           </DropdownMenuGroup>

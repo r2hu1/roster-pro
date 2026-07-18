@@ -2,16 +2,14 @@
 
 import * as React from "react"
 import {
-  IconArmchair,
-  IconChartArea,
-  IconChefHat,
-  IconHelp,
-  IconReceiptRupee,
-  IconSearch,
-  IconSettings,
-  IconStack,
-  IconTruckDelivery,
-} from "@tabler/icons-react"
+  Armchair2,
+  BillList,
+  Cart,
+  ChartBarTrendUp,
+  ChefHat,
+  Search,
+  Settings,
+} from "reicon-react"
 
 import { NavMain } from "./nav-main"
 import { NavUser } from "./nav-user"
@@ -44,44 +42,27 @@ const data = {
     {
       title: "Orders",
       url: "/",
-      icon: IconTruckDelivery,
+      icon: Cart,
     },
     {
       title: "Tables",
       url: "/tables",
-      icon: IconArmchair,
+      icon: Armchair2,
     },
     {
       title: "Menus",
       url: "/menus",
-      icon: IconChefHat,
+      icon: ChefHat,
     },
     {
       title: "Analytics",
       url: "/analytics",
-      icon: IconChartArea,
+      icon: ChartBarTrendUp,
     },
     {
       title: "Receipts",
       url: "/receipts",
-      icon: IconReceiptRupee,
-    },
-  ],
-  navSecondary: [
-    {
-      title: "Settings",
-      url: "#",
-      icon: IconSettings,
-    },
-    {
-      title: "Get Help",
-      url: "#",
-      icon: IconHelp,
-    },
-    {
-      title: "Search",
-      url: "#",
-      icon: IconSearch,
+      icon: BillList,
     },
   ],
 }
@@ -93,16 +74,16 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     <Sidebar variant="inset" collapsible="offcanvas" {...props}>
       <SidebarRail />
       <SidebarHeader>
-        <SidebarMenu className="space-y-4">
-          <SidebarMenuItem className="-ml-2">
-            <Logo className="h-10 w-auto" />
+        <SidebarMenu className="space-y-4.5">
+          <SidebarMenuItem className="-ml-1">
+            <Logo className="h-9 w-auto" />
           </SidebarMenuItem>
           <SidebarMenuItem className="px-2 hidden">
             <SidebarMenuButton
               tooltip="Quick Create"
               className="min-w-8 px-3 text-base h-10 bg-foreground text-background duration-200 ease-linear hover:bg-foreground/90 hover:text-background active:bg-primary/90 active:text-primary-foreground"
             >
-              <IconReceiptRupee className="size-4" />
+              <BillList className="size-4" />
               <span>Create Order</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
@@ -110,7 +91,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             <InputGroup className="h-10 px-1 bg-background shadow-sm text-[14.5px] rounded-md">
               <InputGroupInput placeholder="Search anything..." />
               <InputGroupAddon align="inline-end">
-                <IconSearch className="size-4" />
+                <Search className="size-4" />
               </InputGroupAddon>
             </InputGroup>
           </SidebarMenuItem>

@@ -11,12 +11,12 @@ import {
 } from "@workspace/ui/components/responsive-modal"
 import { Button } from "@workspace/ui/components/button"
 import { Loader } from "@workspace/ui/components/loader"
-import { IconPrinter } from "@tabler/icons-react"
 import { toast } from "sonner"
 import { useSession } from "@/modules/providers/session-provider"
 import { generateInvoice, fetchSessionBill } from "@/modules/orders/api/orders"
 import { printReceipt } from "@/modules/receipts/views/ui/print-receipt"
 import { Badge } from "@workspace/ui/components/badge"
+import { Printer } from "reicon-react"
 
 interface PrintReceiptVersionModalProps {
   orderId: string
@@ -68,7 +68,7 @@ export default function PrintReceiptVersionModal({
         onClick={() => handlePrint("ticket")}
         disabled={printing !== null}
       >
-        {printing === "ticket" ? <Loader /> : <IconPrinter />}
+        {printing === "ticket" ? <Loader /> : <Printer />}
         Print
       </Button>
     )

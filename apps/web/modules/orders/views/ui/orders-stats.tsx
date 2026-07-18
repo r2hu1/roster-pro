@@ -1,4 +1,4 @@
-import { IconReceiptRupee } from "@tabler/icons-react"
+import { ReceiptItem } from "reicon-react"
 
 export function OrdersStats({
   total,
@@ -24,7 +24,7 @@ export function OrdersStats({
     <div className="flex flex-col md:flex-row bg-secondary rounded-xl overflow-hidden">
       <div className="rounded-xl w-full md:w-auto md:min-w-[220px] bg-linear-to-b from-primary to-chart-4 text-primary-foreground p-4 space-y-4 md:space-y-6">
         <p className="flex items-start gap-3 text-sm sm:text-base font-medium justify-between">
-          Total Orders <IconReceiptRupee className="size-6 shrink-0" />
+          Total Orders <ReceiptItem className="size-6 shrink-0" />
         </p>
         <h1 className="text-2xl sm:text-3xl font-bold">{total}</h1>
       </div>

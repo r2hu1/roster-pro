@@ -1,7 +1,7 @@
-import { IconPencil } from "@tabler/icons-react"
 import { Badge } from "@workspace/ui/components/badge"
 import { cn } from "@workspace/ui/lib/utils"
 import TableQrCodeModal from "./table-qr-code"
+import { Pen } from "reicon-react"
 
 export type TableStatus = "available" | "occupied"
 
@@ -60,8 +60,8 @@ export function TableCard({
         type="button"
         onClick={onClick}
         className={cn(
-          "flex flex-col group/btn hover:shadow-sm group-hover:rounded-b-none w-full items-center justify-between gap-3 rounded-2xl border p-4 text-left",
-          className
+          "flex flex-col z-10 rounded-2xl! group/btn hover:shadow-sm group-hover:rounded-b-none! w-full items-center justify-between gap-3 border p-4 text-left",
+          className,
         )}
       >
         <div className="flex flex-col items-center gap-3">
@@ -70,7 +70,7 @@ export function TableCard({
             className="group-hover/btn:opacity-0 group-hover/btn:h-0"
           />
           <div className="group-hover/btn:opacity-100 opacity-0 size-0 flex items-center justify-center group-hover/btn:size-11 rounded-lg bg-secondary">
-            <IconPencil className="size-5" />
+            <Pen className="size-5" />
           </div>
           {name && (
             <span className="text-sm font-medium text-neutral-700 dark:text-neutral-200">
@@ -84,6 +84,13 @@ export function TableCard({
         </Badge>
       </button>
       <div className="h-0 p-0 justify-center overflow-hidden group-hover:p-4 group-hover:h-4 flex items-center rounded-b-xl group-hover:border-b group-hover:border-l group-hover:border-r transition-all bg-sidebar">
+        <TableQrCodeModal table={{ id: tableId!, number: Number(number) }}>
+          <span className="text-xs cursor-pointer hover:underline">
+            View Qr Code
+          </span>
+        </TableQrCodeModal>
+      </div>
+      <div className="md:hidden underline -mt-6 flex items-center justify-center border border-t-0 bg-sidebar pt-4 pb-3 p-2 rounded-b-xl">
         <TableQrCodeModal table={{ id: tableId!, number: Number(number) }}>
           <span className="text-xs cursor-pointer hover:underline">
             View Qr Code

@@ -1,11 +1,5 @@
 "use client"
 import { useState, useEffect, useRef, useCallback } from "react"
-import {
-  IconCirclePlus,
-  IconToolsKitchen2Off,
-  IconWifi,
-  IconWifiOff,
-} from "@tabler/icons-react"
 import { Button } from "@workspace/ui/components/button"
 import { Skeleton } from "@workspace/ui/components/skeleton"
 import PageHeader from "@/components/page-header"
@@ -20,6 +14,12 @@ import { Logo } from "@/components/logo"
 import { useSession } from "@/modules/providers/session-provider"
 import { cn } from "@workspace/ui/lib/utils"
 import { Loader } from "@workspace/ui/components/loader"
+import { ForkKnife, PlusCircle, Wifi, WifiOff } from "reicon-react"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@workspace/ui/components/tooltip"
 
 const SEARCH_DEBOUNCE_MS = 350
 
@@ -147,11 +147,18 @@ export default function OrdersPageView() {
                   : "bg-red-500/15 text-red-400"
               )}
             >
-              {connected ? (
-                <IconWifi className="size-4" />
-              ) : (
-                <IconWifiOff className="size-4" />
-              )}
+              <Tooltip>
+                <TooltipTrigger>
+                  {connected ? (
+                    <Wifi className="size-4" />
+                  ) : (
+                    <WifiOff className="size-4" />
+                  )}
+                </TooltipTrigger>
+                <TooltipContent align="center">
+                  {connected ? "Live Orders" : "Offline"}
+                </TooltipContent>
+              </Tooltip>
               {connected ? "Live" : "Offline"}
             </div>
           </div>
@@ -179,7 +186,7 @@ export default function OrdersPageView() {
               <EmptyData
                 title="No orders received yet."
                 description="Let your customer order, and you will see it here in realtime."
-                icon={<IconToolsKitchen2Off className="size-8" />}
+                icon={<ForkKnife className="size-8" />}
               />
             </div>
           ) : (
@@ -213,14 +220,21 @@ export default function OrdersPageView() {
         description="Realtime orders of your restaurant."
         actions={
           <div className="flex items-center gap-3">
-            {connected ? (
-              <IconWifi className="size-4" />
-            ) : (
-              <IconWifiOff className="size-4" />
-            )}
+            <Tooltip>
+              <TooltipTrigger>
+                {connected ? (
+                  <Wifi className="size-4" />
+                ) : (
+                  <WifiOff className="size-4" />
+                )}
+              </TooltipTrigger>
+              <TooltipContent align="center">
+                {connected ? "Live Orders" : "Offline, refresh to reconnect"}
+              </TooltipContent>
+            </Tooltip>
             <CreateManualOrderModal>
               <Button>
-                New Order <IconCirclePlus />
+                New Order <PlusCircle />
               </Button>
             </CreateManualOrderModal>
           </div>
@@ -281,7 +295,7 @@ export default function OrdersPageView() {
               <EmptyData
                 title={`No orders ${statusFilter ?? "received"} yet.`}
                 description={`${statusFilter ?? ""} orders will appear here as they are placed.`}
-                icon={<IconToolsKitchen2Off />}
+                icon={<ForkKnife />}
               />
             )}
           </>

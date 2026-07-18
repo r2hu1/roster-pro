@@ -4,12 +4,12 @@ import SettingsNavbar from "./navbar"
 import { useQueryState } from "nuqs"
 import GeneralSettings from "./general-settings"
 import { Button } from "@workspace/ui/components/button"
-import { IconLogout } from "@tabler/icons-react"
 import PageHeader from "@/components/page-header"
 import { authClient } from "@/lib/better-auth/client"
 import { toast } from "sonner"
 import BillingSettings from "./billing-settings"
 import SubscriptionSettings from "./subscription-settings"
+import { Logout2Newicons } from "reicon-react"
 
 export default function SettingPageView() {
   const { organization, isLoading } = useSession()
@@ -40,7 +40,7 @@ export default function SettingPageView() {
         title="Settings"
         actions={
           <Button onClick={handleLogout}>
-            Logout <IconLogout />
+            Logout <Logout2Newicons />
           </Button>
         }
       />

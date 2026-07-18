@@ -14,9 +14,9 @@ import { OrderItemsList } from "./order-items-list"
 import { OrderTotalsSummary } from "./order-totals-summary"
 import PrintReceiptVersionModal from "./print-recipts-version-responsive-modal"
 import { Button } from "@workspace/ui/components/button"
-import { IconPrinter } from "@tabler/icons-react"
 import { ScrollArea } from "@workspace/ui/components/scroll-area"
 import { isParcelOrder } from "@workspace/shared/constants/index"
+import { Printer } from "reicon-react"
 
 export default function OrdersInfo({
   order,
@@ -139,7 +139,7 @@ export default function OrdersInfo({
               sessionId={multiRound ? order.tableSessionId : null}
             >
               <Button size="lg" variant="default">
-                <IconPrinter />
+                <Printer />
                 Print
               </Button>
             </PrintReceiptVersionModal>

@@ -11,14 +11,14 @@ import {
   InputGroupButton,
 } from "@workspace/ui/components/input-group"
 import {
-  IconArrowLeft,
-  IconCirclePlus,
-  IconDotsVertical,
-  IconPencil,
-  IconSearch,
-  IconToolsKitchen2Off,
-  IconTrash,
-} from "@tabler/icons-react"
+  ArrowLeft,
+  PlusCircle,
+  MoreH,
+  Pen,
+  Search,
+  ForkKnife,
+  Trash2,
+} from "reicon-react"
 import api from "@/lib/axios"
 import PageHeader from "@/components/page-header"
 import Link from "next/link"
@@ -76,7 +76,7 @@ export default function MenuItemsPageView() {
           <div className="flex items-center gap-2">
             <CreateMenuItemModal>
               <Button variant="secondary">
-                New Item <IconCirclePlus className="size-3.5" />
+                New Item <PlusCircle className="size-3.5" />
               </Button>
             </CreateMenuItemModal>
 
@@ -86,7 +86,7 @@ export default function MenuItemsPageView() {
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button size="icon">
-                    <IconDotsVertical className="size-4" />
+                    <MoreH className="size-4 rotate-90" weight="Filled" />
                   </Button>
                 </DropdownMenuTrigger>
 
@@ -104,7 +104,7 @@ export default function MenuItemsPageView() {
                     >
                       <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
                         Edit
-                        <IconPencil className="ml-auto size-3.5" />
+                        <Pen className="ml-auto size-3.5" />
                       </DropdownMenuItem>
                     </EditMenu>
 
@@ -114,7 +114,7 @@ export default function MenuItemsPageView() {
                         onSelect={(e) => e.preventDefault()}
                       >
                         Delete
-                        <IconTrash className="ml-auto size-3.5" />
+                        <Trash2 className="ml-auto size-3.5" />
                       </DropdownMenuItem>
                     </DeleteMenu>
                   </DropdownMenuGroup>
@@ -129,7 +129,7 @@ export default function MenuItemsPageView() {
         <InputGroup className="h-10">
           <InputGroupButton className="size-9.5!">
             <Link href={`/${org?.id}/menus/`}>
-              <IconArrowLeft />
+              <ArrowLeft />
             </Link>
           </InputGroupButton>
           <InputGroupInput
@@ -139,7 +139,7 @@ export default function MenuItemsPageView() {
           />
           <InputGroupButton variant="ghost">
             Search
-            <IconSearch />
+            <Search />
           </InputGroupButton>
         </InputGroup>
 
@@ -148,13 +148,13 @@ export default function MenuItemsPageView() {
             <Skeleton className="h-[400px] w-full" />
           ) : !itemsQuery.data?.length ? (
             <EmptyData
-              icon={<IconToolsKitchen2Off />}
+              icon={<ForkKnife />}
               title="No items in this menu yet."
               description="Start by creating a new item, click the button below."
               action={
                 <CreateMenuItemModal>
                   <Button>
-                    <IconCirclePlus />
+                    <PlusCircle />
                     <span>Create Item</span>
                   </Button>
                 </CreateMenuItemModal>
@@ -170,13 +170,13 @@ export default function MenuItemsPageView() {
               .map((item) => <ItemCard key={item.id} item={item} />)
           ) : (
             <EmptyData
-              icon={<IconToolsKitchen2Off />}
+              icon={<ForkKnife />}
               title={`No items found for "${searchTerm}"`}
               description={`Want to create "${searchTerm}"? Click the button below to add it to your menu.`}
               action={
                 <CreateMenuItemModal>
                   <Button>
-                    <IconCirclePlus />
+                    <PlusCircle />
                     <span>Create Item</span>
                   </Button>
                 </CreateMenuItemModal>

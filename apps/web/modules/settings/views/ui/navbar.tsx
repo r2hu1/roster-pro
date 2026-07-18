@@ -1,20 +1,14 @@
 "use client"
 
 import { useQueryState } from "nuqs"
-import {
-  IconBulb,
-  IconCreditCard,
-  IconHome,
-  IconSettings2,
-  IconShoppingBagEdit,
-} from "@tabler/icons-react"
 import { Button } from "@workspace/ui/components/button"
+import { Bulb, CreditCard, Home, ShoppingCart } from "reicon-react"
 
 const navs = [
-  { title: "General", href: "general", icon: IconHome },
-  { title: "Billing", href: "billing", icon: IconShoppingBagEdit },
-  { title: "Subscription", href: "subscription", icon: IconCreditCard },
-  { title: "Support", href: "support", icon: IconBulb },
+  { title: "General", href: "general", icon: Home },
+  { title: "Billing", href: "billing", icon: ShoppingCart },
+  { title: "Subscription", href: "subscription", icon: CreditCard },
+  { title: "Support", href: "support", icon: Bulb },
 ]
 
 export default function SettingsNavbar() {
@@ -30,9 +24,10 @@ export default function SettingsNavbar() {
           onClick={() => setTab(nav.href)}
           variant={tab === nav.href ? "secondary" : "ghost"}
           size="lg"
-          className="justify-start gap-2 h-10"
+          className="justify-start gap-3 h-10"
         >
-          <nav.icon /> {nav.title}
+          <nav.icon weight={tab === nav.href ? "Filled" : "Outline"} />{" "}
+          {nav.title}
         </Button>
       ))}
     </div>

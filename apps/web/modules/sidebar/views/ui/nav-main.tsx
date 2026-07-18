@@ -1,6 +1,4 @@
 "use client"
-
-import type { Icon } from "@tabler/icons-react"
 import {
   SidebarGroup,
   SidebarGroupContent,
@@ -11,12 +9,13 @@ import {
 import { cn } from "@workspace/ui/lib/utils"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
+import { IconComponent } from "reicon-react"
 
 interface NavMainProps {
   items: {
     title: string
     url: string
-    icon?: Icon
+    icon?: IconComponent
   }[]
   orgId?: string
 }
@@ -48,7 +47,9 @@ export function NavMain({ items, orgId }: NavMainProps) {
                   )}
                 >
                   <Link href={href}>
-                    {item.icon && <item.icon />}
+                    {item.icon && (
+                      <item.icon weight={isActive ? "Filled" : "Outline"} />
+                    )}
                     <span>{item.title}</span>
                   </Link>
                 </SidebarMenuButton>

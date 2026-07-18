@@ -2,12 +2,10 @@
 
 import { authClient } from "@/lib/better-auth/client"
 import { useKitchenMode } from "@/modules/providers/kitchen-mode"
-import { useSession } from "@/modules/providers/session-provider"
 import {
   IconCreditCard,
   IconDotsVertical,
   IconLogout,
-  IconNotification,
   IconSettings,
   IconUserCircle,
 } from "@tabler/icons-react"
@@ -18,7 +16,6 @@ import {
   AvatarFallback,
   AvatarImage,
 } from "@workspace/ui/components/avatar"
-import { Button } from "@workspace/ui/components/button"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -36,6 +33,7 @@ import {
 } from "@workspace/ui/components/sidebar"
 import { Switch } from "@workspace/ui/components/switch"
 import { useRouter } from "next/navigation"
+import { CreditCard, Logout2Newicons, Settings, UserCircle } from "reicon-react"
 import { toast } from "sonner"
 
 export function NavUser({ org }: { org: OrganizationResponse }) {
@@ -111,25 +109,25 @@ export function NavUser({ org }: { org: OrganizationResponse }) {
               <DropdownMenuItem
                 onSelect={() => router.push(`/${org.id}/settings?tab=general`)}
               >
-                <IconUserCircle />
+                <UserCircle />
                 Account
               </DropdownMenuItem>
               <DropdownMenuItem
                 onSelect={() => router.push(`/${org.id}/settings?tab=billing`)}
               >
-                <IconCreditCard />
+                <CreditCard />
                 Billing
               </DropdownMenuItem>
               <DropdownMenuItem
                 onSelect={() => router.push(`/${org.id}/settings?tab=general`)}
               >
-                <IconSettings />
+                <Settings />
                 Settings
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuItem onSelect={handleLogout}>
-              <IconLogout />
+              <Logout2Newicons />
               Log out
             </DropdownMenuItem>
           </DropdownMenuContent>
