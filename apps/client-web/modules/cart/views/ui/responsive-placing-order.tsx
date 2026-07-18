@@ -2,12 +2,10 @@
 
 import { useEffect, useState, useRef, useCallback } from "react"
 import confetti from "canvas-confetti"
-import { AlertTriangle } from "lucide-react"
 import { useCreateTableOrder } from "@/hooks/use-create-table-order"
 import SuccessRippleAnimation from "@/components/success-ripple"
 import { useTableContext } from "@/modules/providers/table-provider"
 import { useCart } from "@/modules/cart/views/provider/cart-provider"
-import { Loader } from "@workspace/ui/components/loader"
 import { Button } from "@workspace/ui/components/button"
 import {
   ResponsiveModal,
@@ -19,7 +17,6 @@ import {
   ResponsiveModalDescription,
   ResponsiveModalBody,
 } from "@workspace/ui/components/responsive-modal"
-import { IconCheck, IconCircleCheck } from "@tabler/icons-react"
 import Image from "next/image"
 
 interface Props {

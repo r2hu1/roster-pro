@@ -1,11 +1,11 @@
 "use client"
 import { Button } from "@workspace/ui/components/button"
 import { Logo } from "./roster-logo"
-import { IconArrowUpRight, IconCopy, IconX } from "@tabler/icons-react"
 import { useTableContext } from "@/modules/providers/table-provider"
 import Image from "next/image"
 import Link from "next/link"
 import { toast } from "sonner"
+import { ArrowUpRight, X, Copy } from "reicon-react"
 
 export default function Footer() {
   const { data } = useTableContext()
@@ -21,8 +21,8 @@ export default function Footer() {
             alt="Logo"
             className="size-9 rounded-full"
           />
-          <IconX className="size-4 text-muted-foreground" />
-          <Logo className="h-9" />
+          <X className="size-4 text-muted-foreground!" />
+          <Logo className="h-9 -ml-1" />
         </div>
         <p className="text-sm text-muted-foreground">
           {data?.organization.name} partners with us to help in building the
@@ -34,7 +34,7 @@ export default function Footer() {
           onClick={() => {
             toast.promise(
               async () => {
-                const text = window.location.href
+                const text = process.env.NEXT_PUBLIC_MARKETING_URL!
                 await navigator.clipboard.writeText(text)
               },
               {
@@ -47,7 +47,7 @@ export default function Footer() {
           variant="outline"
           className="border-border!"
         >
-          Share <IconCopy />
+          Share <Copy />
         </Button>
         <Button asChild>
           <Link
@@ -57,7 +57,7 @@ export default function Footer() {
             }
             target="_blank"
           >
-            Learn More <IconArrowUpRight />
+            Learn More <ArrowUpRight />
           </Link>
         </Button>
       </div>

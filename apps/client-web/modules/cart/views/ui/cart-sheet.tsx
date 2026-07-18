@@ -15,22 +15,20 @@ import {
   SheetFooter,
   SheetTrigger,
 } from "@workspace/ui/components/sheet"
-import {
-  IconClock,
-  IconMaximize,
-  IconMinus,
-  IconPlus,
-  IconShoppingBag,
-  IconShoppingBagPlus,
-  IconShoppingCart,
-  IconTrash,
-} from "@tabler/icons-react"
 import type { CartItemVariant } from "../provider/cart-provider"
 import { useCart } from "../provider/cart-provider"
 import ResponsivePlacingOrder from "./responsive-placing-order"
 import { Textarea } from "@workspace/ui/components/textarea"
 import Link from "next/link"
 import { useTableContext } from "@/modules/providers/table-provider"
+import {
+  Clock,
+  Fullscreen,
+  Minus,
+  Plus,
+  ShoppingCart,
+  Trash2,
+} from "reicon-react"
 
 interface Props {
   children?: React.ReactNode
@@ -63,7 +61,7 @@ export default function CartSheet({ children, open, onOpenChange }: Props) {
               href={`/${token}/cart`}
               className="flex items-center gap-2 text-xs"
             >
-              <IconMaximize className="size-4" />
+              <Fullscreen className="size-4" />
               Full Screen
             </Link>
           </SheetTitle>
@@ -71,7 +69,7 @@ export default function CartSheet({ children, open, onOpenChange }: Props) {
 
         {items.length === 0 ? (
           <div className="flex flex-1 flex-col items-center justify-center gap-2 text-muted-foreground">
-            <IconShoppingBag className="size-12" />
+            <ShoppingCart className="size-12" />
             <p className="text-sm">Your cart is empty</p>
           </div>
         ) : (
@@ -102,7 +100,7 @@ export default function CartSheet({ children, open, onOpenChange }: Props) {
                             onClick={() => removeFromCart(item.id)}
                             className="shrink-0 text-muted-foreground hover:text-destructive transition-colors"
                           >
-                            <IconTrash className="size-4" />
+                            <Trash2 className="size-4" />
                           </button>
                         </div>
 
@@ -143,7 +141,7 @@ export default function CartSheet({ children, open, onOpenChange }: Props) {
                                 updateQuantity(item.id, item.quantity - 1)
                               }
                             >
-                              <IconMinus className="size-3" />
+                              <Minus className="size-3" />
                             </Button>
                             <Button
                               variant="secondary"
@@ -160,7 +158,7 @@ export default function CartSheet({ children, open, onOpenChange }: Props) {
                                 updateQuantity(item.id, item.quantity + 1)
                               }
                             >
-                              <IconPlus className="size-3" />
+                              <Plus className="size-3" />
                             </Button>
                           </ButtonGroup>
 
@@ -187,7 +185,7 @@ export default function CartSheet({ children, open, onOpenChange }: Props) {
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-muted-foreground">Estimate time</span>
                   <span className="flex items-center gap-1 font-medium">
-                    <IconClock className="size-3.5" />
+                    <Clock className="size-3.5" />
                     {estimateTime > 0 ? `${estimateTime} min` : "—"}
                   </span>
                 </div>
@@ -202,7 +200,6 @@ export default function CartSheet({ children, open, onOpenChange }: Props) {
               <ResponsivePlacingOrder orderNotes={orderNotes}>
                 <Button className="w-full" size="lg">
                   Place Order
-                  <IconShoppingBagPlus className="size-4" />
                 </Button>
               </ResponsivePlacingOrder>
             </SheetFooter>

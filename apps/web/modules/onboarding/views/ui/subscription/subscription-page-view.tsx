@@ -57,7 +57,10 @@ export default function SubscriptionPageView() {
   }
 
   const handleScheduleDemo = () => {
-    window.open("https://cal.com/roster-pro/product-demo-possible-partnership", "_blank")
+    window.open(
+      "https://cal.com/roster-pro/product-demo-possible-partnership",
+      "_blank"
+    )
   }
 
   return (

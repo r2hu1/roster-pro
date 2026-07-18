@@ -21,6 +21,7 @@ import { useCart } from "../provider/cart-provider"
 import ResponsivePlacingOrder from "./responsive-placing-order"
 import { useTableContext } from "@/modules/providers/table-provider"
 import { Textarea } from "@workspace/ui/components/textarea"
+import { ArrowLeft } from "lucide-react"
 
 export default function CartPageView() {
   const [orderNotes, setOrderNotes] = useState("")
@@ -40,7 +41,7 @@ export default function CartPageView() {
     <div className="flex flex-col min-h-[85vh]">
       <header className="flex items-center gap-3 px-6 py-5 border-b">
         <Link href={`/${token}`} className="text-xs gap-2 flex items-center">
-          <IconArrowLeft className="size-4 inline-flex" />
+          <ArrowLeft className="size-4 inline-flex" />
           <span>Back to Menu</span>
         </Link>
         <span className="text-xs text-muted-foreground ml-auto">Your Cart</span>

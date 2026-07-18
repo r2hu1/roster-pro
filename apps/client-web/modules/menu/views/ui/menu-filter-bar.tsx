@@ -14,6 +14,7 @@ import {
   InputGroupInput,
 } from "@workspace/ui/components/input-group"
 import { useViewType } from "../providers/view-type"
+import { Grid, List3, Search } from "reicon-react"
 
 interface Menu {
   id: string
@@ -52,7 +53,7 @@ export default function MenuFilterBar({
             onChange={(e) => onSearchChange(e.target.value)}
           />
           <InputGroupAddon>
-            <IconSearch />
+            <Search />
           </InputGroupAddon>
         </InputGroup>
         <Button
@@ -60,7 +61,7 @@ export default function MenuFilterBar({
           type="button"
           onClick={() => setViewType(viewType === "list" ? "grid" : "list")}
         >
-          {viewType === "list" ? <IconLayoutGrid /> : <IconLayoutList />}
+          {viewType === "list" ? <Grid /> : <List3 />}
         </Button>
       </div>
       <div

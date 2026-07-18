@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useCallback } from "react"
+import { useState } from "react"
 import Image from "next/image"
 import type { MenuItemResponse } from "@workspace/shared/schemas/menu/menu-item/response"
 import type { CartItemVariant } from "@/modules/cart/views/provider/cart-provider"
@@ -11,21 +11,15 @@ import {
   ResponsiveModalContent,
   ResponsiveModalHeader,
   ResponsiveModalTitle,
-  ResponsiveModalDescription,
   ResponsiveModalFooter,
   ResponsiveModalBody,
 } from "@workspace/ui/components/responsive-modal"
 import { Button } from "@workspace/ui/components/button"
 import { ButtonGroup } from "@workspace/ui/components/button-group"
 import { Badge } from "@workspace/ui/components/badge"
-import {
-  IconCircleCheck,
-  IconCircleCheckFilled,
-  IconMinus,
-  IconPlus,
-  IconShoppingCartPlus,
-} from "@tabler/icons-react"
 import { toast } from "sonner"
+import { CartAdd, CheckCircle, Minus } from "reicon-react"
+import { Plus } from "lucide-react"
 
 interface Props {
   item: MenuItemResponse
@@ -107,7 +101,7 @@ export default function ResponsiveItemModal({ item, children }: Props) {
                   className="h-8!"
                   size="sm"
                 >
-                  {variant === "half" && <IconCircleCheckFilled />} Half ₹
+                  {variant === "half" && <CheckCircle weight="Filled" />} Half ₹
                   {item.price.half}
                 </Button>
                 <Button
@@ -118,7 +112,7 @@ export default function ResponsiveItemModal({ item, children }: Props) {
                   onClick={() => setVariant("full")}
                 >
                   Full ₹{item.price.full}
-                  {variant === "full" && <IconCircleCheckFilled />}
+                  {variant === "full" && <CheckCircle weight="Filled" />}
                 </Button>
               </ButtonGroup>
             </div>
@@ -158,7 +152,7 @@ export default function ResponsiveItemModal({ item, children }: Props) {
                 disabled={quantity <= 1}
                 onClick={() => setQuantity((q) => Math.max(1, q - 1))}
               >
-                <IconMinus />
+                <Minus />
               </Button>
               <Button
                 variant="secondary"
@@ -173,7 +167,7 @@ export default function ResponsiveItemModal({ item, children }: Props) {
                 variant="secondary"
                 onClick={() => setQuantity((q) => q + 1)}
               >
-                <IconPlus />
+                <Plus />
               </Button>
             </ButtonGroup>
 
@@ -187,7 +181,7 @@ export default function ResponsiveItemModal({ item, children }: Props) {
                 toast.success("Item added to cart")
               }}
             >
-              Add to Cart <IconShoppingCartPlus className="ml-2" />
+              Add to Cart <CartAdd className="ml-2" />
             </Button>
           </div>
         </ResponsiveModalFooter>

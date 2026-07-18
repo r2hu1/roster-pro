@@ -13,7 +13,6 @@ import {
 } from "@workspace/ui/components/responsive-modal"
 import { Badge } from "@workspace/ui/components/badge"
 import { Separator } from "@workspace/ui/components/separator"
-import { IconClock, IconShoppingBag } from "@tabler/icons-react"
 import { Button } from "@workspace/ui/components/button"
 import { useTableContext } from "@/modules/providers/table-provider"
 import { RippleButton } from "./ripple-button"
@@ -21,6 +20,7 @@ import { useActiveOrders } from "@/hooks/use-active-orders"
 import { Skeleton } from "@workspace/ui/components/skeleton"
 import { Loader } from "@workspace/ui/components/loader"
 import type { OrderResponse } from "@workspace/shared/schemas/order/index"
+import { CartAdd, Clock } from "reicon-react"
 
 const statusLabel: Record<
   string,
@@ -68,7 +68,7 @@ function OrderRoundCard({
         <div className="flex items-center gap-2">
           {est > 0 && (
             <span className="flex items-center gap-0.5 text-[10px] text-muted-foreground">
-              <IconClock className="size-3" />
+              <Clock className="size-3" />
               {est} min
             </span>
           )}
@@ -165,7 +165,7 @@ export default function ResponsiveOrdersStatus() {
           {isPending && <Skeleton className="h-24 w-full" />}
           {!isPending && orders.length === 0 ? (
             <div className="flex flex-col items-center justify-center gap-2 py-12 text-muted-foreground">
-              <IconShoppingBag className="size-10" />
+              <CartAdd className="size-10" />
               <p className="text-sm text-center">
                 Order something,
                 <br /> you will see it here.

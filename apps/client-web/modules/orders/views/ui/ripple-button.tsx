@@ -2,8 +2,8 @@
 
 import { forwardRef, useEffect, useState } from "react"
 import { AnimatePresence, motion } from "motion/react"
-import { IconBurger } from "@tabler/icons-react"
 import { Button } from "@workspace/ui/components/button"
+import { Cart } from "reicon-react"
 
 export const RippleButton = forwardRef<
   HTMLButtonElement,
@@ -53,7 +53,7 @@ export const RippleButton = forwardRef<
           size="icon-lg"
           className={`relative size-13 rounded-full! border-none! shadow-lg ${className ?? ""}`}
         >
-          <IconBurger className="size-6" />
+          <Cart weight="Filled" className="size-6" />
         </Button>
       </motion.div>
     </div>

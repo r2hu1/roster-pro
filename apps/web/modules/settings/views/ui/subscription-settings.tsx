@@ -37,9 +37,7 @@ export default function SubscriptionSettings() {
   const sub = subscription?.data?.result?.items?.[0]
 
   if (isLoading || isPending) {
-    return (
-      <Skeleton className="w-full h-100"/>
-    )
+    return <Skeleton className="w-full h-100" />
   }
 
   if (!sub) {

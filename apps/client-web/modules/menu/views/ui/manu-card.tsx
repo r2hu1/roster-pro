@@ -2,9 +2,9 @@ import type { MenuItemResponse } from "@workspace/shared/schemas/menu/menu-item/
 import Image from "next/image"
 import { Button } from "@workspace/ui/components/button"
 import { Badge } from "@workspace/ui/components/badge"
-import { IconArrowUpRight, IconShoppingCartPlus } from "@tabler/icons-react"
 import { useViewType } from "../providers/view-type"
 import ResponsiveItemModal from "./responsive-item-modal"
+import { ArrowUpRight, ArrowUpRightCircle, CartAdd } from "reicon-react"
 
 export default function MenuCard({ item }: { item: MenuItemResponse }) {
   const { viewType } = useViewType()
@@ -59,7 +59,7 @@ export default function MenuCard({ item }: { item: MenuItemResponse }) {
                 <span>₹{item.price.full}</span>
               </div>
               <Button size="icon-sm">
-                <IconArrowUpRight />
+                <ArrowUpRightCircle />
               </Button>
             </div>
           </div>
@@ -119,10 +119,10 @@ export default function MenuCard({ item }: { item: MenuItemResponse }) {
               </div>
               <div className="flex items-center gap-2">
                 <Button size="sm" variant="secondary">
-                  View <IconArrowUpRight />
+                  View <ArrowUpRight />
                 </Button>
                 <Button size="sm">
-                  Add <IconShoppingCartPlus />
+                  Add <CartAdd />
                 </Button>
               </div>
             </div>
