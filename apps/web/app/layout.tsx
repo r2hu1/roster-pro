@@ -7,6 +7,7 @@ import { Toaster } from "sonner"
 import { Realtime } from "@/components/realtime-provider"
 import { NuqsAdapter } from "nuqs/adapters/next/app"
 import { ReactQueryProvider } from "@/modules/providers/query-client"
+import { Metadata } from "next"
 
 const instrumentSans = Instrument_Sans({
   subsets: ["latin"],
@@ -17,6 +18,13 @@ const fontMono = Geist_Mono({
   subsets: ["latin"],
   variable: "--font-mono",
 })
+
+export const metadata: Metadata = {
+  icons: {
+    icon: "/assets/roster-pro-logo.jpeg",
+    shortcut: "/assets/roster-pro-logo.jpeg",
+  },
+}
 
 export default function RootLayout({
   children,
