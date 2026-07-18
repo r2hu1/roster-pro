@@ -2,22 +2,14 @@
 
 import { Logo } from "@/components/logo"
 import { authClient } from "@/lib/better-auth/client"
-import { IconCheck, IconArrowRight } from "@tabler/icons-react"
+import { IconCheck, IconArrowRight, IconCalendar } from "@tabler/icons-react"
 import { Button } from "@workspace/ui/components/button"
 import { Loader } from "@workspace/ui/components/loader"
 import { toast } from "sonner"
-import Image from "next/image"
-import { useRouter } from "next/navigation"
 import { useState } from "react"
-
-const trialFeatures = [
-  "Up to 50 orders per month",
-  "QR menu & ordering",
-  "Basic dashboard",
-  "Single user",
-  "Email support",
-  "7-day free trial",
-]
+import { Switch } from "@workspace/ui/components/switch"
+import Image from "next/image"
+import { ArrowRight, Calendar, CheckCircle } from "reicon-react"
 
 const premiumFeatures = [
   "Unlimited orders",
@@ -31,14 +23,16 @@ const premiumFeatures = [
   "Inventory management",
 ]
 
-export default function SubscriptionPageView() {
-  const router = useRouter()
-  const [loading, setLoading] = useState(false)
-  const org = authClient.useListOrganizations()
+const MONTHLY_PRICE = 2999
+const YEARLY_PRICE = 32000
+const YEARLY_DISCOUNT_PCT = Math.round(
+  (1 - YEARLY_PRICE / (MONTHLY_PRICE * 12)) * 100
+)
 
-  const handleFreeTrial = () => {
-    router.push("/onboarding/success")
-  }
+export default function SubscriptionPageView() {
+  const [loading, setLoading] = useState(false)
+  const [isYearly, setIsYearly] = useState(false)
+  const org = authClient.useListOrganizations()
 
   const handleSubscribe = async () => {
     try {
@@ -46,7 +40,7 @@ export default function SubscriptionPageView() {
       if (!org.data)
         return toast.error("Unauthorized, please setup your restaurant first.")
       await authClient.checkout({
-        slug: "pro",
+        slug: isYearly ? "pro-yearly" : "pro",
         referenceId: org.data[0]?.id,
         redirect: true,
         successUrl: process.env.NEXT_PUBLIC_APP_URL + "/onboarding/success",
@@ -62,128 +56,122 @@ export default function SubscriptionPageView() {
     }
   }
 
+  const handleScheduleDemo = () => {
+    window.open("https://cal.com/your-team/demo", "_blank")
+  }
+
   return (
-    <section className="min-h-screen flex flex-col">
-      <div className="flex-1 flex flex-col items-center justify-center px-6 py-12">
-        <div className="w-full max-w-5xl">
-          <div className="flex flex-col items-center text-center mb-12">
-            <Logo className="mb-6 h-10 w-auto" />
-            <h1 className="text-2xl font-semibold tracking-tight text-foreground">
-              Choose your plan
-            </h1>
-            <p className="mt-1.5 text-sm text-muted-foreground">
-              Start with a basic trial pack or go premium for the full
-              experience.
+    <section className="relative flex min-h-dvh items-center justify-center overflow-hidden bg-background p-4">
+      <div
+        className="pointer-events-none absolute inset-0 opacity-[0.15]"
+        style={{
+          backgroundImage: `
+            linear-gradient(to right, var(--primary) 1px, transparent 1px),
+            linear-gradient(to bottom, var(--primary) 1px, transparent 1px)
+          `,
+          backgroundSize: "48px 48px",
+          maskImage:
+            "radial-gradient(ellipse at center, black 40%, transparent 80%)",
+          WebkitMaskImage:
+            "radial-gradient(ellipse at center, black 40%, transparent 80%)",
+        }}
+      />{" "}
+      <div className="relative mx-auto w-full max-w-md">
+        <div className="mb-8 flex flex-col items-center text-center">
+          <Logo className="mb-2 h-12" />
+          <h1 className="text-xl font-semibold tracking-tight text-foreground">
+            Choose your plan
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            Everything you need to run your restaurant, on one plan.
+          </p>
+        </div>
+
+        <div className="relative rounded-xl border border-primary/20 bg-card p-6">
+          {isYearly && (
+            <div className="absolute -top-3 right-4 rounded-full bg-primary px-3 py-0.5 text-xs font-medium text-primary-foreground">
+              Save {YEARLY_DISCOUNT_PCT}%
+            </div>
+          )}
+
+          <div className="mb-3 flex items-start justify-between">
+            <div>
+              <h2 className="text-lg font-semibold text-foreground">Premium</h2>
+              <p className="text-sm text-muted-foreground">Full access</p>
+            </div>
+            <div className="flex items-center gap-2">
+              <span
+                className={`text-sm font-medium transition-colors ${
+                  !isYearly ? "text-foreground" : "text-muted-foreground"
+                }`}
+              >
+                Monthly
+              </span>
+              <Switch checked={isYearly} onCheckedChange={setIsYearly} />
+              <span
+                className={`text-sm font-medium transition-colors ${
+                  isYearly ? "text-foreground" : "text-muted-foreground"
+                }`}
+              >
+                Yearly
+              </span>
+            </div>
+          </div>
+
+          <div className="mb-3">
+            <p className="text-4xl font-bold text-foreground">
+              ₹{isYearly ? YEARLY_PRICE.toLocaleString("en-IN") : MONTHLY_PRICE}
+            </p>
+            <p className="text-sm text-muted-foreground">
+              {isYearly ? "Per Year" : "Per Month"}
             </p>
           </div>
 
-          <div className="grid gap-6 md:grid-cols-2">
-            {/* Trial Plan */}
-            <div className="rounded-xl border border-border bg-card p-6 transition-all duration-200 hover:border-primary/30 hover:shadow-sm">
-              <div className="flex items-start justify-between mb-4">
-                <div>
-                  <h2 className="text-lg font-semibold text-foreground">
-                    Trial Pack
-                  </h2>
-                  <p className="text-sm text-muted-foreground">For 60 days</p>
-                </div>
-                <div className="text-right">
-                  <p className="text-2xl font-bold text-foreground">
-                    70% off on Premium
-                  </p>
-                  <p className="text-xs text-muted-foreground">then ₹2999/mo</p>
-                </div>
-              </div>
-              <ul className="mb-5 space-y-2">
-                {premiumFeatures.map((feature) => (
-                  <li
-                    key={feature}
-                    className="flex items-center gap-2 text-sm text-muted-foreground"
-                  >
-                    <IconCheck className="size-3.5 shrink-0 text-primary" />
-                    {feature}
-                  </li>
-                ))}
-              </ul>
-              <Button
-                onClick={handleFreeTrial}
-                className="w-full h-10"
-                size="lg"
+          <ul className="mb-5 space-y-2">
+            {premiumFeatures.map((feature) => (
+              <li
+                key={feature}
+                className="flex items-center gap-2 text-sm text-muted-foreground"
               >
-                Start Trial
-                <IconArrowRight className="size-3.5" />
-              </Button>
-            </div>
+                <CheckCircle className="size-3.5 shrink-0 text-primary" />
+                {feature}
+              </li>
+            ))}
+            <li className="flex items-center gap-2 text-sm font-medium text-primary">
+              <IconArrowRight className="size-3.5 shrink-0" />+ many more
+            </li>
+          </ul>
 
-            {/* Premium Plan */}
-            <div className="relative rounded-xl border-2 border-primary bg-card p-6 transition-all duration-200 hover:shadow-md">
-              <div className="absolute -top-3 right-4 rounded-full bg-primary px-3 py-0.5 text-xs font-medium text-primary-foreground">
-                Popular
-              </div>
-              <div className="flex items-start justify-between mb-4">
-                <div>
-                  <h2 className="text-lg font-semibold text-foreground">
-                    Premium
-                  </h2>
-                  <p className="text-sm text-muted-foreground">Full access</p>
-                </div>
-                <div className="text-right">
-                  <p className="text-2xl font-bold text-foreground">₹2999</p>
-                  <p className="text-xs text-muted-foreground">per month</p>
-                </div>
-              </div>
-              <ul className="mb-5 space-y-2">
-                {premiumFeatures.map((feature) => (
-                  <li
-                    key={feature}
-                    className="flex items-center gap-2 text-sm text-muted-foreground"
-                  >
-                    <IconCheck className="size-3.5 shrink-0 text-primary" />
-                    {feature}
-                  </li>
-                ))}
-              </ul>
-              <Button
-                onClick={handleSubscribe}
-                disabled={loading}
-                className="w-full h-10"
-                size="lg"
-              >
-                {loading ? <Loader /> : "Subscribe Now"}
-                {!loading && <IconArrowRight className="size-3.5" />}
-              </Button>
-            </div>
+          <Button
+            onClick={handleSubscribe}
+            disabled={loading}
+            className="h-10 w-full"
+            size="lg"
+          >
+            {loading ? <Loader /> : "Subscribe Now"}
+            {!loading && <ArrowRight className="size-3.5" />}
+          </Button>
+        </div>
+
+        <div className="mt-4 flex items-center justify-between gap-4 rounded-xl border bg-card p-4">
+          <div>
+            <p className="text-sm font-medium text-foreground">
+              Want a demo before subscribing?
+            </p>
+            <p className="text-xs text-muted-foreground">
+              We{"'"}ll walk you through it, no price attached.
+            </p>
           </div>
+          <Button
+            onClick={handleScheduleDemo}
+            variant="outline"
+            className="shrink-0 gap-1.5"
+          >
+            <Calendar className="size-3.5" />
+            Schedule call
+          </Button>
         </div>
       </div>
-
-      <div className="w-full px-6 pb-8 flex justify-center">
-        <Image
-          alt="subscription"
-          src="/assets/scanning-qr-stand.jpeg"
-          height={400}
-          width={800}
-          className="w-full max-w-5xl rounded-xl object-contain"
-        />
-      </div>
-
-      <footer className="border-t border-border px-6 py-5 text-center text-xs text-muted-foreground">
-        <p>&copy; 2026 RosterPro. All rights reserved.</p>
-        <div className="mt-1 flex justify-center gap-4">
-          <a
-            href="/terms&cond"
-            className="hover:text-foreground transition-colors"
-          >
-            Terms
-          </a>
-          <a
-            href="/privacy_policy"
-            className="hover:text-foreground transition-colors"
-          >
-            Privacy
-          </a>
-        </div>
-      </footer>
     </section>
   )
 }
