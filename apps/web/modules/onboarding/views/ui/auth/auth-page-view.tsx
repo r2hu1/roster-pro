@@ -93,7 +93,7 @@ export default function LoginPageView() {
             <span className="font-medium">Continue with Google</span>
           </Button>
           <Button variant="secondary" asChild size="lg">
-            <a href={`${process.env.NEXT_PUBLIC_API_MARKETING_URL}/contact`} className="text-foreground">
+            <a href={`${process.env.NEXT_PUBLIC_MARKETING_URL}/contact`} className="text-foreground">
               Get Help <IconQuestionMark />
             </a>
           </Button>
@@ -101,11 +101,11 @@ export default function LoginPageView() {
 
         <p className="mx-auto mt-6 max-w-50 text-center text-xs text-muted-foreground">
           By continuing, you agree to our{" "}
-          <a href={`${process.env.NEXT_PUBLIC_API_MARKETING_URL}/terms`} className="text-foreground underline underline-offset-2">
+          <a href={`${process.env.NEXT_PUBLIC_MARKETING_URL}/terms`} className="text-foreground underline underline-offset-2">
             Terms
           </a>{" "}
           and{" "}
-          <a href={`${process.env.NEXT_PUBLIC_API_MARKETING_URL}/privacy-policy`} className="text-foreground underline underline-offset-2">
+          <a href={`${process.env.NEXT_PUBLIC_MARKETING_URL}/privacy-policy`} className="text-foreground underline underline-offset-2">
             Privacy Policy
           </a>
           .
