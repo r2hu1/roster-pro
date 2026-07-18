@@ -28,7 +28,7 @@ export const Hero = () => {
 
           <div className="flex items-center gap-2 justify-center">
             <Button asChild size="lg" variant="secondary">
-              <Link href={`${process.env.NEXT_PUBLIC_APP_URL}`}>
+              <Link href={`${process.env.NEXT_PUBLIC_APP_URL}/login-or-signup`}>
                 <span className="btn-label">Get Started</span>
               </Link>
             </Button>

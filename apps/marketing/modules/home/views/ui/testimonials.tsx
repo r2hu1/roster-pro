@@ -66,7 +66,7 @@ export const Testimonials = () => {
             </Link>
           </Button>
           <Button size="lg" asChild>
-            <Link href={`${process.env.NEXT_PUBLIC_APP_URL}`}>
+            <Link href={`${process.env.NEXT_PUBLIC_APP_URL}/login-or-signup`}>
               Get Started <ArrowUpRightIcon />
             </Link>
           </Button>
