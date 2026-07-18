@@ -30,7 +30,7 @@ const app = new Hono<AppEnv>()
       code: 200,
       message: "Alive 👍!",
       timestamp: new Date().toISOString(),
-    })
+    }, 200)
   })
 
 app.onError(onError)
