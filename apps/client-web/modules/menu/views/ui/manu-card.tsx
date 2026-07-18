@@ -58,8 +58,9 @@ export default function MenuCard({ item }: { item: MenuItemResponse }) {
                 <span className="bg-primary/25 h-3 w-px" />
                 <span>₹{item.price.full}</span>
               </div>
-              <Button size="icon-sm">
-                <ArrowUpRightCircle />
+              <Button size="sm">
+                View
+                <ArrowUpRight />
               </Button>
             </div>
           </div>
