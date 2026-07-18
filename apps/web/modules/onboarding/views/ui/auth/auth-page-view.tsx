@@ -8,6 +8,7 @@ import { Loader } from "@workspace/ui/components/loader"
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Bulb } from "reicon-react"
+import { Skeleton } from "@workspace/ui/components/skeleton"
 
 export default function LoginPageView() {
   const router = useRouter()
@@ -36,8 +37,22 @@ export default function LoginPageView() {
 
   if (isPending) {
     return (
-      <div className="flex min-h-dvh items-center justify-center bg-background">
-        <Loader />
+      <div className="relative flex min-h-dvh items-center justify-center overflow-hidden bg-background p-4">
+        <div
+          className="pointer-events-none absolute inset-0 opacity-[0.15]"
+          style={{
+            backgroundImage: `
+              linear-gradient(to right, var(--primary) 1px, transparent 1px),
+              linear-gradient(to bottom, var(--primary) 1px, transparent 1px)
+            `,
+            backgroundSize: "48px 48px",
+            maskImage:
+              "radial-gradient(ellipse at center, black 40%, transparent 80%)",
+            WebkitMaskImage:
+              "radial-gradient(ellipse at center, black 40%, transparent 80%)",
+          }}
+        />
+        <Skeleton className="w-full max-w-md h-100" />
       </div>
     )
   }
@@ -54,8 +69,10 @@ export default function LoginPageView() {
             linear-gradient(to bottom, var(--primary) 1px, transparent 1px)
           `,
           backgroundSize: "48px 48px",
-          maskImage: "radial-gradient(ellipse at center, black 40%, transparent 80%)",
-          WebkitMaskImage: "radial-gradient(ellipse at center, black 40%, transparent 80%)",
+          maskImage:
+            "radial-gradient(ellipse at center, black 40%, transparent 80%)",
+          WebkitMaskImage:
+            "radial-gradient(ellipse at center, black 40%, transparent 80%)",
         }}
       />
 
@@ -93,7 +110,10 @@ export default function LoginPageView() {
             <span className="font-medium">Continue with Google</span>
           </Button>
           <Button variant="secondary" asChild size="lg">
-            <a href={`${process.env.NEXT_PUBLIC_MARKETING_URL}/contact`} className="text-foreground">
+            <a
+              href={`${process.env.NEXT_PUBLIC_MARKETING_URL}/contact`}
+              className="text-foreground"
+            >
               Get Help <IconQuestionMark />
             </a>
           </Button>
@@ -101,11 +121,17 @@ export default function LoginPageView() {
 
         <p className="mx-auto mt-6 max-w-50 text-center text-xs text-muted-foreground">
           By continuing, you agree to our{" "}
-          <a href={`${process.env.NEXT_PUBLIC_MARKETING_URL}/terms`} className="text-foreground underline underline-offset-2">
+          <a
+            href={`${process.env.NEXT_PUBLIC_MARKETING_URL}/terms`}
+            className="text-foreground underline underline-offset-2"
+          >
             Terms
           </a>{" "}
           and{" "}
-          <a href={`${process.env.NEXT_PUBLIC_MARKETING_URL}/privacy-policy`} className="text-foreground underline underline-offset-2">
+          <a
+            href={`${process.env.NEXT_PUBLIC_MARKETING_URL}/privacy-policy`}
+            className="text-foreground underline underline-offset-2"
+          >
             Privacy Policy
           </a>
           .

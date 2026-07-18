@@ -61,7 +61,7 @@ export function TableCard({
         onClick={onClick}
         className={cn(
           "flex flex-col z-10 rounded-2xl! group/btn hover:shadow-sm group-hover:rounded-b-none! w-full items-center justify-between gap-3 border p-4 text-left",
-          className,
+          className
         )}
       >
         <div className="flex flex-col items-center gap-3">

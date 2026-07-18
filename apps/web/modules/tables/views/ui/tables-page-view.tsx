@@ -17,7 +17,11 @@ import { TableCard } from "./table-card"
 import { useTableStatusStream } from "../../hooks/use-table-status-stream"
 import { useSession } from "@/modules/providers/session-provider"
 import EmptyData from "@/components/empty"
-import { Tooltip, TooltipContent, TooltipTrigger } from "@workspace/ui/components/tooltip"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@workspace/ui/components/tooltip"
 import { PlusCircle } from "reicon-react"
 
 export default function TablesPageView() {
