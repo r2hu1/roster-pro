@@ -4,22 +4,10 @@ import { authClient } from "@/lib/better-auth/client"
 import { useQuery } from "@tanstack/react-query"
 import { getSubscriptions } from "../../api/get-subscriptions"
 import { useSession } from "@/modules/providers/session-provider"
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardContent,
-  CardFooter,
-} from "@workspace/ui/components/card"
+import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@workspace/ui/components/card"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
-import {
-  IconCreditCard,
-  IconExternalLink,
-  IconCircleCheck,
-  IconAlertTriangle,
-} from "@tabler/icons-react"
+import { IconCreditCard, IconExternalLink, IconCircleCheck, IconAlertTriangle } from "@tabler/icons-react"
 
 export default function SubscriptionSettings() {
   const { organization, isLoading } = useSession()
@@ -67,19 +55,18 @@ export default function SubscriptionSettings() {
     )
   }
 
-  const statusColor: Record<
-    string,
-    "default" | "secondary" | "destructive" | "outline"
-  > = {
+  const statusColor: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
     active: "default",
     past_due: "destructive",
     canceled: "secondary",
     incomplete: "outline",
   }
 
+  const subRaw = sub as { customer?: { billingAddress?: { line1?: string; line2?: string | null; city?: string; state?: string; postalCode?: string; country?: string } } }
+  const billingAddress = subRaw.customer?.billingAddress
+
   const price = sub.prices?.[0]
-  const priceAmount =
-    price && "priceAmount" in price ? price.priceAmount : (sub.amount ?? 0)
+  const priceAmount = price && "priceAmount" in price ? price.priceAmount : sub.amount ?? 0
   const currency = sub.currency ?? "inr"
   const formattedPrice = new Intl.NumberFormat("en-IN", {
     style: "currency",
@@ -141,27 +128,16 @@ export default function SubscriptionSettings() {
             Access until: {nextBilling}
           </p>
         )}
-        {/*@ts-ignore*/}
-        {sub.customer?.billingAddress && (
+        {billingAddress && (
           <div className="pt-2 border-t">
-            <p className="text-xs font-medium text-muted-foreground mb-1">
-              Billing Address
-            </p>
+            <p className="text-xs font-medium text-muted-foreground mb-1">Billing Address</p>
             <p className="text-sm">
-              {/*@ts-ignore*/}
-              {sub.customer.billingAddress.line1}
-              {/*@ts-ignore*/}
-              {sub.customer.billingAddress.line2 && (
-                <>, {sub.customer.billingAddress.line2}</>
-              )}
+              {billingAddress.line1}
+              {billingAddress.line2 && <>, {billingAddress.line2}</>}
               <br />
-              {/*@ts-ignore*/}
-              {sub.customer.billingAddress.city},{" "}
-              {sub.customer.billingAddress.state}{" "}
-              {sub.customer.billingAddress.postalCode}
+              {billingAddress.city}, {billingAddress.state} {billingAddress.postalCode}
               <br />
-              {/*@ts-ignore*/}
-              {sub.customer.billingAddress.country}
+              {billingAddress.country}
             </p>
           </div>
         )}
@@ -172,8 +148,8 @@ export default function SubscriptionSettings() {
             await authClient.customer.portal()
           }}
         >
-          Manage Subscription
           <IconExternalLink />
+          Manage Subscription
         </Button>
       </CardFooter>
     </Card>
