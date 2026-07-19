@@ -330,7 +330,7 @@ export function generateReceiptHtml(invoice: InvoiceData) {
       invoice.payment.method
         ? `
     <div class="row">
-      <span>Payment Method</span>
+      <span>Payment Mode</span>
       <span style="text-transform:capitalize">
         ${esc(invoice.payment.method)}
       </span>
