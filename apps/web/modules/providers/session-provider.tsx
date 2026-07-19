@@ -31,15 +31,10 @@ export function SessionProvider({
 }: SessionProviderProps) {
   const router = useRouter()
 
-  const {
-    data: sessionData,
-    isPending: sessionLoading,
-  } = authClient.useSession()
+  const { data: sessionData, isPending: sessionLoading } =
+    authClient.useSession()
 
-  const {
-    data: organization,
-    isPending: organizationLoading,
-  } = useQuery({
+  const { data: organization, isPending: organizationLoading } = useQuery({
     queryKey: ["organization"],
     enabled: enableOrganizations && !!sessionData,
     queryFn: async () => {
@@ -74,7 +69,7 @@ export function SessionProvider({
       value={{
         session: sessionData.session,
         user: sessionData.user,
-        organization: enableOrganizations ? organization ?? null : null,
+        organization: enableOrganizations ? (organization ?? null) : null,
         isLoading: false,
       }}
     >

@@ -17,6 +17,7 @@ import { Logo } from "@/components/logo"
 import Image from "next/image"
 import Link from "next/link"
 import { toast } from "sonner"
+import LogoutButton from "@/modules/settings/views/ui/logout"
 
 const ALLOWED_IMAGE_TYPES = [
   "image/jpeg",
@@ -124,7 +125,10 @@ export default function OnboardingPageView() {
     <section className="flex justify-between min-h-screen">
       <div className="grid gap-8 my-auto h-fit w-fit md:min-w-xl py-6 px-6 md:px-20 mx-auto">
         <div className="space-y-4">
-          <Logo className="w-fit h-15 -ml-3" />
+          <div className="flex items-center justify-between">
+            <Logo className="w-fit h-12 -ml-3" />
+            <LogoutButton />
+          </div>
           <div className="space-y-1">
             <h1 className="text-xl font-semibold">Setup Your Restaurant</h1>
             <p className="text-muted-foreground text-sm">

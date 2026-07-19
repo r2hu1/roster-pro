@@ -43,8 +43,7 @@ export default function AboutPageView() {
           <Glow variant="top" className="-z-10" />
           <div className="relative z-10 mx-auto max-w-5xl text-center">
             <h1 className="text-balance text-4xl font-semibold leading-tight md:text-5xl lg:text-6xl">
-              The story behind{" "}
-              <span className="text-primary">RosterPro</span>
+              The story behind <span className="text-primary">RosterPro</span>
             </h1>
             <p className="mx-auto my-8 text-muted-foreground max-w-2xl text-xl">
               RosterPro was built by restaurant people, for restaurant people.
@@ -65,9 +64,9 @@ export default function AboutPageView() {
               </h2>
               <p className="text-muted-foreground leading-relaxed">
                 Our founders spent years running restaurants — juggling
-                disconnected POS systems, paper schedules, and separate
-                ordering platforms. Every inefficiency became motivation to
-                build something better.
+                disconnected POS systems, paper schedules, and separate ordering
+                platforms. Every inefficiency became motivation to build
+                something better.
               </p>
               <p className="text-muted-foreground leading-relaxed">
                 RosterPro connects every part of a restaurant: QR codes on

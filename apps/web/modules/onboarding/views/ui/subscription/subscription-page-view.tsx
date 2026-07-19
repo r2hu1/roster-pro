@@ -10,6 +10,7 @@ import { useState } from "react"
 import { Switch } from "@workspace/ui/components/switch"
 import Image from "next/image"
 import { ArrowRight, Calendar, CheckCircle } from "reicon-react"
+import LogoutButton from "@/modules/settings/views/ui/logout"
 
 const premiumFeatures = [
   "Unlimited orders",
@@ -80,14 +81,19 @@ export default function SubscriptionPageView() {
         }}
       />{" "}
       <div className="relative mx-auto w-full max-w-md">
-        <div className="mb-8 flex flex-col items-center text-center">
-          <Logo className="mb-2 h-12" />
-          <h1 className="text-xl font-semibold tracking-tight text-foreground">
-            Choose your plan
-          </h1>
-          <p className="text-sm text-muted-foreground">
-            Everything you need to run your restaurant, on one plan.
-          </p>
+        <div className="mb-8 grid gap-2">
+          <div className="flex items-center gap-3 justify-between">
+            <Logo className="mb-2 -ml-3 h-12" />
+            <LogoutButton />
+          </div>
+          <div className="space-y-1">
+            <h1 className="text-2xl font-semibold tracking-tight text-foreground">
+              Choose your plan
+            </h1>
+            <p className="text-sm text-muted-foreground">
+              Everything you need to run your restaurant, on one plan.
+            </p>
+          </div>
         </div>
 
         <div className="relative rounded-xl border border-primary/20 bg-card p-6">

@@ -5,5 +5,7 @@ export default function OnboardingLayout({
 }: {
   children: React.ReactNode
 }) {
-  return <SessionProvider enableOrganizations={false}>{children}</SessionProvider>
+  return (
+    <SessionProvider enableOrganizations={false}>{children}</SessionProvider>
+  )
 }

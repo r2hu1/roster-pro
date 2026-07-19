@@ -115,7 +115,12 @@ export default function ContactPageView() {
                     className="mt-6"
                     onClick={() => {
                       setSubmitted(false)
-                      setFormData({ name: "", email: "", subject: "", message: "" })
+                      setFormData({
+                        name: "",
+                        email: "",
+                        subject: "",
+                        message: "",
+                      })
                     }}
                   >
                     Send another message
