@@ -1,3 +1,1 @@
-export {
-  type AnalyticsQueryDto,
-} from "../../schemas/analytics/index.js"
+export { type AnalyticsQueryDto } from "../../schemas/analytics/index.js"

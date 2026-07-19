@@ -12,12 +12,7 @@ export const OrderStatus = z.enum([
 
 export type OrderStatus = z.infer<typeof OrderStatus>
 
-export const PaymentStatus = z.enum([
-  "pending",
-  "paid",
-  "failed",
-  "refunded",
-])
+export const PaymentStatus = z.enum(["pending", "paid", "failed", "refunded"])
 
 export type PaymentStatus = z.infer<typeof PaymentStatus>
 

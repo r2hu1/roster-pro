@@ -1,3 +1,1 @@
-export {
-  type Review,
-} from "../../../schemas/review/index.js"
+export { type Review } from "../../../schemas/review/index.js"

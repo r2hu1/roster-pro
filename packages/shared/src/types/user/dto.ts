@@ -1,3 +1,1 @@
-export {
-  type UpdateUserDto,
-} from "../../schemas/user/index.js"
+export { type UpdateUserDto } from "../../schemas/user/index.js"

@@ -20,7 +20,9 @@ export const CreateOrganizationSchema = z.object({
 
 export type CreateOrganizationDto = z.infer<typeof CreateOrganizationSchema>
 
-export const defaultCreateOrganization: z.input<typeof CreateOrganizationSchema> = {
+export const defaultCreateOrganization: z.input<
+  typeof CreateOrganizationSchema
+> = {
   name: "",
   slug: "",
 }

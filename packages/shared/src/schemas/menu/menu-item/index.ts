@@ -1,4 +1,9 @@
-export { PriceSchema, type Price, MenuItemSchema, type MenuItem } from "./base.js"
+export {
+  PriceSchema,
+  type Price,
+  MenuItemSchema,
+  type MenuItem,
+} from "./base.js"
 
 export {
   CreateMenuItemSchema,

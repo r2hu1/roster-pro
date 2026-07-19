@@ -16,7 +16,7 @@
     "./enums/*": "./src/enums/*.ts",
     "./constants": "./src/constants/index.ts",
     "./constants/*": "./src/constants/*.ts",
-    "./utils/*":"./src/utils/*.ts",
+    "./utils/*": "./src/utils/*.ts",
     "./realtime": "./src/realtime/index.ts"
   },
   "peerDependencies": {

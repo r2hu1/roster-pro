@@ -18,6 +18,10 @@ export const MenuWithItemsResponseSchema = z.object({
 
 export type MenuWithItemsResponse = z.infer<typeof MenuWithItemsResponseSchema>
 
-export const MenuWithItemsListResponseSchema = z.array(MenuWithItemsResponseSchema)
+export const MenuWithItemsListResponseSchema = z.array(
+  MenuWithItemsResponseSchema
+)
 
-export type MenuWithItemsListResponse = z.infer<typeof MenuWithItemsListResponseSchema>
+export type MenuWithItemsListResponse = z.infer<
+  typeof MenuWithItemsListResponseSchema
+>

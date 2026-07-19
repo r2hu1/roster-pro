@@ -1,6 +1,4 @@
-export {
-  type Menu,
-} from "../../../schemas/menu/index.js"
+export { type Menu } from "../../../schemas/menu/index.js"
 
 export {
   type MenuItem,
