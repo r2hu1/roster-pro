@@ -6,6 +6,8 @@ import { orderLogic } from "./orders.logic.js"
 import {
   createOrderSchema,
   createTableOrderSchema,
+  cancelTableOrderSchema,
+  updateTableOrderSchema,
   updateOrderSchema,
   updateOrderStatusSchema,
 } from "./orders.validation.js"
@@ -104,6 +106,35 @@ orderRouter.post("/", zvalidator("json", createOrderSchema), async (c) => {
   const result = await orderLogic.create(body)
   return c.json(result, result.code)
 })
+
+orderRouter.patch(
+  "/table/:tableId/:orderId/cancel",
+  zvalidator("json", cancelTableOrderSchema),
+  async (c) => {
+    const tableId = c.req.param("tableId")!
+    const orderId = c.req.param("orderId")!
+    const { token } = c.req.valid("json")
+    const result = await orderLogic.cancelByCustomer(tableId, orderId, token)
+    return c.json(result, result.code)
+  }
+)
+
+orderRouter.put(
+  "/table/:tableId/:orderId",
+  zvalidator("json", updateTableOrderSchema),
+  async (c) => {
+    const tableId = c.req.param("tableId")!
+    const orderId = c.req.param("orderId")!
+    const { token, items } = c.req.valid("json")
+    const result = await orderLogic.modifyByCustomer(
+      tableId,
+      orderId,
+      token,
+      items
+    )
+    return c.json(result, result.code)
+  }
+)
 
 orderRouter.put(
   "/",

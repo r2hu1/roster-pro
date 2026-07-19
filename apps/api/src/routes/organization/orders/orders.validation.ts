@@ -19,6 +19,10 @@ export type UpdateOrderStatusDto = z.infer<typeof updateOrderStatusSchema>
 export {
   CreateTableOrderSchema as createTableOrderSchema,
   type CreateTableOrderDto,
+  CancelTableOrderSchema as cancelTableOrderSchema,
+  type CancelTableOrderDto,
+  UpdateTableOrderSchema as updateTableOrderSchema,
+  type UpdateTableOrderDto,
 } from "@workspace/shared/schemas/order/index"
 
 export {

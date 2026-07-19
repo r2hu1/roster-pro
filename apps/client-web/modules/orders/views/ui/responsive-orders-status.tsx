@@ -21,6 +21,7 @@ import { Skeleton } from "@workspace/ui/components/skeleton"
 import { Loader } from "@workspace/ui/components/loader"
 import type { OrderResponse } from "@workspace/shared/schemas/order/index"
 import { CartAdd, Clock } from "reicon-react"
+import { OrderCustomerActions } from "./order-customer-actions"
 
 const statusLabel: Record<
   string,
@@ -114,6 +115,8 @@ function OrderRoundCard({
         </span>
         <span className="font-medium tabular-nums">₹{order.grandTotal}</span>
       </div>
+
+      <OrderCustomerActions order={order} />
     </div>
   )
 }
@@ -210,7 +213,6 @@ export default function ResponsiveOrdersStatus() {
         <ResponsiveModalFooter>
           <Button
             onClick={() => refetch()}
-            size="lg"
             disabled={isRefetching || isPending}
           >
             Refresh

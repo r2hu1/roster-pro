@@ -32,6 +32,10 @@ export {
   CreateTableOrderItemSchema,
   type CreateTableOrderItemDto,
   defaultCreateTableOrder,
+  CancelTableOrderSchema,
+  type CancelTableOrderDto,
+  UpdateTableOrderSchema,
+  type UpdateTableOrderDto,
 } from "./table-order.js"
 
 export {

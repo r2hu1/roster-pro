@@ -28,3 +28,19 @@ export const defaultCreateTableOrder: z.input<typeof CreateTableOrderSchema> = {
   organizationId: "",
   items: [],
 }
+
+export const CancelTableOrderSchema = z.object({
+  token: z.string().min(1, "Token is required"),
+})
+
+export type CancelTableOrderDto = z.infer<typeof CancelTableOrderSchema>
+
+export const UpdateTableOrderSchema = z.object({
+  token: z.string().min(1, "Token is required"),
+  items: z
+    .array(CreateTableOrderItemSchema)
+    .min(1, "At least one item is required"),
+  notes: z.string().nullable().optional(),
+})
+
+export type UpdateTableOrderDto = z.infer<typeof UpdateTableOrderSchema>

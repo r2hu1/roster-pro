@@ -32,6 +32,7 @@ import {
 } from "../../../lib/realtime-events.js"
 import { menuItem, type Price } from "../../../core/db/schemas/menu.js"
 import { isParcelOrder } from "@workspace/shared/constants/index"
+import { cryptoUtil } from "../../../lib/crypto.js"
 
 const TABLE_CACHE_PREFIX = "table:"
 
@@ -165,6 +166,89 @@ function decodeCursor(cursor: string): { createdAt: Date; id: string } | null {
   }
 }
 
+function computeGstTotals(taxableAmount: number, gstRate: number) {
+  const halfRate = gstRate / 2
+  const cgstAmount = +((taxableAmount * halfRate) / 100).toFixed(2)
+  const sgstAmount = +((taxableAmount * halfRate) / 100).toFixed(2)
+  const totalGst = cgstAmount + sgstAmount
+  const roundOff = +(
+    Math.round(taxableAmount + totalGst) -
+    (taxableAmount + totalGst)
+  ).toFixed(2)
+  const grandTotal = +(taxableAmount + totalGst + roundOff).toFixed(2)
+  return { cgstAmount, sgstAmount, igstAmount: 0, roundOff, grandTotal }
+}
+
+function resolvePrice(price: Price, variant?: string | null): number | null {
+  if (variant === "half") return price.half
+  if (variant === "full") return price.full
+  if (price.full != null) return price.full
+  if (price.half != null) return price.half
+  return null
+}
+
+type ResolveItemsResult =
+  | { ok: true; items: OrderItemJson[]; subtotal: number }
+  | { ok: false; message: string }
+
+async function resolveOrderItems(
+  organizationId: string,
+  incomingItems: {
+    menuItemId: string
+    variant: "half" | "full"
+    quantity: number
+    notes?: string | null
+  }[]
+): Promise<ResolveItemsResult> {
+  const menuItemIds = [...new Set(incomingItems.map((it) => it.menuItemId))]
+  const menuItemRows = await db
+    .select()
+    .from(menuItem)
+    .where(
+      and(
+        inArray(menuItem.id, menuItemIds),
+        eq(menuItem.organizationId, organizationId)
+      )
+    )
+  const menuItemMap = new Map(menuItemRows.map((mi) => [mi.id, mi]))
+
+  const resolved: OrderItemJson[] = []
+  for (const incoming of incomingItems) {
+    const mi = menuItemMap.get(incoming.menuItemId)
+    if (!mi) {
+      return {
+        ok: false,
+        message: `Menu item ${incoming.menuItemId} not found`,
+      }
+    }
+    if (!mi.isAvailable) {
+      return { ok: false, message: `${mi.name} is currently unavailable` }
+    }
+    const unitPrice = resolvePrice(mi.price, incoming.variant)
+    if (unitPrice === null) {
+      return {
+        ok: false,
+        message: `Price not found for menu item ${incoming.menuItemId}`,
+      }
+    }
+    resolved.push({
+      menuItemId: incoming.menuItemId,
+      name: mi.name,
+      variant: incoming.variant,
+      quantity: incoming.quantity,
+      unitPrice,
+      logo: mi.image ?? null,
+      notes: incoming.notes ?? null,
+      preparationTime: mi.preparationTime ?? null,
+    })
+  }
+
+  const subtotal = +resolved
+    .reduce((sum, it) => sum + it.unitPrice * it.quantity, 0)
+    .toFixed(2)
+  return { ok: true, items: resolved, subtotal }
+}
+
 async function insertOrderInTransaction(
   tx: any,
   data: {
@@ -201,16 +285,10 @@ async function insertOrderInTransaction(
 
   const taxableAmount = Number(data.taxableAmount)
   const gstRate = Number(orgGstRate ?? 5)
-  const halfRate = gstRate / 2
-  const cgstAmount = +((taxableAmount * halfRate) / 100).toFixed(2)
-  const sgstAmount = +((taxableAmount * halfRate) / 100).toFixed(2)
-  const igstAmount = 0
-  const totalGst = cgstAmount + sgstAmount
-  const roundOff = +(
-    Math.round(taxableAmount + totalGst) -
-    (taxableAmount + totalGst)
-  ).toFixed(2)
-  const grandTotal = +(taxableAmount + totalGst + roundOff).toFixed(2)
+  const { cgstAmount, sgstAmount, roundOff, grandTotal } = computeGstTotals(
+    taxableAmount,
+    gstRate
+  )
 
   const [result] = await tx
     .insert(order)
@@ -602,68 +680,20 @@ export const orderLogic = {
       }
     }
 
-    const menuItemIds = [...new Set(incomingItems.map((it) => it.menuItemId))]
-    const menuItemRows = await db
-      .select()
-      .from(menuItem)
-      .where(
-        and(
-          inArray(menuItem.id, menuItemIds),
-          eq(menuItem.organizationId, organizationId)
-        )
-      )
-    const menuItemMap = new Map(menuItemRows.map((mi) => [mi.id, mi]))
-    const resolvePrice = (
-      price: Price,
-      variant?: string | null
-    ): number | null => {
-      if (variant === "half") return price.half
-      if (variant === "full") return price.full
-      if (price.full != null) return price.full
-      if (price.half != null) return price.half
-      return null
+    const resolvedResult = await resolveOrderItems(
+      organizationId,
+      incomingItems
+    )
+    if (!resolvedResult.ok) {
+      return {
+        status: "error" as const,
+        code: HTTP_STATUS_CODES.BAD_REQUEST,
+        message: resolvedResult.message,
+      }
     }
+    const resolvedIncoming = resolvedResult.items
 
-    const resolvedIncoming: OrderItemJson[] = []
-    for (const incoming of incomingItems) {
-      const mi = menuItemMap.get(incoming.menuItemId)
-      if (!mi) {
-        return {
-          status: "error" as const,
-          code: HTTP_STATUS_CODES.BAD_REQUEST,
-          message: `Menu item ${incoming.menuItemId} not found`,
-        }
-      }
-      if (!mi.isAvailable) {
-        return {
-          status: "error" as const,
-          code: HTTP_STATUS_CODES.BAD_REQUEST,
-          message: `${mi.name} is currently unavailable`,
-        }
-      }
-      const unitPrice = resolvePrice(mi.price, incoming.variant)
-      if (unitPrice === null) {
-        return {
-          status: "error" as const,
-          code: HTTP_STATUS_CODES.BAD_REQUEST,
-          message: `Price not found for menu item ${incoming.menuItemId}`,
-        }
-      }
-      resolvedIncoming.push({
-        menuItemId: incoming.menuItemId,
-        name: mi.name,
-        variant: incoming.variant,
-        quantity: incoming.quantity,
-        unitPrice,
-        logo: mi.image ?? null,
-        notes: incoming.notes ?? null,
-        preparationTime: mi.preparationTime ?? null,
-      })
-    }
-
-    const subtotal = +resolvedIncoming
-      .reduce((sum, it) => sum + it.unitPrice * it.quantity, 0)
-      .toFixed(2)
+    const subtotal = resolvedResult.subtotal
     const discount = body.discount ?? 0
     const taxableAmount = +(subtotal - discount).toFixed(2)
 
@@ -724,6 +754,178 @@ export const orderLogic = {
       code: HTTP_STATUS_CODES.OK,
       data: created,
       appended: true,
+    }
+  },
+
+  // Validates that a QR `token` authorizes mutating `orderId` on `tableId`,
+  // and that the order is still customer-editable (status "pending").
+  verifyCustomerOrderAccess: async (
+    tableId: string,
+    orderId: string,
+    token: string
+  ) => {
+    const decoded = cryptoUtil.decrypt<{
+      tableId: string
+      organizationId: string
+    }>(token)
+    if (!decoded || decoded.tableId !== tableId) {
+      return {
+        ok: false as const,
+        code: HTTP_STATUS_CODES.UNAUTHORIZED,
+        message: "Invalid or expired code",
+      }
+    }
+    const { organizationId } = decoded
+
+    const [table] = await db
+      .select({ number: tableSchema.number, qrToken: tableSchema.qrToken })
+      .from(tableSchema)
+      .where(
+        and(
+          eq(tableSchema.id, tableId),
+          eq(tableSchema.organizationId, organizationId)
+        )
+      )
+    // token must match the table's current stored token (revocable via regen)
+    if (!table || table.qrToken !== token) {
+      return {
+        ok: false as const,
+        code: HTTP_STATUS_CODES.UNAUTHORIZED,
+        message: "Invalid or expired code",
+      }
+    }
+
+    const [existing] = await db
+      .select()
+      .from(order)
+      .where(
+        and(eq(order.id, orderId), eq(order.organizationId, organizationId))
+      )
+    if (!existing) {
+      return {
+        ok: false as const,
+        code: HTTP_STATUS_CODES.NOT_FOUND,
+        message: "Order not found",
+      }
+    }
+    if (existing.tableNumber !== String(table.number)) {
+      return {
+        ok: false as const,
+        code: HTTP_STATUS_CODES.FORBIDDEN,
+        message: "Order does not belong to this table",
+      }
+    }
+
+    return { ok: true as const, order: existing, organizationId }
+  },
+
+  cancelByCustomer: async (tableId: string, orderId: string, token: string) => {
+    const access = await orderLogic.verifyCustomerOrderAccess(
+      tableId,
+      orderId,
+      token
+    )
+    if (!access.ok) {
+      return {
+        status: "error" as const,
+        code: access.code,
+        message: access.message,
+      }
+    }
+
+    if (access.order.status !== "pending") {
+      return {
+        status: "error" as const,
+        code: HTTP_STATUS_CODES.CONFLICT,
+        message:
+          "This order is already being prepared and can no longer be cancelled.",
+      }
+    }
+
+    return orderLogic.updateStatus(orderId, "cancelled", access.organizationId)
+  },
+
+  modifyByCustomer: async (
+    tableId: string,
+    orderId: string,
+    token: string,
+    items: {
+      menuItemId: string
+      variant: "half" | "full"
+      quantity: number
+      notes?: string | null
+    }[]
+  ) => {
+    const access = await orderLogic.verifyCustomerOrderAccess(
+      tableId,
+      orderId,
+      token
+    )
+    if (!access.ok) {
+      return {
+        status: "error" as const,
+        code: access.code,
+        message: access.message,
+      }
+    }
+
+    const existing = access.order
+    const organizationId = access.organizationId
+
+    if (existing.status !== "pending") {
+      return {
+        status: "error" as const,
+        code: HTTP_STATUS_CODES.CONFLICT,
+        message:
+          "This order is already being prepared and can no longer be modified.",
+      }
+    }
+
+    const resolved = await resolveOrderItems(organizationId, items)
+    if (!resolved.ok) {
+      return {
+        status: "error" as const,
+        code: HTTP_STATUS_CODES.BAD_REQUEST,
+        message: resolved.message,
+      }
+    }
+
+    // Preserve the original discount; re-price everything else server-side.
+    const discount = existing.discount ?? 0
+    const taxableAmount = +(resolved.subtotal - discount).toFixed(2)
+    const gstRate = Number(existing.gstRate ?? 5)
+    const { cgstAmount, sgstAmount, igstAmount, roundOff, grandTotal } =
+      computeGstTotals(taxableAmount, gstRate)
+
+    const [updated] = await db
+      .update(order)
+      .set({
+        items: resolved.items,
+        subtotal: resolved.subtotal,
+        discount,
+        taxableAmount,
+        gstRate,
+        cgstAmount,
+        sgstAmount,
+        igstAmount,
+        roundOff,
+        grandTotal,
+        updatedAt: new Date(),
+      })
+      .where(
+        and(eq(order.id, orderId), eq(order.organizationId, organizationId))
+      )
+      .returning()
+
+    void redisClient.del(`${ORDER_CACHE_PREFIX}${organizationId}:${orderId}`)
+    void redisClient.del(`${ORDER_CACHE_PREFIX}all:${organizationId}`)
+
+    publishOrderEvent(organizationId, updated.id, "order.updated", updated)
+
+    return {
+      status: "success" as const,
+      code: HTTP_STATUS_CODES.OK,
+      data: updated,
     }
   },
 
