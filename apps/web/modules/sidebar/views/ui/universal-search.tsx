@@ -195,7 +195,7 @@ export function UniversalSearch({ children }: { children: React.ReactNode }) {
           <CommandList>
             {loading && (
               <div className="p-2">
-                <Skeleton className="h-8 w-full"/>
+                <Skeleton className="h-8 w-full" />
               </div>
             )}
 
