@@ -29,6 +29,7 @@ import {
 import { useSession } from "@/modules/providers/session-provider"
 import { useSidebar } from "@workspace/ui/components/sidebar"
 import api from "@/lib/axios"
+import { Skeleton } from "@workspace/ui/components/skeleton"
 
 type Table = {
   id: string
@@ -185,7 +186,7 @@ export function UniversalSearch({ children }: { children: React.ReactNode }) {
     <div className="flex flex-col gap-4">
       <button onClick={() => setOpen(true)}>{children}</button>
       <CommandDialog open={open} onOpenChange={setOpen}>
-        <Command shouldFilter={false}>
+        <Command>
           <CommandInput
             placeholder="Search orders, tables, menu items..."
             value={query}
@@ -193,24 +194,21 @@ export function UniversalSearch({ children }: { children: React.ReactNode }) {
           />
           <CommandList>
             {loading && (
-              <div className="flex items-center justify-center gap-2 py-6 text-sm text-muted-foreground">
-                <Loader className="size-4" />
-                Searching...
+              <div className="p-2">
+                <Skeleton className="h-8 w-full"/>
               </div>
             )}
 
-            {!loading &&
-              hasQuery &&
-              !orders?.length &&
-              !filteredTables.length &&
-              !filteredItems.length && (
-                <CommandEmpty>No results found.</CommandEmpty>
-              )}
+            {!loading && <CommandEmpty>No results found.</CommandEmpty>}
 
             {hasQuery && orders && orders.length > 0 && (
               <CommandGroup heading={`Orders (${orders.length})`}>
                 {orders.map((order) => (
-                  <CommandItem key={order.id} onSelect={() => navigate("/")}>
+                  <CommandItem
+                    key={order.id}
+                    value={`${order.invoiceNumber} ${order.customerName ?? ""} Table ${order.tableNumber} ${order.status}`}
+                    onSelect={() => navigate("/")}
+                  >
                     <Cart className="size-4" />
                     <div className="flex flex-1 items-center justify-between">
                       <span>{order.invoiceNumber}</span>
@@ -228,6 +226,7 @@ export function UniversalSearch({ children }: { children: React.ReactNode }) {
                 {filteredTables.map((table) => (
                   <CommandItem
                     key={table.id}
+                    value={`Table ${table.number} ${table.name ?? ""} ${table.status}`}
                     onSelect={() => navigate(`/${orgId}/tables`)}
                   >
                     <Armchair2 className="size-4" />
@@ -250,6 +249,7 @@ export function UniversalSearch({ children }: { children: React.ReactNode }) {
                 {filteredItems.map(({ item, menuName }) => (
                   <CommandItem
                     key={item.id}
+                    value={`${item.name} ${menuName} ${item.description ?? ""}`}
                     onSelect={() => navigate(`/${orgId}/menus`)}
                   >
                     <ChefHat className="size-4" />

@@ -10,6 +10,7 @@ import {
   Search,
   Settings,
 } from "reicon-react"
+import { Kbd } from "@workspace/ui/components/kbd"
 
 import { NavMain } from "./nav-main"
 import { NavUser } from "./nav-user"
@@ -93,6 +94,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           <SidebarMenuItem>
             <UniversalSearch>
               <InputGroup className="h-10 px-1 bg-background shadow-sm text-[14.5px] rounded-md">
+                <InputGroupAddon>
+                  <Kbd>⌘k</Kbd>
+                </InputGroupAddon>
                 <InputGroupInput readOnly placeholder="Search anything..." />
                 <InputGroupAddon align="inline-end">
                   <Search className="size-4" />
