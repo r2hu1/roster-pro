@@ -1,13 +1,15 @@
 "use client"
 
-import { authClient } from "@/lib/better-auth/client"
-import type { Session, User } from "better-auth"
 import { createContext, useContext, useEffect } from "react"
-import { useQuery } from "@tanstack/react-query"
-import api from "@/lib/axios"
-import type { OrganizationResponse } from "@workspace/shared/schemas/organization/response"
 import { useRouter } from "next/navigation"
+import { useQuery } from "@tanstack/react-query"
+import type { Session, User } from "better-auth"
+
+import { authClient } from "@/lib/better-auth/client"
+import api from "@/lib/axios"
 import Preloader from "@/components/preloader"
+
+import type { OrganizationResponse } from "@workspace/shared/schemas/organization/response"
 
 interface SessionContextProps {
   session: Session | null
@@ -18,51 +20,65 @@ interface SessionContextProps {
 
 const SessionContext = createContext<SessionContextProps | null>(null)
 
-export function SessionProvider({ children, enableOrganizations=true }: { children: React.ReactNode;enableOrganizations?:boolean }) {
+interface SessionProviderProps {
+  children: React.ReactNode
+  enableOrganizations?: boolean
+}
+
+export function SessionProvider({
+  children,
+  enableOrganizations = true,
+}: SessionProviderProps) {
   const router = useRouter()
 
-  const { data: sessionData, isPending: sessionIsPending } =
-    authClient.useSession()
+  const {
+    data: sessionData,
+    isPending: sessionLoading,
+  } = authClient.useSession()
 
-  const { data: organizations, isPending: organizationsIsPending } = useQuery({
-    queryKey: ["organizations"],
-    enabled: enableOrganizations,
+  const {
+    data: organization,
+    isPending: organizationLoading,
+  } = useQuery({
+    queryKey: ["organization"],
+    enabled: enableOrganizations && !!sessionData,
     queryFn: async () => {
       const { data } = await api.get("/organization")
-      return data.data
+      return data.data as OrganizationResponse
     },
-    staleTime: 5 * 50 * 1000,
-    gcTime: 10 * 5 * 1000,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
   })
 
-  const isLoading = sessionIsPending || organizationsIsPending
+  const isLoading =
+    sessionLoading || (enableOrganizations && organizationLoading)
 
   useEffect(() => {
-    if (sessionIsPending) return
+    if (sessionLoading) return
+
     if (!sessionData) {
-      router.push("/")
+      router.replace("/")
     }
-    if (organizationsIsPending) return
-  }, [
-    sessionData,
-    sessionIsPending,
-    organizations,
-    organizationsIsPending,
-    router,
-  ])
+  }, [sessionLoading, sessionData, router])
+
+  if (isLoading) {
+    return <Preloader />
+  }
+
+  if (!sessionData) {
+    return null
+  }
 
   return (
     <SessionContext.Provider
       value={{
-        session: sessionData?.session ?? null,
-        user: sessionData?.user ?? null,
-        organization: organizations ?? null,
-        isLoading,
+        session: sessionData.session,
+        user: sessionData.user,
+        organization: enableOrganizations ? organization ?? null : null,
+        isLoading: false,
       }}
     >
       {children}
-
-      {isLoading && <Preloader />}
     </SessionContext.Provider>
   )
 }
