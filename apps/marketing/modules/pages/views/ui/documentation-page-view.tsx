@@ -90,11 +90,11 @@ export default function DocumentationPageView() {
         <div className="mx-auto max-w-5xl">
           <div className="text-center mb-14">
             <h2 className="text-3xl font-semibold tracking-tight md:text-4xl">
-              Setup handled by our team
+              What we set up for you
             </h2>
             <p className="mt-3 text-muted-foreground text-lg max-w-xl mx-auto">
-              From account creation to go-live, your dedicated onboarding
-              manager handles everything.
+              Your dedicated onboarding manager handles everything — from
+              account creation to staff training.
             </p>
           </div>
           <div className="grid gap-6 md:grid-cols-2">

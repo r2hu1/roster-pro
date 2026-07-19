@@ -43,14 +43,8 @@ export default function AboutPageView() {
           <Glow variant="top" className="-z-10" />
           <div className="relative z-10 mx-auto max-w-5xl text-center">
             <h1 className="text-balance text-4xl font-semibold leading-tight md:text-5xl lg:text-6xl">
-              Know more about the{" "}
-              <span className="relative inline-block border-2 border-primary px-4 py-1 bg-primary/10 text-primary rounded-md">
-                RosterPro & Background
-                <div className="absolute -top-1.5 -left-1.5 w-3 h-3 bg-white border-2 border-primary" />
-                <div className="absolute -top-1.5 -right-1.5 w-3 h-3 bg-white border-2 border-primary" />
-                <div className="absolute -bottom-1.5 -left-1.5 w-3 h-3 bg-white border-2 border-primary" />
-                <div className="absolute -bottom-1.5 -right-1.5 w-3 h-3 bg-white border-2 border-primary" />
-              </span>
+              The story behind{" "}
+              <span className="text-primary">RosterPro</span>
             </h1>
             <p className="mx-auto my-8 text-muted-foreground max-w-2xl text-xl">
               RosterPro was built by restaurant people, for restaurant people.
@@ -70,16 +64,15 @@ export default function AboutPageView() {
                 Built from real kitchen experience
               </h2>
               <p className="text-muted-foreground leading-relaxed">
-                RosterPro was born in the back of a busy restaurant. Our
-                founders spent years managing front-of-house and back-of-house
-                operations, struggling with disconnected systems that made
-                simple tasks unnecessarily complex.
+                Our founders spent years running restaurants — juggling
+                disconnected POS systems, paper schedules, and separate
+                ordering platforms. Every inefficiency became motivation to
+                build something better.
               </p>
               <p className="text-muted-foreground leading-relaxed">
-                We built RosterPro to connect every part of a restaurant — from
-                the QR code on the table to the kitchen display, from the
-                billing counter to the analytics dashboard. One platform. One
-                source of truth.
+                RosterPro connects every part of a restaurant: QR codes on
+                tables flow to kitchen displays, orders sync with inventory,
+                billing links to analytics. One platform, one source of truth.
               </p>
             </div>
             <div className="rounded-xl overflow-hidden border border-border/60">
@@ -103,7 +96,7 @@ export default function AboutPageView() {
               What drives us
             </h2>
             <p className="mt-3 text-muted-foreground text-lg max-w-xl mx-auto">
-              Every decision we make is guided by these core principles.
+              Three principles that guide everything we build.
             </p>
           </div>
           <div className="grid gap-6 md:grid-cols-3">

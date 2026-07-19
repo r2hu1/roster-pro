@@ -1,4 +1,3 @@
-import { ReactQueryProvider } from "@/modules/providers/query-client"
 import { SessionProvider } from "@/modules/providers/session-provider"
 
 export default function OnboardingLayout({
@@ -6,5 +5,5 @@ export default function OnboardingLayout({
 }: {
   children: React.ReactNode
 }) {
-  return <SessionProvider>{children}</SessionProvider>
+  return <SessionProvider enableOrganizations={false}>{children}</SessionProvider>
 }

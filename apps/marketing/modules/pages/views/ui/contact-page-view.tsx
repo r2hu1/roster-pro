@@ -31,9 +31,16 @@ const contactMethods = [
 
 export default function ContactPageView() {
   const [submitted, setSubmitted] = useState(false)
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    subject: "",
+    message: "",
+  })
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
+    console.log("Contact form submission:", formData)
     setSubmitted(true)
   }
 
@@ -106,7 +113,10 @@ export default function ContactPageView() {
                   <Button
                     variant="outline"
                     className="mt-6"
-                    onClick={() => setSubmitted(false)}
+                    onClick={() => {
+                      setSubmitted(false)
+                      setFormData({ name: "", email: "", subject: "", message: "" })
+                    }}
                   >
                     Send another message
                   </Button>
@@ -128,6 +138,10 @@ export default function ContactPageView() {
                       name="name"
                       placeholder="John Doe"
                       required
+                      value={formData.name}
+                      onChange={(e) =>
+                        setFormData({ ...formData, name: e.target.value })
+                      }
                     />
                   </div>
                   <div>
@@ -143,6 +157,10 @@ export default function ContactPageView() {
                       type="email"
                       placeholder="hello@example.com"
                       required
+                      value={formData.email}
+                      onChange={(e) =>
+                        setFormData({ ...formData, email: e.target.value })
+                      }
                     />
                   </div>
                   <div>
@@ -157,6 +175,10 @@ export default function ContactPageView() {
                       name="subject"
                       placeholder="How can we help?"
                       required
+                      value={formData.subject}
+                      onChange={(e) =>
+                        setFormData({ ...formData, subject: e.target.value })
+                      }
                     />
                   </div>
                   <div>
@@ -172,6 +194,10 @@ export default function ContactPageView() {
                       placeholder="Tell us more about your inquiry..."
                       className="min-h-32"
                       required
+                      value={formData.message}
+                      onChange={(e) =>
+                        setFormData({ ...formData, message: e.target.value })
+                      }
                     />
                   </div>
                   <Button type="submit" className="w-full h-10" size="lg">

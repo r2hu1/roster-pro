@@ -18,7 +18,7 @@ interface SessionContextProps {
 
 const SessionContext = createContext<SessionContextProps | null>(null)
 
-export function SessionProvider({ children }: { children: React.ReactNode }) {
+export function SessionProvider({ children, enableOrganizations=true }: { children: React.ReactNode;enableOrganizations?:boolean }) {
   const router = useRouter()
 
   const { data: sessionData, isPending: sessionIsPending } =
@@ -26,6 +26,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
 
   const { data: organizations, isPending: organizationsIsPending } = useQuery({
     queryKey: ["organizations"],
+    enabled: enableOrganizations,
     queryFn: async () => {
       const { data } = await api.get("/organization")
       return data.data

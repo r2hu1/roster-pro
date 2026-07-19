@@ -1,72 +1,51 @@
-"use client"
-import { Button } from "@workspace/ui/components/button"
-import React from "react"
+import { IconBrandFacebook, IconBrandLinkedin, IconBrandTwitter } from "@tabler/icons-react"
 import { Logo } from "./logo"
-
-const footerLinks = [
-  {
-    title: "Product",
-    links: ["Overview", "Pricing", "Integrations", "Documentation"],
-  },
-  {
-    title: "Company",
-    links: ["About Us", "Careers", "Brand", "Press"],
-  },
-  {
-    title: "Resources",
-    links: ["Blog", "Newsletter", "Support", "Guides"],
-  },
-  {
-    title: "Social",
-    links: ["Twitter", "GitHub", "LinkedIn", "YouTube"],
-  },
-]
+import { Instagram } from "reicon-react"
+import { Separator } from "@workspace/ui/components/separator"
+import Link from "next/link"
 
 export const Footer = () => {
   return (
-    <footer className="w-full border-t mt-18">
-      <div className="max-w-7xl mx-auto px-4 pt-16 pb-8 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-2 gap-8 md:grid-cols-4 lg:grid-cols-5">
-          <div className="col-span-2 lg:col-span-1 space-y-3">
-            <Logo className="-ml-2" />
-            <p className="text-sm text-pretty leading-relaxed mb-6">
-              Building the next generation of restaurant.
-            </p>
+    <footer>
+      <div className='mx-auto flex max-w-7xl items-center justify-between gap-3 px-6 py-4 max-md:flex-col sm:px-6 sm:py-6 md:gap-6 md:py-8'>
+        <a href='#'>
+          <div className='flex items-center gap-3'>
+            <Logo className='gap-3' />
           </div>
+        </a>
 
-          {footerLinks.map((section) => (
-            <div key={section.title}>
-              <h3 className="text-xs font-semibold uppercase tracking-wider mb-4">
-                {section.title}
-              </h3>
-              <ul className="space-y-3">
-                {section.links.map((link) => (
-                  <li key={link}>
-                    <a
-                      href={`/${link.toLowerCase()}`}
-                      className="text-sm hover:underline transition-colors"
-                    >
-                      {link}
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
+        <div className='flex items-center gap-5 whitespace-nowrap'>
+          <a href='#' className='opacity-80 transition-opacity duration-300 hover:opacity-100'>
+            About
+          </a>
+          <a href='#' className='opacity-80 transition-opacity duration-300 hover:opacity-100'>
+            Features
+          </a>
+          <a href='#' className='opacity-80 transition-opacity duration-300 hover:opacity-100'>
+            Works
+          </a>
+          <Link href='/contact' className='opacity-80 transition-opacity duration-300 hover:opacity-100'>
+            Contact Us
+          </Link>
         </div>
 
-        <div className="mt-16 pt-8 border-t flex flex-col items-center justify-between gap-4 md:flex-row">
-          <div className="flex gap-4">
-            <span className="text-xs">© 2026 Platform Inc.</span>
-            <a href="/terms" className="text-xs hover:underline">
-              Terms & Condition
-            </a>
-            <a href="/privacy-policy" className="text-xs hover:underline">
-              Privacy Policy
-            </a>
-          </div>
+        <div className='flex items-center gap-4'>
+          <a href='#'>
+            <IconBrandFacebook className='size-5' />
+          </a>
+          <a href='#'>
+            <Instagram className='size-5' />
+          </a>
+          <a href='#'>
+            <IconBrandTwitter className='size-5' />
+          </a>
+          <a href='#'>
+            <IconBrandLinkedin className='size-5' />
+          </a>
         </div>
       </div>
     </footer>
   )
 }
+
+export default Footer
