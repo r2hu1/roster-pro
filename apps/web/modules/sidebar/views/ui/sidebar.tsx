@@ -22,6 +22,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarRail,
+  SidebarTrigger,
 } from "@workspace/ui/components/sidebar"
 import { useSession } from "@/modules/providers/session-provider"
 import { OrganizationResponse } from "@workspace/shared/schemas/organization/response"
@@ -75,8 +76,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       <SidebarRail />
       <SidebarHeader>
         <SidebarMenu className="space-y-4.5">
-          <SidebarMenuItem className="-ml-1">
-            <Logo className="h-9 w-auto" />
+          <SidebarMenuItem className="flex items-center justify-between">
+            <Logo className="h-9 -ml-1.5 w-auto" />
+            <SidebarTrigger/>
           </SidebarMenuItem>
           <SidebarMenuItem className="px-2 hidden">
             <SidebarMenuButton
