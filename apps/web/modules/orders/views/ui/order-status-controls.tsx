@@ -6,6 +6,14 @@ import { updateOrderStatus, updateOrder } from "../../api/orders"
 import { Button } from "@workspace/ui/components/button"
 import { Checkbox } from "@workspace/ui/components/checkbox"
 import { Loader } from "@workspace/ui/components/loader"
+import {
+  ResponsiveModal,
+  ResponsiveModalContent,
+  ResponsiveModalDescription,
+  ResponsiveModalFooter,
+  ResponsiveModalHeader,
+  ResponsiveModalTitle,
+} from "@workspace/ui/components/responsive-modal"
 import { toast } from "sonner"
 
 export function OrderStatusSelect({
@@ -17,9 +25,18 @@ export function OrderStatusSelect({
 }) {
   const [value, setValue] = useState(initial)
   const [pending, setPending] = useState<OrderStatus | null>(null)
+  const [confirming, setConfirming] = useState<OrderStatus | null>(null)
 
   async function handleUpdate(s: OrderStatus) {
     if (s === value || pending) return
+    if (s === "completed" || s === "cancelled") {
+      setConfirming(s)
+      return
+    }
+    await doUpdate(s)
+  }
+
+  async function doUpdate(s: OrderStatus) {
     const previous = value
     setValue(s)
     setPending(s)
@@ -62,6 +79,38 @@ export function OrderStatusSelect({
           </Button>
         ))}
       </div>
+      <ResponsiveModal
+        open={confirming !== null}
+        onOpenChange={(open) => {
+          if (!open) setConfirming(null)
+        }}
+      >
+        <ResponsiveModalContent>
+          <ResponsiveModalHeader>
+            <ResponsiveModalTitle>
+              Mark order as {confirming}?
+            </ResponsiveModalTitle>
+            <ResponsiveModalDescription>
+              Once the order is marked as {confirming}, its status can&apos;t be
+              updated again.
+            </ResponsiveModalDescription>
+          </ResponsiveModalHeader>
+          <ResponsiveModalFooter>
+            <Button variant="secondary" onClick={() => setConfirming(null)}>
+              Cancel
+            </Button>
+            <Button
+              onClick={() => {
+                const s = confirming
+                setConfirming(null)
+                if (s) doUpdate(s)
+              }}
+            >
+              Confirm
+            </Button>
+          </ResponsiveModalFooter>
+        </ResponsiveModalContent>
+      </ResponsiveModal>
     </div>
   )
 }
