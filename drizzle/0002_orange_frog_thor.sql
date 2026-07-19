@@ -1,0 +1,1 @@
+ALTER TABLE "menu_item" ADD COLUMN "is_featured" boolean DEFAULT false NOT NULL;
