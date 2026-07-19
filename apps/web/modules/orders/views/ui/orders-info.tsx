@@ -9,7 +9,11 @@ import {
   SheetTitle,
   SheetFooter,
 } from "@workspace/ui/components/sheet"
-import { OrderStatusSelect, PaymentStatusSelect, PaymentMethodSelect } from "./order-status-controls"
+import {
+  OrderStatusSelect,
+  PaymentStatusSelect,
+  PaymentMethodSelect,
+} from "./order-status-controls"
 import { OrderItemsList } from "./order-items-list"
 import { OrderTotalsSummary } from "./order-totals-summary"
 import PrintReceiptVersionModal from "./print-recipts-version-responsive-modal"

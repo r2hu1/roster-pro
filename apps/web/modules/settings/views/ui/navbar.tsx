@@ -3,12 +3,12 @@
 import { useQueryState } from "nuqs"
 import { Button } from "@workspace/ui/components/button"
 import { Bulb, CreditCard, Home, ShoppingCart } from "reicon-react"
+import Link from "next/link"
 
 const navs = [
   { title: "General", href: "general", icon: Home },
   { title: "Billing", href: "billing", icon: ShoppingCart },
   { title: "Subscription", href: "subscription", icon: CreditCard },
-  { title: "Support", href: "support", icon: Bulb },
 ]
 
 export default function SettingsNavbar() {
@@ -30,6 +30,20 @@ export default function SettingsNavbar() {
           {nav.title}
         </Button>
       ))}
+      <Button
+        variant={"ghost"}
+        size="lg"
+        asChild
+        className="justify-start gap-3 h-10"
+      >
+        <Link
+          target="_blank"
+          href={`${process.env.NEXT_PUBLIC_MARKETING_URL}/contact`}
+        >
+          <Bulb weight={"Outline"} />
+          Support
+        </Link>
+      </Button>
     </div>
   )
 }

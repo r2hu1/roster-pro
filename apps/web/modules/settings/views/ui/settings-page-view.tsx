@@ -50,9 +50,6 @@ export default function SettingPageView() {
           {tab === "general" && <GeneralSettings />}
           {tab === "billing" && <BillingSettings />}
           {tab === "subscription" && <SubscriptionSettings />}
-          {tab === "support" && (
-            <p className="text-muted-foreground text-sm">Coming soon</p>
-          )}
         </div>
       </div>
     </div>
