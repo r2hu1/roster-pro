@@ -5,6 +5,7 @@ import { Badge } from "@workspace/ui/components/badge"
 import { useViewType } from "../providers/view-type"
 import ResponsiveItemModal from "./responsive-item-modal"
 import { ArrowUpRight, ArrowUpRightCircle, CartAdd } from "reicon-react"
+import { VegIndicator } from "./featured-item-card"
 
 export default function MenuCard({ item }: { item: MenuItemResponse }) {
   const { viewType } = useViewType()
@@ -25,29 +26,15 @@ export default function MenuCard({ item }: { item: MenuItemResponse }) {
                 <Badge>{item.preparationTime} min</Badge>
               )}
 
-              <Badge variant="secondary" className="size-4 rounded-sm! p-0">
-                <span
-                  className={
-                    "flex size-3 items-center justify-center rounded-[3px] border " +
-                    (item.isVegetarian ? "border-green-600" : "border-red-600")
-                  }
-                >
-                  <span
-                    className={
-                      "size-1.5 rounded-full " +
-                      (item.isVegetarian ? "bg-green-600" : "bg-red-600")
-                    }
-                  />
-                </span>
-              </Badge>
+              <VegIndicator isVegetarian={item.isVegetarian} />
             </div>
           </div>
 
           <div className="space-y-1 p-2 pt-0">
-            <h3 className="font-medium truncate">{item.name}</h3>
+            <h3 className="font-medium truncate text-sm">{item.name}</h3>
 
             {item.description && (
-              <p className="text-sm text-muted-foreground wrap-break-word line-clamp-1">
+              <p className="text-xs text-muted-foreground wrap-break-word line-clamp-2">
                 {item.description}
               </p>
             )}
@@ -67,7 +54,7 @@ export default function MenuCard({ item }: { item: MenuItemResponse }) {
         </div>
       ) : (
         <div className="rounded-lg flex border overflow-hidden transition hover:shadow-sm">
-          <div className="rounded-md rounded-br-none rounded-tr-none max-w-30 relative">
+          <div className="rounded-md rounded-br-none rounded-tr-none max-w-35 relative">
             <Image
               src={item.image ?? "/assets/menu-item-placeholder.png"}
               alt={item.name}
@@ -79,30 +66,15 @@ export default function MenuCard({ item }: { item: MenuItemResponse }) {
               {item.preparationTime && (
                 <Badge>{item.preparationTime} min</Badge>
               )}
-              <Badge variant="secondary" className="size-4 rounded-sm! p-0">
-                {/*{item.isVegetarian ? "Vegetarian" : "Non-Vegetarian"}*/}
-                <span
-                  className={
-                    "flex size-3 shrink-0 items-center justify-center rounded-[3px] border " +
-                    (item.isVegetarian ? "border-green-600" : "border-red-600")
-                  }
-                >
-                  <span
-                    className={
-                      "size-1.5 rounded-full " +
-                      (item.isVegetarian ? "bg-green-600" : "bg-red-600")
-                    }
-                  />
-                </span>
-              </Badge>
+              <VegIndicator isVegetarian={item.isVegetarian} />
             </div>
           </div>
-          <div className="p-2 space-y-3 flex flex-col justify-between w-full">
+          <div className="p-3 space-y-3 flex flex-col justify-between w-full">
             <div className="min-w-0 space-y-0.5">
               <h3 className="text-[15px] font-medium truncate w-auto">
                 {item.name}
               </h3>
-              <p className="text-sm text-muted-foreground wrap-break-word line-clamp-2">
+              <p className="text-xs text-muted-foreground wrap-break-word line-clamp-2">
                 {item.description}
               </p>
             </div>

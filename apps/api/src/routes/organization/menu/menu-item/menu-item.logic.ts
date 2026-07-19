@@ -135,6 +135,7 @@ export const menuItemLogic = {
         category: body.category ?? null,
         isAvailable: body.isAvailable ?? true,
         isVegetarian: body.isVegetarian ?? false,
+        isFeatured: body.isFeatured ?? false,
         preparationTime: body.preparationTime ?? null,
       })
       .returning()
@@ -211,6 +212,7 @@ export const menuItemLogic = {
           body.category !== undefined ? body.category : existing.category,
         isAvailable: body.isAvailable ?? existing.isAvailable,
         isVegetarian: body.isVegetarian ?? existing.isVegetarian,
+        isFeatured: body.isFeatured ?? existing.isFeatured,
         preparationTime: body.preparationTime ?? existing.preparationTime,
         updatedAt: new Date(),
       })

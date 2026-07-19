@@ -126,6 +126,7 @@ export default function ItemCard({ item }: { item: MenuItemResponse }) {
         prevName={item.name}
         prevPrice={item.price}
         prevVegetarian={item.isVegetarian}
+        prevFeatured={item.isFeatured}
         prevIngredients={item.ingredients ?? []}
         prevDescription={item.description ?? ""}
         prevPreparationTime={item.preparationTime ?? 0}

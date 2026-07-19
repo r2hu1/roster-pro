@@ -20,6 +20,7 @@ export const MenuItemSchema = z.object({
   category: z.string().nullable(),
   isAvailable: z.boolean(),
   isVegetarian: z.boolean(),
+  isFeatured: z.boolean(),
   preparationTime: z.number().nullable(),
   createdAt: z.date(),
   updatedAt: z.date(),

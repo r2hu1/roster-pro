@@ -38,6 +38,7 @@ export default function EditMenuItem({
   prevImage,
   prevAvailable,
   prevVegetarian,
+  prevFeatured,
   prevIngredients,
   prevDescription,
   prevPreparationTime,
@@ -50,6 +51,7 @@ export default function EditMenuItem({
   prevImage?: string | null
   prevAvailable: boolean
   prevVegetarian: boolean
+  prevFeatured: boolean
   prevIngredients: string[]
   prevDescription: string
   prevPreparationTime: number | null
@@ -63,6 +65,7 @@ export default function EditMenuItem({
   )
   const [isAvailable, setIsAvailable] = useState(prevAvailable)
   const [isVegetarian, setIsVegetarian] = useState(prevVegetarian)
+  const [isFeatured, setIsFeatured] = useState(prevFeatured)
   const [description, setDescription] = useState(prevDescription)
   const [preparationTime, setPreparationTime] = useState(
     prevPreparationTime?.toString() ?? 20
@@ -79,6 +82,7 @@ export default function EditMenuItem({
     setIngredientsText(prevIngredients.join(", "))
     setIsAvailable(prevAvailable)
     setIsVegetarian(prevVegetarian)
+    setIsFeatured(prevFeatured)
     setPreparationTime(prevPreparationTime ?? 20)
     setDescription(prevDescription)
     setImage(null)
@@ -101,6 +105,7 @@ export default function EditMenuItem({
       },
       isAvailable,
       isVegetarian,
+      isFeatured,
       preparationTime: Number(preparationTime) || 20,
     })
 
@@ -121,6 +126,7 @@ export default function EditMenuItem({
       formData.append("price_full", fullPrice)
       formData.append("isAvailable", String(isAvailable))
       formData.append("isVegetarian", String(isVegetarian))
+      formData.append("isFeatured", String(isFeatured))
       formData.append("preparationTime", String(preparationTime))
       if (image) formData.append("image", image)
 
@@ -265,6 +271,21 @@ export default function EditMenuItem({
               thumbClassName="h-4 w-4"
               checked={isAvailable}
               onCheckedChange={setIsAvailable}
+            />
+          </div>
+
+          <div className="mt-2 flex items-center justify-between">
+            <div className="grid gap-0.5">
+              <Label>Featured</Label>
+              <p className="text-foreground/80 text-xs">
+                Mark this dish as featured
+              </p>
+            </div>
+            <Switch
+              className="h-5 w-10"
+              thumbClassName="h-4 w-4"
+              checked={isFeatured}
+              onCheckedChange={setIsFeatured}
             />
           </div>
 

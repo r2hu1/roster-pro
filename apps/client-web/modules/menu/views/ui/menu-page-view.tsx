@@ -1,14 +1,14 @@
 "use client"
 
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { useWindowVirtualizer } from "@tanstack/react-virtual"
 import { useMenus } from "@/hooks/use-menus"
 import { useTableContext } from "@/modules/providers/table-provider"
 import MenuFilterBar from "@/modules/menu/views/ui/menu-filter-bar"
 import MenuVirtualRow from "@/modules/menu/views/ui/menu-virtual-row"
-import { Skeleton } from "@workspace/ui/components/skeleton"
 import { useViewType } from "../providers/view-type"
 import Preloader from "@/components/preloader"
+import FeaturedCarousel from "./featured-carousel"
 
 const STICKY_HEADER_HEIGHT = 96
 
@@ -156,6 +156,7 @@ export default function MenuPageView() {
 
   return (
     <div className="space-y-3">
+      <FeaturedCarousel menus={menus} />
       {menus && (
         <MenuFilterBar
           menus={filteredMenus}

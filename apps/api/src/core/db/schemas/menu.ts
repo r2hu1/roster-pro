@@ -66,6 +66,7 @@ export const menuItem = pgTable(
     category: text("category"),
     isAvailable: boolean("is_available").default(true).notNull(),
     isVegetarian: boolean("is_vegetarian").default(false).notNull(),
+    isFeatured: boolean("is_featured").default(false).notNull(),
     preparationTime: integer("preparation_time"),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at")
@@ -79,5 +80,6 @@ export const menuItem = pgTable(
     categoryIdx: index("menu_item_category_idx").on(table.category),
     availableIdx: index("menu_item_available_idx").on(table.isAvailable),
     vegetarianIdx: index("menu_item_vegetarian_idx").on(table.isVegetarian),
+    featuredIdx: index("menu_item_featured_idx").on(table.isFeatured),
   })
 )

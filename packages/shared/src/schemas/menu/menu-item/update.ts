@@ -14,6 +14,7 @@ export const UpdateMenuItemSchema = z.object({
   category: z.string().nullable().optional(),
   isAvailable: z.boolean().optional(),
   isVegetarian: z.boolean().optional(),
+  isFeatured: z.boolean().optional(),
   preparationTime: z.number().positive().nullable().optional(),
 })
 

@@ -83,6 +83,7 @@ menuItemRouter.post("/", sessionMiddleware, async (c) => {
       },
       isAvailable: formData.isAvailable === "true",
       isVegetarian: formData.isVegetarian === "true",
+      isFeatured: formData.isFeatured === "true",
       preparationTime: formData.preparationTime
         ? parseFloat(formData.preparationTime as string)
         : null,
@@ -148,6 +149,7 @@ menuItemRouter.put("/", sessionMiddleware, async (c) => {
       },
       isAvailable: formData.isAvailable === "true",
       isVegetarian: formData.isVegetarian === "true",
+      isFeatured: formData.isFeatured === "true",
       preparationTime: Number(formData.preparationTime) || 20,
     }
   } else {

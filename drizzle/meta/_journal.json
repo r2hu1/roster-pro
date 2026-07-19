@@ -15,6 +15,13 @@
       "when": 1784106896763,
       "tag": "0001_sparkling_ultimates",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1784484344413,
+      "tag": "0002_orange_frog_thor",
+      "breakpoints": true
     }
   ]
 }

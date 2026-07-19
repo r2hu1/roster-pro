@@ -41,6 +41,7 @@ export default function CreateMenuItemModal({
   const [fullPrice, setFullPrice] = useState("")
   const [ingredientsText, setIngredientsText] = useState("")
   const [isVegetarian, setIsVegetarian] = useState(false)
+  const [isFeatured, setIsFeatured] = useState(false)
   const [isAvailable, setIsAvailable] = useState(true)
   const [description, setDescription] = useState("")
   const [image, setImage] = useState<File | null>(null)
@@ -55,6 +56,7 @@ export default function CreateMenuItemModal({
     setFullPrice("")
     setIngredientsText("")
     setIsVegetarian(false)
+    setIsFeatured(false)
     setIsAvailable(true)
     setDescription("")
     setImage(null)
@@ -82,6 +84,7 @@ export default function CreateMenuItemModal({
       price: { half, full },
       isAvailable,
       isVegetarian,
+      isFeatured,
       preparationTime: preparationTime ? parseFloat(preparationTime) : null,
     })
 
@@ -102,6 +105,7 @@ export default function CreateMenuItemModal({
       formData.append("price_full", fullPrice)
       formData.append("isAvailable", String(isAvailable))
       formData.append("isVegetarian", String(isVegetarian))
+      formData.append("isFeatured", String(isFeatured))
       if (preparationTime)
         formData.append("preparationTime", String(preparationTime))
 
@@ -254,6 +258,21 @@ export default function CreateMenuItemModal({
               thumbClassName="h-4 w-4"
               checked={isVegetarian}
               onCheckedChange={setIsVegetarian}
+            />
+          </div>
+
+          <div className="flex items-center justify-between">
+            <div className="grid gap-0.5">
+              <Label>Featured</Label>
+              <p className="text-foreground/80 text-xs">
+                Mark this dish as featured
+              </p>
+            </div>
+            <Switch
+              className="h-5 w-10"
+              thumbClassName="h-4 w-4"
+              checked={isFeatured}
+              onCheckedChange={setIsFeatured}
             />
           </div>
 
