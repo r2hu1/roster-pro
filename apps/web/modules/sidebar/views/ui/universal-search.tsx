@@ -207,7 +207,6 @@ export function UniversalSearch({ children }: { children: React.ReactNode }) {
                 <CommandEmpty>No results found.</CommandEmpty>
               )}
 
-
             {hasQuery && orders && orders.length > 0 && (
               <CommandGroup heading={`Orders (${orders.length})`}>
                 {orders.map((order) => (
@@ -270,61 +269,58 @@ export function UniversalSearch({ children }: { children: React.ReactNode }) {
               </CommandGroup>
             )}
 
-                <CommandGroup heading="Navigate to">
-                  <CommandItem onSelect={() => navigate(`/${orgId}`)}>
-                    <Cart className="size-4" />
-                    <span>Orders</span>
-                  </CommandItem>
-                  <CommandItem onSelect={() => navigate(`/${orgId}/tables`)}>
-                    <Armchair2 className="size-4" />
-                    <span>Tables</span>
-                  </CommandItem>
-                  <CommandItem onSelect={() => navigate(`/${orgId}/menus`)}>
-                    <ChefHat className="size-4" />
-                    <span>Menus</span>
-                  </CommandItem>
-                  <CommandItem onSelect={() => navigate(`/${orgId}/analytics`)}>
-                    <ChartBarTrendUp className="size-4" />
-                    <span>Analytics</span>
-                  </CommandItem>
-                  <CommandItem onSelect={() => navigate(`/${orgId}/receipts`)}>
-                    <BillList className="size-4" />
-                    <span>Receipts</span>
-                  </CommandItem>
-                </CommandGroup>
+            <CommandGroup heading="Navigate to">
+              <CommandItem onSelect={() => navigate(`/${orgId}`)}>
+                <Cart className="size-4" />
+                <span>Orders</span>
+              </CommandItem>
+              <CommandItem onSelect={() => navigate(`/${orgId}/tables`)}>
+                <Armchair2 className="size-4" />
+                <span>Tables</span>
+              </CommandItem>
+              <CommandItem onSelect={() => navigate(`/${orgId}/menus`)}>
+                <ChefHat className="size-4" />
+                <span>Menus</span>
+              </CommandItem>
+              <CommandItem onSelect={() => navigate(`/${orgId}/analytics`)}>
+                <ChartBarTrendUp className="size-4" />
+                <span>Analytics</span>
+              </CommandItem>
+              <CommandItem onSelect={() => navigate(`/${orgId}/receipts`)}>
+                <BillList className="size-4" />
+                <span>Receipts</span>
+              </CommandItem>
+            </CommandGroup>
 
-                <CommandGroup heading="Settings">
-                  <CommandItem
-                    onSelect={() => navigate(`/${orgId}/settings?tab=general`)}
-                  >
-                    <Home className="size-4" />
-                    <span>General</span>
-                  </CommandItem>
-                  <CommandItem
-                    onSelect={() => navigate(`/${orgId}/settings?tab=billing`)}
-                  >
-                    <ShoppingCart className="size-4" />
-                    <span>Billing</span>
-                  </CommandItem>
-                  <CommandItem
-                    onSelect={() =>
-                      navigate(`/${orgId}/settings?tab=subscription`)
-                    }
-                  >
-                    <CreditCard className="size-4" />
-                    <span>Subscription</span>
-                  </CommandItem>
-                  <CommandItem
-                    onSelect={() => {
-                      setOpen(false)
-                      toggleSidebar()
-                    }}
-                  >
-                    <Sidebar className="size-4" />
-                    <span>Toggle Sidebar</span>
-                  </CommandItem>
-                </CommandGroup>
-
+            <CommandGroup heading="Settings">
+              <CommandItem
+                onSelect={() => navigate(`/${orgId}/settings?tab=general`)}
+              >
+                <Home className="size-4" />
+                <span>General</span>
+              </CommandItem>
+              <CommandItem
+                onSelect={() => navigate(`/${orgId}/settings?tab=billing`)}
+              >
+                <ShoppingCart className="size-4" />
+                <span>Billing</span>
+              </CommandItem>
+              <CommandItem
+                onSelect={() => navigate(`/${orgId}/settings?tab=subscription`)}
+              >
+                <CreditCard className="size-4" />
+                <span>Subscription</span>
+              </CommandItem>
+              <CommandItem
+                onSelect={() => {
+                  setOpen(false)
+                  toggleSidebar()
+                }}
+              >
+                <Sidebar className="size-4" />
+                <span>Toggle Sidebar</span>
+              </CommandItem>
+            </CommandGroup>
           </CommandList>
         </Command>
       </CommandDialog>
