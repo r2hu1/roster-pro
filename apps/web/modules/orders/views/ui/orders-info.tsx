@@ -138,7 +138,7 @@ export default function OrdersInfo({
               orderId={order.id}
               sessionId={multiRound ? order.tableSessionId : null}
             >
-              <Button size="lg" variant="default">
+              <Button size="lg" variant="default" className="w-full">
                 <Printer />
                 Print
               </Button>

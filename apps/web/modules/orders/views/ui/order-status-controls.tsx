@@ -38,7 +38,7 @@ export function OrderStatusSelect({
         Order Status{" "}
         <span className="lowercase text-[10px]">(click to update)</span>
       </label>
-      <div className="flex-wrap gap-2 items-center">
+      <div className="flex-wrap flex gap-1 items-center">
         {(
           [
             "pending",
@@ -50,9 +50,9 @@ export function OrderStatusSelect({
           ] as OrderStatus[]
         ).map((s) => (
           <Button
-            className="capitalize rounded-md! disabled:opacity-100!"
+            className="capitalize rounded-md! disabled:opacity-100! disabled:cursor-not-allowed! disabled:pointer-events-auto!"
             variant={value !== s ? "secondary" : "default"}
-            disabled={pending !== null}
+            disabled={pending !== null || s === value || (value === "cancelled" || value === "completed")}
             onClick={() => handleUpdate(s)}
             key={s}
             value={s}
@@ -96,12 +96,12 @@ export function PaymentStatusSelect({
         Payment Status{" "}
         <span className="lowercase text-[10px]">(click to update)</span>
       </label>
-      <div className="flex-wrap gap-2 items-center">
-        {(["pending", "paid", "failed", "refunded"] as PaymentStatus[]).map(
+      <div className="flex-wrap gap-1 flex items-center">
+        {(["pending", "paid", "refunded"] as PaymentStatus[]).map(
           (s) => (
             <Button
+              className="capitalize rounded-md! disabled:opacity-100! disabled:cursor-not-allowed! disabled:pointer-events-auto!"
               disabled={s === value || pending !== null}
-              className="capitalize disabled:opacity-100 rounded-md!"
               variant={value !== s ? "secondary" : "default"}
               onClick={() => handleUpdate(s)}
               key={s}

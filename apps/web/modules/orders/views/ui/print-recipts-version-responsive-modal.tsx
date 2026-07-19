@@ -62,15 +62,10 @@ export default function PrintReceiptVersionModal({
 
   if (!sessionId) {
     return (
-      <Button
-        size="lg"
-        variant="default"
-        onClick={() => handlePrint("ticket")}
-        disabled={printing !== null}
-      >
-        {printing === "ticket" ? <Loader /> : <Printer />}
-        Print
-      </Button>
+      <div
+        onClick={() => handlePrint("ticket")}>
+        {children}
+      </div>
     )
   }
 
