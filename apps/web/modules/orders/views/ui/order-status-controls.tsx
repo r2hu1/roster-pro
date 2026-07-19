@@ -85,7 +85,7 @@ export function OrderStatusSelect({
           if (!open) setConfirming(null)
         }}
       >
-        <ResponsiveModalContent>
+        <ResponsiveModalContent thumbClassName="mt-1">
           <ResponsiveModalHeader>
             <ResponsiveModalTitle>
               Mark order as {confirming}?
