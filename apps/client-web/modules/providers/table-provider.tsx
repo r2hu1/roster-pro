@@ -3,7 +3,7 @@
 import Preloader from "@/components/preloader"
 import { useDecodeToken } from "@/hooks/use-decode-token"
 import { DecodedToken } from "@workspace/shared/types/organization/table/token/types"
-import { useParams } from "next/navigation"
+import { useParams, useRouter } from "next/navigation"
 import { createContext, useContext, useEffect } from "react"
 
 interface TableContextProps {
@@ -16,12 +16,16 @@ interface TableContextProps {
 const TableContext = createContext<TableContextProps | null>(null)
 
 export function TableProvider({ children }: { children: React.ReactNode }) {
+  const router = useRouter()
   const { token } = useParams<{ token: string }>()
   const { data: decodedToken, isPending, error } = useDecodeToken(token)
 
   useEffect(() => {
-    localStorage.setItem("last-visited", token)
-  }, [token])
+    if (isPending) return
+    if (!decodedToken) {
+      router.push(`${process.env.NEXT_PUBLIC_MARKETING_URL}`)
+    }
+  }, [decodedToken, isPending, router])
 
   return (
     <TableContext.Provider
