@@ -32,6 +32,7 @@ import {
   InputGroupAddon,
   InputGroupInput,
 } from "@workspace/ui/components/input-group"
+import { UniversalSearch } from "./universal-search"
 
 const data = {
   user: {
@@ -90,12 +91,14 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>
-            <InputGroup className="h-10 px-1 bg-background shadow-sm text-[14.5px] rounded-md">
-              <InputGroupInput placeholder="Search anything..." />
-              <InputGroupAddon align="inline-end">
-                <Search className="size-4" />
-              </InputGroupAddon>
-            </InputGroup>
+            <UniversalSearch>
+              <InputGroup className="h-10 px-1 bg-background shadow-sm text-[14.5px] rounded-md">
+                <InputGroupInput readOnly placeholder="Search anything..." />
+                <InputGroupAddon align="inline-end">
+                  <Search className="size-4" />
+                </InputGroupAddon>
+              </InputGroup>
+            </UniversalSearch>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
