@@ -13,6 +13,7 @@ import {
   Home,
   Settings,
   ShoppingCart,
+  Sidebar,
 } from "reicon-react"
 import { Button } from "@workspace/ui/components/button"
 import { Loader } from "@workspace/ui/components/loader"
@@ -26,6 +27,7 @@ import {
   CommandList,
 } from "@workspace/ui/components/command"
 import { useSession } from "@/modules/providers/session-provider"
+import { useSidebar } from "@workspace/ui/components/sidebar"
 import api from "@/lib/axios"
 
 type Table = {
@@ -70,6 +72,7 @@ function useDebounce(value: string, delay: number) {
 export function UniversalSearch({ children }: { children: React.ReactNode }) {
   const router = useRouter()
   const { organization } = useSession()
+  const { toggleSidebar } = useSidebar()
   const orgId = organization?.id
   const [open, setOpen] = React.useState(false)
   const [query, setQuery] = React.useState("")
@@ -133,9 +136,7 @@ export function UniversalSearch({ children }: { children: React.ReactNode }) {
     const q = debouncedQuery.toLowerCase()
     return tables
       .filter(
-        (t) =>
-          String(t.number).includes(q) ||
-          t.name?.toLowerCase().includes(q)
+        (t) => String(t.number).includes(q) || t.name?.toLowerCase().includes(q)
       )
       .slice(0, 5)
   }, [tables, debouncedQuery, hasQuery])
@@ -198,59 +199,19 @@ export function UniversalSearch({ children }: { children: React.ReactNode }) {
               </div>
             )}
 
-            {!loading && hasQuery && !orders?.length && !filteredTables.length && !filteredItems.length && (
-              <CommandEmpty>No results found.</CommandEmpty>
-            )}
+            {!loading &&
+              hasQuery &&
+              !orders?.length &&
+              !filteredTables.length &&
+              !filteredItems.length && (
+                <CommandEmpty>No results found.</CommandEmpty>
+              )}
 
-            {!loading && (
-              <>
-                <CommandGroup heading="Navigate to">
-                  <CommandItem onSelect={() => navigate(`/${orgId}`)}>
-                    <Cart className="size-4" />
-                    <span>Orders</span>
-                  </CommandItem>
-                  <CommandItem onSelect={() => navigate(`/${orgId}/tables`)}>
-                    <Armchair2 className="size-4" />
-                    <span>Tables</span>
-                  </CommandItem>
-                  <CommandItem onSelect={() => navigate(`/${orgId}/menus`)}>
-                    <ChefHat className="size-4" />
-                    <span>Menus</span>
-                  </CommandItem>
-                  <CommandItem onSelect={() => navigate(`/${orgId}/analytics`)}>
-                    <ChartBarTrendUp className="size-4" />
-                    <span>Analytics</span>
-                  </CommandItem>
-                  <CommandItem onSelect={() => navigate(`/${orgId}/receipts`)}>
-                    <BillList className="size-4" />
-                    <span>Receipts</span>
-                  </CommandItem>
-                </CommandGroup>
-
-                <CommandGroup heading="Settings">
-                  <CommandItem onSelect={() => navigate(`/${orgId}/settings?tab=general`)}>
-                    <Home className="size-4" />
-                    <span>General</span>
-                  </CommandItem>
-                  <CommandItem onSelect={() => navigate(`/${orgId}/settings?tab=billing`)}>
-                    <ShoppingCart className="size-4" />
-                    <span>Billing</span>
-                  </CommandItem>
-                  <CommandItem onSelect={() => navigate(`/${orgId}/settings?tab=subscription`)}>
-                    <CreditCard className="size-4" />
-                    <span>Subscription</span>
-                  </CommandItem>
-                </CommandGroup>
-              </>
-            )}
 
             {hasQuery && orders && orders.length > 0 && (
               <CommandGroup heading={`Orders (${orders.length})`}>
                 {orders.map((order) => (
-                  <CommandItem
-                    key={order.id}
-                    onSelect={() => navigate("/")}
-                  >
+                  <CommandItem key={order.id} onSelect={() => navigate("/")}>
                     <Cart className="size-4" />
                     <div className="flex flex-1 items-center justify-between">
                       <span>{order.invoiceNumber}</span>
@@ -308,6 +269,62 @@ export function UniversalSearch({ children }: { children: React.ReactNode }) {
                 ))}
               </CommandGroup>
             )}
+
+                <CommandGroup heading="Navigate to">
+                  <CommandItem onSelect={() => navigate(`/${orgId}`)}>
+                    <Cart className="size-4" />
+                    <span>Orders</span>
+                  </CommandItem>
+                  <CommandItem onSelect={() => navigate(`/${orgId}/tables`)}>
+                    <Armchair2 className="size-4" />
+                    <span>Tables</span>
+                  </CommandItem>
+                  <CommandItem onSelect={() => navigate(`/${orgId}/menus`)}>
+                    <ChefHat className="size-4" />
+                    <span>Menus</span>
+                  </CommandItem>
+                  <CommandItem onSelect={() => navigate(`/${orgId}/analytics`)}>
+                    <ChartBarTrendUp className="size-4" />
+                    <span>Analytics</span>
+                  </CommandItem>
+                  <CommandItem onSelect={() => navigate(`/${orgId}/receipts`)}>
+                    <BillList className="size-4" />
+                    <span>Receipts</span>
+                  </CommandItem>
+                </CommandGroup>
+
+                <CommandGroup heading="Settings">
+                  <CommandItem
+                    onSelect={() => navigate(`/${orgId}/settings?tab=general`)}
+                  >
+                    <Home className="size-4" />
+                    <span>General</span>
+                  </CommandItem>
+                  <CommandItem
+                    onSelect={() => navigate(`/${orgId}/settings?tab=billing`)}
+                  >
+                    <ShoppingCart className="size-4" />
+                    <span>Billing</span>
+                  </CommandItem>
+                  <CommandItem
+                    onSelect={() =>
+                      navigate(`/${orgId}/settings?tab=subscription`)
+                    }
+                  >
+                    <CreditCard className="size-4" />
+                    <span>Subscription</span>
+                  </CommandItem>
+                  <CommandItem
+                    onSelect={() => {
+                      setOpen(false)
+                      toggleSidebar()
+                    }}
+                  >
+                    <Sidebar className="size-4" />
+                    <span>Toggle Sidebar</span>
+                  </CommandItem>
+                </CommandGroup>
+
           </CommandList>
         </Command>
       </CommandDialog>
