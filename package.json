@@ -15,7 +15,7 @@
   "packageManager": "bun@1.3.8",
   "private": true,
   "simple-git-hooks": {
-    "pre-commit": "bunx biome format . --write"
+    "pre-commit": "bunx biome format --write --staged --no-errors-on-unmatched"
   },
   "scripts": {
     "build": "turbo build",
