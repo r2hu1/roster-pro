@@ -4,6 +4,7 @@ import { useState } from "react"
 import type { OrderStatus, PaymentStatus } from "@workspace/shared/enums"
 import { updateOrderStatus, updateOrder } from "../../api/orders"
 import { Button } from "@workspace/ui/components/button"
+import { Checkbox } from "@workspace/ui/components/checkbox"
 import { Loader } from "@workspace/ui/components/loader"
 import { toast } from "sonner"
 
@@ -111,6 +112,58 @@ export function PaymentStatusSelect({
             </Button>
           )
         )}
+      </div>
+    </div>
+  )
+}
+
+export function PaymentMethodSelect({
+  orderId,
+  initial,
+}: {
+  orderId: string
+  initial: string | null
+}) {
+  const [value, setValue] = useState(initial)
+  const [pending, setPending] = useState<string | null>(null)
+
+  async function handleUpdate(m: string) {
+    if (m === value || pending) return
+    const previous = value
+    setValue(m)
+    setPending(m)
+    try {
+      await updateOrder({ id: orderId, paymentMethod: m })
+    } catch {
+      setValue(previous)
+      toast.error("Failed to update payment method")
+    } finally {
+      setPending(null)
+    }
+  }
+
+  return (
+    <div className="grid gap-1.5">
+      <label className="text-xs text-muted-foreground uppercase tracking-widest font-medium">
+        Payment Method{" "}
+        <span className="lowercase text-[10px]">(click to update)</span>
+      </label>
+      <div className="flex-wrap gap-4 flex items-center">
+        {(["cash", "online"] as const).map((m) => (
+          <label
+            className="flex items-center gap-2 text-sm capitalize cursor-pointer"
+            key={m}
+          >
+            <Checkbox
+              checked={value === m}
+              disabled={pending !== null}
+              onCheckedChange={(checked) => {
+                if (checked) handleUpdate(m)
+              }}
+            />
+            {m}
+          </label>
+        ))}
       </div>
     </div>
   )

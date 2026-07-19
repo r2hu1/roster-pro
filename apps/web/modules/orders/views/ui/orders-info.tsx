@@ -9,7 +9,7 @@ import {
   SheetTitle,
   SheetFooter,
 } from "@workspace/ui/components/sheet"
-import { OrderStatusSelect, PaymentStatusSelect } from "./order-status-controls"
+import { OrderStatusSelect, PaymentStatusSelect, PaymentMethodSelect } from "./order-status-controls"
 import { OrderItemsList } from "./order-items-list"
 import { OrderTotalsSummary } from "./order-totals-summary"
 import PrintReceiptVersionModal from "./print-recipts-version-responsive-modal"
@@ -92,6 +92,10 @@ export default function OrdersInfo({
               <PaymentStatusSelect
                 orderId={order.id}
                 initial={order.paymentStatus}
+              />
+              <PaymentMethodSelect
+                orderId={order.id}
+                initial={order.paymentMethod}
               />
               {order.notes && (
                 <div className="rounded-lg border-2 p-2.5">
