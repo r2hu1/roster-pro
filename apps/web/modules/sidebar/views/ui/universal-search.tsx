@@ -227,7 +227,7 @@ export function UniversalSearch({ children }: { children: React.ReactNode }) {
                   <CommandItem
                     key={table.id}
                     value={`Table ${table.number} ${table.name ?? ""} ${table.status}`}
-                    onSelect={() => navigate(`/${orgId}/tables`)}
+                    onSelect={() => navigate(`/${orgId}/tables?currentTable=${table.id}`)}
                   >
                     <Armchair2 className="size-4" />
                     <div className="flex flex-1 items-center justify-between">

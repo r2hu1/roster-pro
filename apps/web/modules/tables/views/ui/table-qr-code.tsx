@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef } from "react"
+import { useEffect, useRef, useState } from "react"
 import {
   ResponsiveModal,
   ResponsiveModalTrigger,
@@ -18,6 +18,7 @@ import type { QRHandle } from "@/components/qr-code"
 import { IconDownload } from "@tabler/icons-react"
 import { generateQrToken } from "../../api/tables"
 import { Skeleton } from "@workspace/ui/components/skeleton"
+import { useQueryState } from "nuqs"
 
 export default function TableQrCodeModal({
   table,
@@ -27,39 +28,72 @@ export default function TableQrCodeModal({
   children: React.ReactNode
 }) {
   const qrRef = useRef<QRHandle>(null)
-  const [open, setOpen] = useState(false)
+
+  const [currentTable, setCurrentTable] = useQueryState("currentTable")
+
   const [token, setToken] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
 
-  async function handleOpenChange(v: boolean) {
-    setOpen(v)
-    if (!v) {
+  const open = currentTable === table.id
+
+  useEffect(() => {
+    if (!open) {
       setToken(null)
+      setLoading(false)
       return
     }
-    setLoading(true)
-    try {
-      const result = await generateQrToken(table.id, table.number)
-      setToken(result.token)
-    } catch {
-      toast.error("Failed to generate QR code")
-    } finally {
-      setLoading(false)
+
+    let cancelled = false
+
+    async function loadQr() {
+      setLoading(true)
+
+      try {
+        const result = await generateQrToken(table.id, table.number)
+
+        if (!cancelled) {
+          setToken(result.token)
+        }
+      } catch {
+        if (!cancelled) {
+          toast.error("Failed to generate QR code")
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false)
+        }
+      }
     }
-  }
+
+    loadQr()
+
+    return () => {
+      cancelled = true
+    }
+  }, [open, table.id, table.number])
 
   return (
-    <ResponsiveModal open={open} onOpenChange={handleOpenChange}>
-      <ResponsiveModalTrigger asChild>{children}</ResponsiveModalTrigger>
+    <ResponsiveModal
+      open={open}
+      onOpenChange={(nextOpen) => {
+        setCurrentTable(nextOpen ? table.id : null)
+      }}
+    >
+      <ResponsiveModalTrigger asChild>
+        {children}
+      </ResponsiveModalTrigger>
+
       <ResponsiveModalContent>
         <ResponsiveModalHeader>
           <ResponsiveModalTitle>
             QR Code - Table {table.number}
           </ResponsiveModalTitle>
+
           <ResponsiveModalDescription>
             Scan to view the menu and place orders.
           </ResponsiveModalDescription>
         </ResponsiveModalHeader>
+
         <ResponsiveModalBody className="flex justify-center">
           {loading ? (
             <Skeleton className="h-70 w-full" />
@@ -67,6 +101,7 @@ export default function TableQrCodeModal({
             <QR ref={qrRef} token={token} />
           ) : null}
         </ResponsiveModalBody>
+
         {token && (
           <ResponsiveModalFooter>
             <Button
@@ -79,7 +114,8 @@ export default function TableQrCodeModal({
                 })
               }
             >
-              <IconDownload /> Download
+              <IconDownload />
+              Download
             </Button>
           </ResponsiveModalFooter>
         )}
