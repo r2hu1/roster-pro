@@ -32,11 +32,18 @@ The printed QR token is being used as both **identity** ("this is table 4 of org
 ## 2. Target Architecture
 
 ```
-┌──────────┐  scan   ┌────────────────────────────────────────────┐
-│ Printed  │────────▶│ client-web /[qrToken]                      │
-│ QR (static│        │  POST /public/qr/session  { qrToken }      │
-│ identity) │        └───────────────┬────────────────────────────┘
-└──────────┘                        │ issues
+┌──────────┐ native  ┌──────────────────────────────┐
+│ Printed  │ camera  │ client-web /[qrToken]        │
+│ QR (static│───────▶│  token scrubbed from history,│
+│ identity) │        │  redirect to / (scanner)     │
+└────┬─────┘         └──────────────┬───────────────┘
+     │ in-app scanner               ▼
+     │ (reads same QR)   ┌──────────────────────────────┐
+     └──────────────────▶│ client-web /  (in-app scanner)│
+                         │  parses token from QR content │
+                         │  POST /public/qr/session      │
+                         └──────────────┬───────────────┘
+                                    │ issues
                                     ▼
                     ┌────────────────────────────────┐
                     │ QR Session (ephemeral authz)   │
@@ -62,6 +69,27 @@ The printed QR token is being used as both **identity** ("this is table 4 of org
 2. **Session = authorization.** Short-lived, server-side (Redis), revocable, bound to one table + one active `tableSession`. All ordering requires it.
 3. **Server derives scope.** `organizationId` / `tableId` come from the session record, never from request body or query params.
 4. **Staff control the lifecycle.** Checkout, table close, or token regeneration instantly revokes every session on that table.
+5. **Scanner-first entry.** The URL alone never grants a session — session issuance happens only after the in-app scanner reads the physical QR. Forwarded links are inert.
+
+### 2.1 In-App Scanner Entry
+
+`app/page.tsx` (currently a redirect stub) becomes the **scanner page** — the single entry point for starting a session:
+
+1. Customer scans the printed QR with their **native camera** → browser opens `/{token}`.
+2. `/[token]` does **not** exchange the token. It immediately scrubs the token from the address bar (`history.replaceState`) and, if no valid session credential exists, redirects to `/` showing: *"Point your camera at the table QR to start ordering."*
+3. The in-app scanner (native `BarcodeDetector` API with a `@zxing/browser` or `jsQR` fallback) reads the same printed QR, parses the token out of the QR's URL content client-side, and calls `POST /public/qr/session` directly. The token never re-enters the address bar.
+4. On success the credential is stored, and the customer lands on the menu at `/{token}` (token now acts purely as a route key; ordering authority is the session).
+5. If a valid session already exists (cookie/credential verifies via `GET /public/qr/session`), both `/` and `/[token]` skip the scanner and go straight to the menu — no re-scan friction mid-meal.
+6. On session expiry (401 `SESSION_EXPIRED`), the client returns to the scanner page — re-proof of physical presence is a camera scan, not a page refresh.
+
+**What the scanner buys (and what it doesn't):**
+
+- Forwarded/shared URLs become useless: the link contains no ordering authority and the landing page demands a physical scan. This kills the "WhatsApp the link to a friend at home" path for normal users.
+- The token disappears from browser history, link previews, and screenshots of the address bar.
+- Expiry re-scan turns TTL enforcement into genuine presence re-verification for legitimate users.
+- **It is not a cryptographic boundary.** The server cannot distinguish a token read by the camera from a token pasted into the same `POST /public/qr/session` call — a motivated attacker who extracted the token once can still request sessions directly, and a *photo* of the printed QR scans as well as the original. The scanner reduces leak surface and adds friction; the session layer (TTLs, revocation, rate limits, staff activation) remains the actual enforcement. Do not weaken any server-side control on the assumption that "only the scanner can reach it."
+
+Camera access requires a secure context (HTTPS — already the case) and user permission; the scanner page needs a graceful denied-permission fallback (manual "enter table code" assisted by staff, or a prompt to use the native camera path which redirects back with the token available for a one-tap "Start session" confirmation — still rate-limited and session-gated server-side).
 
 ---
 
@@ -197,11 +225,13 @@ Publish `session.ended` on the existing realtime channel (`publishTableEvent`) s
 
 ## 6. Customer-side Changes (`apps/client-web`)
 
-1. **`TableProvider`** (`modules/providers/table-provider.tsx`): on mount, `POST /public/qr/session` with the URL token instead of the bare decode call. On success, context payload replaces `useDecodeToken` data. On 401 (dead/regenerated token) redirect to marketing as today; on 403 show reason ("Ask staff to open the table").
-2. **Axios instance** (`lib/axios.ts`): `withCredentials: true`; 401 `SESSION_EXPIRED` interceptor → one silent re-issue attempt from the URL token, else "Session expired — rescan the QR" screen.
-3. **Hooks** (`use-create-table-order`, `use-active-orders`, `use-cancel-table-order`, `use-modify-table-order`, `use-order`): point at `/public/qr/orders/*`; drop `tableId`/`organizationId` params — cart flow (`responsive-placing-order.tsx`) no longer sends `organizationId`.
-4. **SSE** (`use-active-orders-stream.ts` / `realtime-server.ts`): connect to `/public/qr/stream` with cookie (or stream ticket, 4.2); handle `session.ended` → session-ended screen.
-5. **Session-expiry UX**: full-screen prompt, not a toast — customer must rescan (physical presence re-proof). Cart persists in localStorage across re-issue so nothing is lost.
+1. **Scanner page** (`app/page.tsx`): replace the redirect stub with the in-app scanner (2.1). Components: camera viewfinder (`BarcodeDetector` + `@zxing/browser`/`jsQR` fallback), permission-denied fallback, "already have a session" fast path via `GET /public/qr/session`. Drop the `last-visited` localStorage auto-redirect — auto-resuming a stale table URL bypasses the presence check.
+2. **`app/[token]`**: never auto-exchanges. Scrub token from the URL bar, redirect to `/` scanner when no valid session; render menu when a session exists. Layout metadata keeps using the branding-only decode endpoint.
+3. **`TableProvider`** (`modules/providers/table-provider.tsx`): context now sourced from the session issuance response (org/table payload) instead of `useDecodeToken`. On 401 → scanner page; on 403 show reason ("Ask staff to open the table").
+4. **Axios instance** (`lib/axios.ts`): attach the session credential; 401 `SESSION_EXPIRED` interceptor → clear credential, route to scanner page.
+5. **Hooks** (`use-create-table-order`, `use-active-orders`, `use-cancel-table-order`, `use-modify-table-order`, `use-order`): point at `/public/qr/orders/*`; drop `tableId`/`organizationId` params — cart flow (`responsive-placing-order.tsx`) no longer sends `organizationId`.
+6. **SSE** (`use-active-orders-stream.ts` / `realtime-server.ts`): connect to `/public/qr/stream` with cookie (or stream ticket, 4.2); handle `session.ended` → session-ended screen.
+7. **Session-expiry UX**: full-screen scanner prompt, not a toast — customer must physically rescan. Cart persists in localStorage across re-issue so nothing is lost.
 
 ---
 
@@ -209,7 +239,8 @@ Publish `session.ended` on the existing realtime channel (`publishTableEvent`) s
 
 | Threat | Mitigation |
 |--------|-----------|
-| Shared/leaked URL used remotely later | Ordering needs a session; sessions expire (30min idle / 3h hard) and die at checkout. Old link alone can only request a *new* session — blocked by staff-activation mode and monitoring, and useless once token regenerated |
+| Shared/leaked URL used remotely later | URL alone grants nothing: landing page demands an in-app camera scan of the physical QR before a session is issued. Even with the token extracted, sessions expire (30min idle / 3h hard), die at checkout, and issuance is rate-limited + staff-activation-gated |
+| Link forwarded to someone off-premise | Scanner-first entry — the link contains no ordering authority; recipient needs the physical QR (or a photo of it — see residual risks) |
 | Order forgery with known tableId/orgId (V1) | Open endpoints removed; scope derived server-side from session |
 | Cross-org data reads (V3) | All customer reads session-scoped; decode returns branding only |
 | Previous party reads/modifies current party's orders (V6) | Ownership = matching `tableSessionId` |
@@ -217,7 +248,7 @@ Publish `session.ended` on the existing realtime channel (`publishTableEvent`) s
 | Stolen session credential | HttpOnly cookie (no JS access); Redis-side secret hashed; short TTL; revocable |
 | Compromised printed QR | Regenerate + version bump kills it instantly |
 
-Residual (accepted or Phase-3+): a person physically at the table can order — that is the product; someone scanning then walking out can order until idle timeout — bounded by TTL, activation mode, and staff visibility. True presence-proof (rotating TOTP QR on a table display, BLE/geofence) is possible later; incompatible with printed codes, so out of scope for the base design.
+Residual (accepted or Phase-3+): a person physically at the table can order — that is the product; someone scanning then walking out can order until idle timeout — bounded by TTL, activation mode, and staff visibility. A **photo of the printed QR** scans identically to the original, and a motivated attacker can call the session endpoint with an extracted token directly — the scanner is friction, not proof; server-side controls carry the enforcement. True presence-proof (rotating TOTP QR on a table display, BLE/geofence) is possible later; incompatible with printed codes, so out of scope for the base design.
 
 ---
 
@@ -230,7 +261,7 @@ Residual (accepted or Phase-3+): a person physically at the table can order — 
 - `/public/qr/orders/*` + session-scoped logic variants (create/active/detail/modify/cancel/invoice), per-session rate limits, SSE via session. Old routes still up.
 
 **Phase 3 — Client migration**
-- `client-web` switches to session flow (6.1–6.5); staff UI regenerate + session visibility (5.1–5.2); org-level config knobs.
+- `client-web` switches to scanner-first session flow (2.1, 6.1–6.7): scanner page at `/`, `[token]` redirect behavior, session-backed hooks; staff UI regenerate + session visibility (5.1–5.2); org-level config knobs.
 
 **Phase 4 — Lockdown**
 - Remove/staff-gate legacy open endpoints (4.5), slim decode response, deploy monitoring on public-route 4xx.
@@ -245,4 +276,5 @@ Each phase ships independently; rollback = client points back at legacy routes u
 - Middleware: missing/malformed/expired credential, wrong secret (constant-time path), idle-TTL refresh, absolute-TTL cutoff despite activity.
 - Ordering: order without session → 401; order with expired session → 401; modify order from previous `tableSession` → 403; cross-table order attempt via forged IDs → impossible (no ID inputs).
 - Revocation: checkout kills all table sessions mid-flight; regenerate kills sessions and old printed QR; `session.ended` reaches connected SSE clients.
+- Scanner entry: `/[token]` visit scrubs token from history and redirects to scanner when sessionless; valid session skips the scanner on both `/` and `/[token]`; scanner parses token from QR URL content; camera-permission-denied fallback works; expiry mid-meal returns to scanner and cart survives re-issue.
 - Load: issuance and order rate limits under burst; Redis TTL cleanup leaves no orphaned index members.
