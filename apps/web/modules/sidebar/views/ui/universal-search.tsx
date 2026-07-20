@@ -215,8 +215,8 @@ export function UniversalSearch({ children }: { children: React.ReactNode }) {
                     <Cart className="size-4" />
                     <div className="flex flex-1 items-center justify-between">
                       <span>{order.invoiceNumber}</span>
-                      <span className="text-xs text-muted-foreground">
-                        {order.tableNumber} · ₹{order.grandTotal}
+                      <span className="text-xs text-muted-foreground capitalize">
+                        {order.tableNumber !== "parcel" ? `Table ${order.tableNumber}` : order.tableNumber} · ₹{order.grandTotal}
                       </span>
                     </div>
                   </CommandItem>
