@@ -206,14 +206,14 @@ export function UniversalSearch({ children }: { children: React.ReactNode }) {
                 {orders.map((order) => (
                   <CommandItem
                     key={order.id}
-                    value={`${order.invoiceNumber} ${order.customerName ?? ""} Table ${order.tableNumber} ${order.status}`}
-                    onSelect={() => navigate("/")}
+                    value={`${order.invoiceNumber} ${order.customerName ?? ""} ${order.grandTotal} ${order.tableNumber} ${order.status}`}
+                    onSelect={() => navigate(`/${orgId}?currentOrderInfo=${order.invoiceNumber}`)}
                   >
                     <Cart className="size-4" />
                     <div className="flex flex-1 items-center justify-between">
                       <span>{order.invoiceNumber}</span>
                       <span className="text-xs text-muted-foreground">
-                        Table {order.tableNumber} · ₹{order.grandTotal}
+                        {order.tableNumber} · ₹{order.grandTotal}
                       </span>
                     </div>
                   </CommandItem>

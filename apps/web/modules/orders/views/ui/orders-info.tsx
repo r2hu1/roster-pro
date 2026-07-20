@@ -21,6 +21,7 @@ import { Button } from "@workspace/ui/components/button"
 import { ScrollArea } from "@workspace/ui/components/scroll-area"
 import { isParcelOrder } from "@workspace/shared/constants/index"
 import { Printer } from "reicon-react"
+import { useQueryState } from "nuqs"
 
 export default function OrdersInfo({
   order,
@@ -32,8 +33,12 @@ export default function OrdersInfo({
   children: React.ReactNode
 }) {
   const showSession = Boolean(order.tableSessionId) && multiRound
+  const [currentOrderInfo, setCurrentOrderInfo] = useQueryState("currentOrderInfo");
   return (
-    <Sheet>
+    <Sheet open={currentOrderInfo === order.invoiceNumber}
+    onOpenChange={(open) => {
+      setCurrentOrderInfo(open ? order.invoiceNumber : null)
+    }}>
       <SheetTrigger asChild>{children}</SheetTrigger>
       <SheetContent side="right" className="flex flex-col w-full sm:max-w-md!">
         <SheetHeader className="border-b">

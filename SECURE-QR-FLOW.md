@@ -1,491 +1,248 @@
-# Secure QR Session Flow
+# Secure QR Flow
 
-## Problem
+Production-grade design for QR-based dine-in sessions. Replaces the current "anyone with the link can order forever" model with short-lived, revocable, server-side sessions while keeping printed QR codes permanent.
 
-Current QR flow has zero access control:
-- Static encrypted token `{tableId, orgId}` embedded in URL
-- Token never expires, never rotates
-- No device binding — anyone with URL can order from anywhere
-- No session concept — token IS auth
-- No rate limiting on decode endpoint
-- One `table.qrToken` shared by all customers scanning same table
+---
 
-## Constraints
+## 1. Current State & Vulnerabilities
 
-Must handle this real scenario: **4 people at same table, each scans QR from own phone → each browses menu, places separate orders → all orders visible to all**. QR token is an "invitation code", not a single-use ticket.
+### How it works today
 
-| Valid use case | Must work |
-|----------------|-----------|
-| Multiple phones, same table, separate orders | Yes |
-| Person leaves, friend joins, scans same QR | Yes |
-| Single phone browses + orders + tracks status | Yes |
-| **QR photographed, shared on Twitter, 1000 off-site scans** | **Must block** |
+1. Staff generates a QR token (`POST /organization/table/token`). Token = AES-256-GCM blob of `{ tableId, organizationId }`, stored in `table.qr_token`, reused forever.
+2. Customer scans → lands on `client-web/app/[token]` → `GET /organization/table/token/decode` returns org + table info.
+3. Customer places orders via `POST /organization/orders/table/:tableId` with `organizationId` in the body.
 
-The constraint pair (multi-user-at-table vs prevent-off-site-abuse) requires **per-session device binding + ephemeral TTL**, not token consumption.
+### Vulnerabilities (verified in code)
 
-## Physical Reality: Printed QR
+| # | Severity | Issue | Location |
+|---|----------|-------|----------|
+| V1 | Critical | `POST /orders/table/:tableId` has **no auth of any kind** — not even the QR token. Anyone knowing `tableId` + `organizationId` can create orders from anywhere. | `apps/api/src/routes/organization/orders/orders.route.ts:93` |
+| V2 | Critical | `tableId` and `organizationId` are public knowledge: the decode endpoint returns both, and the token is in the URL (shared links, browser history, screenshots). | `table.logic.ts:decodeQrToken` |
+| V3 | High | `GET /orders/table/:tableId/active`, `GET /orders/:id`, `GET /orders/:orderId/invoice` are unauthenticated and trust `organizationId` from the query string — cross-org order/invoice reads. | `orders.route.ts:57,75,249` |
+| V4 | High | QR token never expires and is never rotated. A leaked URL grants indefinite remote ordering. | `table.logic.ts:generateQrToken` |
+| V5 | Medium | No rate limiting on customer endpoints — order spam / kitchen flooding is trivial. | all public routes |
+| V6 | Medium | Customer cancel/modify use the static QR token as authorization — anyone at (or once at) the table can modify any order on that table, indefinitely. | `orders.logic.ts:cancelByCustomer/modifyByCustomer` |
 
-QR codes are **printed on table cards / menu stickers**. They cannot be rotated, regenerated, or consumed. The `table.qrToken` value is a permanent fixture for the table's lifetime.
+### Core design flaw
 
-Implications:
-- `table.qrToken` is a static table identifier, not a revocable credential
-- `table.qrToken === token` check always passes — remove it as a security gate
-- No QR rotation, no token consumption, no "clear qrToken column"
-- **Geofence is the primary off-site abuse defense, not an optional phase**
-- If a printed QR is compromised (photo shared online), the defense is: geofence + device binding + rate limiting. Cannot "revoke" the printed card without reprinting.
+The printed QR token is being used as both **identity** ("this is table 4 of org X" — fine, it must be static because it's printed) and **authorization** ("bearer may order" — broken, because it can never expire). The fix is to split those roles.
 
-## Architecture
+---
 
-Two-layer auth:
-- **Layer 1 — QR Token**: existing AES-256-GCM encrypted token. Reusable "invitation code". NOT consumed on first scan.
-- **Layer 2 — QR Session**: short-lived server-side session created per scan. Device-bound, TTL-gated, rate-limited.
-
-### Data Flow
+## 2. Target Architecture
 
 ```
-┌─ Dashboard ──────────────────────────┐
-│ POST /table/token  [sessionMiddleware]│
-│ → encrypt({tableId, orgId})          │
-│ → store in table.qrToken             │
-│ → return { token }                   │
-└──────────────┬───────────────────────┘
-               │ QR encodes: order.rosterpro.in/{token}
-               ▼
-┌─ Customer ───────────────────────────┐
-│ Browser GET /{token}                 │
-│ → layout.tsx decodes token (existing)│
-│ → CLIENT: POST /table/token/session  │
-│   { token, deviceFingerprint }       │
-│ → Returns { sessionToken, expiresAt }│
-│ → Store sessionToken in memory/httpOnly cookie
-│ → All subsequent API calls include   │
-│   X-Session-Token header             │
-└───────────────────┬──────────────────┘
-                    │
-┌─ API Server ──────┴──────────────────┐
-│ qrSessionMiddleware:                  │
-│ 1. Extract sessionToken from header  │
-│ 2. Lookup in Redis (hot) → fallback  │
-│    DB (cold)                          │
-│ 3. Check status='active', expires_at │
-│ 4. Verify device fingerprint (opt)   │
-│ 5. Update last_activity_at           │
-│ 6. Extend Redis TTL                  │
-│                                      │
-│ POST /order/table/{id}  [qrSession]  │
-│ → Reads qrSession from context       │
-│ → Uses session.orgId + tableId       │
-│ → Create order (same as today)       │
-└──────────────────────────────────────┘
+┌──────────┐  scan   ┌────────────────────────────────────────────┐
+│ Printed  │────────▶│ client-web /[qrToken]                      │
+│ QR (static│        │  POST /public/qr/session  { qrToken }      │
+│ identity) │        └───────────────┬────────────────────────────┘
+└──────────┘                        │ issues
+                                    ▼
+                    ┌────────────────────────────────┐
+                    │ QR Session (ephemeral authz)   │
+                    │  opaque 256-bit token          │
+                    │  Redis: qr:session:{sid}       │
+                    │  TTL: 30min idle / 3h absolute │
+                    │  bound to org + table +        │
+                    │  tableSession                  │
+                    └───────────────┬────────────────┘
+                                    │ httpOnly cookie / bearer
+                                    ▼
+                    ┌────────────────────────────────┐
+                    │ /public/* customer routes      │
+                    │  qrSessionMiddleware derives   │
+                    │  orgId + tableId from session, │
+                    │  never from client input       │
+                    └────────────────────────────────┘
 ```
 
-## New Table: `qr_session`
+**Principles**
 
-```sql
-CREATE TABLE qr_session (
-  id             TEXT PRIMARY KEY DEFAULT uuidv4(),
-  organization_id TEXT NOT NULL REFERENCES organization(id) ON DELETE CASCADE,
-  table_id       TEXT NOT NULL REFERENCES "table"(id) ON DELETE CASCADE,
-  qr_token_hash  TEXT NOT NULL,
-  session_token  TEXT NOT NULL UNIQUE,
-  device_fingerprint TEXT,
-  ip_address     TEXT,
-  status         TEXT NOT NULL DEFAULT 'active'
-                 CHECK (status IN ('active','expired','revoked')),
-  last_activity_at TIMESTAMP NOT NULL DEFAULT NOW(),
-  expires_at     TIMESTAMP NOT NULL,
-  created_at     TIMESTAMP NOT NULL DEFAULT NOW(),
-  updated_at     TIMESTAMP NOT NULL DEFAULT NOW()
-);
+1. **Static QR = identity only.** Scanning proves nothing except "someone has the URL". It grants exactly one capability: requesting a session.
+2. **Session = authorization.** Short-lived, server-side (Redis), revocable, bound to one table + one active `tableSession`. All ordering requires it.
+3. **Server derives scope.** `organizationId` / `tableId` come from the session record, never from request body or query params.
+4. **Staff control the lifecycle.** Checkout, table close, or token regeneration instantly revokes every session on that table.
 
-CREATE INDEX qr_session_org_idx ON qr_session(organization_id);
-CREATE INDEX qr_session_table_idx ON qr_session(table_id);
-CREATE INDEX qr_session_token_idx ON qr_session(session_token);
-CREATE INDEX qr_session_hash_idx ON qr_session(qr_token_hash);
-CREATE INDEX qr_session_status_expires ON qr_session(status, expires_at);
+---
+
+## 3. Data Model
+
+### 3.1 Redis (source of truth for live sessions)
+
+Opaque token, not JWT — instant revocation matters more than statelessness here, and Redis (`core/redis/client.ts`) is already in the stack.
+
 ```
-
-`schema.ts` location: `apps/api/src/core/db/schemas/table.ts` (alongside existing `tableSession`)
-
-## Redis Key Schema
-
-| Key | Value | TTL |
-|-----|-------|-----|
-| `qr_session:{sessionToken}` | `{ organizationId, tableId, status, expiresAt, deviceFingerprint }` | Session remaining TTL |
-| `qr_rate_limit:{endpoint}:{fingerprintOrIp}` | `{ count }` | 1 min (sliding window) |
-
-## New Endpoints
-
-### `POST /organization/table/token/session` — Public, rate-limited
-
-**Purpose**: Create device-bound session from QR token. Multiple calls with same token create independent sessions (each scanner gets own session).
-
-**Request:**
-```json
-{
-  "token": "base64url-encrypted-token",
-  "deviceFingerprint": "sha256-of-client-signals" (optional),
-  "latitude": 12.9716,
-  "longitude": 77.5946,
-  "accuracyMeters": 25
+Key:   qr:session:{sessionId}
+Value: {
+  organizationId, tableId, tableNumber, tableSessionId,
+  createdAt, lastActivityAt,
+  ipHash, uaHash
 }
+TTL:   sliding 30min idle, hard cap 3h from createdAt
+
+Key:   qr:table-sessions:{tableId}          (SET of sessionIds — bulk revocation index)
+Key:   qr:issue-rate:{ipHash}               (rate-limit counter, TTL 60s)
+Key:   qr:order-rate:{sessionId}            (rate-limit counter, TTL 60s)
 ```
 
-`latitude`/`longitude`/`accuracyMeters` from browser `navigator.geolocation.getCurrentPosition()`. Accuracy used to determine confidence: ≤50m = high confidence, 50-200m = medium, >200m = degraded.
+The bearer credential given to the client is `{sessionId}.{secret}`, where `secret` is 32 random bytes (`crypto.randomBytes`); Redis stores `sha256(secret)` and validation is a constant-time compare. A Redis dump alone never leaks usable credentials.
 
-**Logic:**
-1. Decrypt QR token → `{ tableId, organizationId }`
-2. Lookup `table` by id to confirm exists + get org details
-3. Rate limit check: per `deviceFingerprint` (if provided) or per IP. Max 5 sessions/min/device-fingerprint. Family of 4 on same WiFi: each has own fingerprint → each gets own limit.
-4. (Optional) Geofence check: if browser sent `latitude`/`longitude`, verify within ~100m of restaurant address. Reject if outside.
-5. Generate `sessionToken` = `randomBytes(32).toString('hex')`
-6. Set `expiresAt` = `now + 6h` (configurable per org via org settings)
-7. Insert into `qr_session` table
-8. Set Redis `qr_session:{sessionToken}` with session data (TTL = 6h)
-9. Return `{ sessionToken, expiresAt, organization: {...}, table: {...} }`
+### 3.2 Postgres
 
-**Error responses:**
-- `404` — table not found
-- `403` — geofence check failed (outside restaurant area)
-- `429` — rate limited (too many sessions from this device)
+- Keep `table.qr_token` as the static identity token, but add `qr_token_version integer default 1` — bump on regeneration so old printed codes die (see 5.6).
+- Reuse existing `tableSession` (already groups orders per seating). A QR session always attaches to the active `tableSession`, creating one if absent — same logic `createOrAppend` uses today.
+- Optional (Phase 3): `qr_session_audit` append-only table for disputes/forensics (sessionId, tableId, orgId, createdAt, endedAt, endReason, orderCount).
 
-**Rate limit**: 5 req/min per device fingerprint (fallback: per IP)
+### 3.3 Config per organization (Phase 3, `organization` table or settings JSON)
 
-**Geofence note**: If user denies browser location permission, session enters **degraded mode**: TTL = 1h (vs 6h), rate limit = 2/min (vs 5/min), device fingerprint required. This balances UX vs abuse: off-site attacker gets short window, on-site customer with privacy concerns still works.
+| Setting | Default | Purpose |
+|---------|---------|---------|
+| `qrSessionIdleTtlMin` | 30 | sliding expiry |
+| `qrSessionMaxTtlMin` | 180 | absolute cap |
+| `qrRequireStaffActivation` | false | table must be marked occupied before sessions issue |
+| `qrMaxActiveSessionsPerTable` | 5 | concurrent devices per table |
+| `qrMaxOrdersPerSession` | 20 | abuse cap |
 
-### `POST /organization/table/token/session/refresh` — Public
+---
 
-**Purpose**: Extend session TTL (idle timeout reset).
+## 4. API Changes
 
-**Request:**
-```json
-{
-  "sessionToken": "...",
-  "deviceFingerprint": "..." (optional)
-}
-```
+### 4.1 New public namespace
 
-**Logic:**
-1. Validate session (exists, active, not expired)
-2. Verify `deviceFingerprint` matches if stored
-3. Extend `expiresAt` = `min(now + 6h, originalExpiresAt + 2h)` (cap extension)
-4. Update `last_activity_at`
-5. Update Redis TTL
-6. Return `{ expiresAt }`
-
-**Rate limit**: 10 req/min per device fingerprint (fallback: per IP)
-
-### `DELETE /organization/table/token/session/:sessionId` — Dashboard (sessionMiddleware)
-
-**Purpose**: Revoke specific session (e.g., customer left without checkout).
-
-### `DELETE /organization/table/token/session/table/:tableId` — Dashboard (sessionMiddleware)
-
-**Purpose**: Revoke ALL active sessions for a table (e.g., table reassigned).
-
-Both endpoints set `status = 'revoked'` in DB and delete Redis key.
-
-## New Middleware: `qrSessionMiddleware`
-
-Location: `apps/api/src/middleware/qr-session.ts`
-
-```typescript
-async function qrSessionMiddleware(c: Context, next: () => Promise<void>) {
-  const sessionToken =
-    c.req.header("x-session-token") ?? c.req.query("sessionToken")
-
-  if (!sessionToken) {
-    return c.json({ status: "error", code: 401, message: "Session required" }, 401)
-  }
-
-  const session = await getValidSession(sessionToken)
-  if (!session) {
-    return c.json({ status: "error", code: 401, message: "Invalid or expired session" }, 401)
-  }
-
-  const clientFp = c.req.header("x-device-fingerprint")
-  if (session.deviceFingerprint && clientFp && session.deviceFingerprint !== clientFp) {
-    return c.json({ status: "error", code: 401, message: "Device mismatch" }, 401)
-  }
-
-  c.set("qrSession", session)
-  await next()
-}
-```
-
-**`getValidSession` helper:**
-
-```typescript
-async function getValidSession(sessionToken: string): Promise<QrSession | null> {
-  const cached = await redisClient.get<QrSessionData>(`qr_session:${sessionToken}`)
-  if (cached) {
-    if (cached.status !== "active") return null
-    if (new Date(cached.expiresAt) < new Date()) return null
-    await redisClient.expire(`qr_session:${sessionToken}`, getRemainingTtl(cached.expiresAt))
-    return cached
-  }
-
-  const [row] = await db
-    .select()
-    .from(qrSessionSchema)
-    .where(eq(qrSessionSchema.sessionToken, sessionToken))
-
-  if (!row || row.status !== "active" || row.expiresAt < new Date()) return null
-
-  const sessionData: QrSessionData = {
-    id: row.id,
-    organizationId: row.organizationId,
-    tableId: row.tableId,
-    deviceFingerprint: row.deviceFingerprint,
-    status: row.status,
-    expiresAt: row.expiresAt.toISOString(),
-  }
-
-  const ttl = Math.floor((row.expiresAt.getTime() - Date.now()) / 1000)
-  await redisClient.set(`qr_session:${sessionToken}`, sessionData, ttl)
-
-  return sessionData
-}
-```
-
-## Modified Existing Endpoints
-
-### `GET /organization/table/token/decode`
-
-- Add rate limiting: 10 req/min/IP
-- Only return data (no session creation) — used for SSR metadata in `layout.tsx`
-- Option: change `layout.tsx` to call decode with a read-only "preview" mode
-
-### `POST /organization/orders/table/:tableId`
-
-- Add `qrSessionMiddleware` before handler
-- Handler reads `organizationId` and `tableId` from `c.get("qrSession")` instead of request body
-- Validates `tableId` from URL matches `session.tableId`
-- Remove `organizationId` from request body (now inferred from session)
-
-### `GET /organization/orders/table/:tableId/active`
-
-- Add `qrSessionMiddleware`
-- Infer `organizationId` and `tableId` from session
-- No breaking changes to response shape
-
-### `GET /organization/orders/:orderId/invoice`
-
-- Add `qrSessionMiddleware`
-- Infer `organizationId` from session
-
-### `GET /organization/menus` (if used by client-web)
-
-- Add `qrSessionMiddleware` for customer-facing requests
-
-## Client-Side Changes
-
-### `apps/client-web/app/[token]/layout.tsx`
-
-After SSR metadata fetch (keep existing decode call), add client component `<SessionInitializer />` that:
-1. Calls `POST /table/token/session` with device fingerprint
-2. Stores `sessionToken` in memory (React state) + httpOnly cookie fallback
-3. Provides session token via React context
-
-### `apps/client-web/hooks/use-session.ts` (new)
-
-```typescript
-// Returns { sessionToken, isValid, refresh }
-// On mount: check existing session in context, refresh if close to expiry
-// On error: redirect to token page to re-scan QR
-```
-
-### `apps/client-web/lib/axios.ts`
-
-Add request interceptor:
-```typescript
-api.interceptors.request.use((config) => {
-  const sessionToken = getSessionToken() // from context/cookie
-  if (sessionToken) {
-    config.headers["x-session-token"] = sessionToken
-  }
-  return config
-})
-```
-
-### `apps/client-web/modules/providers/table-provider.tsx`
-
-Instead of calling `useDecodeToken` directly:
-1. Call session creation endpoint
-2. Receive both `sessionToken` + `organization/table` data
-3. Store `sessionToken` in context
-4. Skip raw `useDecodeToken` — merge into session creation response
-
-**Or keep both in parallel**: decode for SSR metadata, session creation for actual API auth.
-
-### Device Fingerprint Generation
-
-Client-side script that hashes browser signals:
-```typescript
-// apps/client-web/lib/device-fingerprint.ts
-async function generateDeviceFingerprint(): Promise<string> {
-  const signals = [
-    navigator.userAgent,
-    navigator.language,
-    navigator.platform,
-    screen.width,
-    screen.height,
-    screen.colorDepth,
-    // Optional: AudioContext fingerprint (privacy-sensitive, can skip)
-  ].join("|||")
-
-  const hash = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(signals))
-  return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, "0")).join("")
-}
-```
-
-## Rate Limiting Strategy
-
-Use Redis sliding window. Key selection priority:
-
-1. `deviceFingerprint` when available (survives NAT — family on same WiFi)
-2. Fallback: IP address
-
-| Endpoint | Limit | Window | Key | Degraded |
-|----------|-------|--------|-----|----------|
-| `POST /table/token/session` | 5 | 1 min | fingerprint | 2/min (no geolocation) |
-| `GET /table/token/decode` | 10 | 1 min | IP | same |
-| `POST /table/token/session/refresh` | 10 | 1 min | fingerprint | 4/min |
-| Any QR-session-protected endpoint | 30 | 1 min | sessionToken | same |
-| `POST /order/table/:id` | 5 | 1 min | sessionToken | 2/min |
-
-Implementation: generic `rateLimitMiddleware(key, limit, windowSeconds)` using Redis `INCR` + `EXPIRE`.
-
-**Why fingerprint over IP for session creation**: 4 family members on same restaurant WiFi share 1 public IP. Per-IP limit of 5 would block 4th person. Per-fingerprint limit of 5 gives each person own budget.
-
-## Session Lifecycle
+New router `apps/api/src/routes/public/qr/qr.route.ts` mounted at `/v1/public/qr`. Customer traffic moves out of `/organization/*` (which should eventually be staff-only).
 
 ```
-CREATED (active, TTL=6h)
-  │
-  ├── Activity detected → refresh TTL (cap at original 6h)
-  │
-  ├── Idle > 30min → set status=expired (cron or lazy-check on next request)
-  │
-  ├── Dashboard revokes → set status=revoked
-  │
-  ├── expires_at reached → set status=expired (lazy on next request)
-  │
-  └── Table status changes to "available" → auto-revoke all active sessions
+POST /v1/public/qr/session            body: { qrToken }         → issues session
+GET  /v1/public/qr/session            (auth: session)           → validates + returns org/table/menu context
+DELETE /v1/public/qr/session          (auth: session)           → customer "leave table"
+
+POST /v1/public/qr/orders             (auth: session)           → create/append order
+GET  /v1/public/qr/orders/active      (auth: session)           → active orders for MY table only
+GET  /v1/public/qr/orders/:orderId    (auth: session, ownership)→ order detail
+PUT  /v1/public/qr/orders/:orderId    (auth: session, ownership)→ modify (pending only)
+PATCH /v1/public/qr/orders/:orderId/cancel (auth: session, ownership)
+GET  /v1/public/qr/orders/:orderId/invoice (auth: session, ownership)
+GET  /v1/public/qr/stream             (auth: session)           → SSE scoped to session's table
 ```
 
-**Idle timeout**: Implemented lazily in `getValidSession` or via a periodic cron:
-- In `getValidSession`: compute idle time from `last_activity_at`. If > 30min, reject.
-- Cron (optional): `DELETE FROM qr_session WHERE last_activity_at < now() - interval '30 minutes' AND status = 'active'`
+Note the removal of `:tableId` and `organizationId` from every customer route — scope comes from the session.
 
-## Scalability Analysis
+### 4.2 Session issuance flow
 
-### Expected Load
+`POST /public/qr/session`:
 
-| Metric | Per restaurant | Per 1000 restaurants |
-|--------|---------------|---------------------|
-| Tables | 20 | 20,000 |
-| Seatings/night | 2 | 2,000 |
-| Scans/table/seating | 3 (avg party size) | — |
-| Session creations/day | 20 × 2 × 3 = 120 | 120,000 |
-| Peak concurrent sessions | 20 tables × 3 people = 60 | 60,000 |
-| Orders/day | 20 × 2 × 1.5 = 60 | 60,000 |
+1. Rate limit by IP (e.g. 10/min) → 429.
+2. Decrypt `qrToken` (existing `cryptoUtil.decrypt`), load table, verify `table.qrToken === qrToken` and `qr_token_version` matches → 401 on mismatch (regenerated/revoked).
+3. Check table exists, org active, table status not blocked; if `qrRequireStaffActivation`, require table occupied → 403 with machine-readable reason code.
+4. Enforce `qrMaxActiveSessionsPerTable` via the `qr:table-sessions` set (prune expired members first).
+5. Find-or-create active `tableSession` for the table.
+6. Create Redis session, add to table index, return context payload (org name/logo, table number, expiry) and set the credential.
 
-### DB
+**Credential transport:** `Set-Cookie: qr_session={sid}.{secret}; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=10800`. Cookie keeps the credential out of localStorage (XSS) and out of URLs. Requires `client-web` to reach the API same-site (Next.js rewrite/proxy — `client-web` already proxies `/api/*`, see `use-active-orders-stream.ts`) or a correctly configured CORS + `credentials: include` setup. Fallback for the SSE/EventSource path if cross-origin: short-lived signed ticket minted from the session (`GET /public/qr/stream-ticket`) passed as a query param.
 
-- `qr_session` row: ~300 bytes
-- 120,000 rows/day × 365 = ~43M rows/year ≈ 12 GB/year
-- Indexed on `session_token` (point lookups), `(status, expires_at)` (cleanup), `(table_id, organization_id)` (revoke by table)
-- `session_token` UNIQUE index — 128-bit random, collision probability negligible
-- Cleanup: `DELETE FROM qr_session WHERE expires_at < now() - interval '7 days'` (weekly cron)
+### 4.3 `qrSessionMiddleware`
 
-### Redis
+New `apps/api/src/middleware/qr-session.ts`, mirroring `sessionMiddleware`'s shape:
 
-- Each session: ~200 bytes in JSON
-- 60,000 concurrent sessions × 200 bytes = ~12 MB
-- 6h TTL ensures automatic eviction
-- Redis `SCAN` + `DEL` on table revoke — O(n) over active sessions for that table (max ~20)
-- Rate limiter keys: ephemeral (60s TTL), negligible memory
+1. Read credential from cookie (fallback `Authorization: Bearer`).
+2. Parse `{sid}.{secret}`; fetch `qr:session:{sid}`; constant-time compare `sha256(secret)`.
+3. Reject if missing/expired → 401 `{ code: "SESSION_EXPIRED" }` (client shows re-scan UI).
+4. Enforce absolute TTL (`createdAt + maxTtl`) even if sliding TTL kept it alive.
+5. Refresh sliding TTL, update `lastActivityAt`.
+6. `c.set("qrSession", { sessionId, organizationId, tableId, tableSessionId, tableNumber })`.
 
-### API Throughput
+### 4.4 Order logic changes (`orders.logic.ts`)
 
-| Operation | Per-second peak (1000 orgs) | Bottleneck |
-|-----------|---------------------------|------------|
-| Session creation | 120,000 / 86400 ≈ 1.4 req/s | — |
-| Session validation | 60,000 concurrent × 1 req/10s polling = 6,000 req/s | Redis: single-op `GET` per validation. Upstash Redis handles ~100K ops/s. |
-| Order creation | 60,000 / 86400 ≈ 0.7 req/s | — |
+- `createOrAppend`: take `(qrSession, body)` — drop `organizationId` from the DTO; table/org come from session. Stamp `tableSessionId` from the session. Enforce `qrMaxOrdersPerSession` and per-session order rate limit.
+- `cancelByCustomer` / `modifyByCustomer`: replace static-token check (`verifyTableToken`) with session + **ownership** check — the order's `tableSessionId` must equal the session's `tableSessionId` (only orders from the current seating are touchable, fixes V6).
+- `getActiveByTableId`: session-scoped variant filters by `tableSessionId`, so a new party never sees the previous party's orders.
+- Invoice: same ownership rule.
 
-No bottleneck even at 1000× scale. Session validation is the hottest path (polling every 10s from client-web). Each validation = single Redis `GET` — ~1ms at P99.
+### 4.5 Kill the open endpoints (fixes V1, V3)
 
-### Caching Strategy
+After client migration (Phase 4):
 
-- **Hot path (session validation)**: Redis only. DB never touched on session-bound requests.
-- **Warm path (session creation)**: 1 DB insert + 1 Redis set. Rate limited to 5/min/device.
-- **Cold path (token decode for SSR)**: DB read. Rate limited to 10/min/IP.
-- **Cache miss recovery**: On Redis miss, fallback to DB query + repopulate Redis. Rare (only on Redis restart or key eviction).
+- Remove unauthenticated `POST /orders/table/:tableId`, `GET /orders/table/:tableId/active`, `GET /orders/:id`, `GET /orders/:orderId/invoice` from `orderRouter`, or wrap the remaining ones with `sessionMiddleware` for staff use.
+- `GET /organization/table/token/decode` stays public (client-web metadata needs it) but response shrinks to branding only: org name/logo + table number. No IDs. IDs travel only inside sessions.
 
-## Multi-User at Same Table
+### 4.6 Session revocation triggers
 
-When 4 people scan same QR:
+Helper `revokeTableQrSessions(tableId)` — read `qr:table-sessions:{tableId}`, delete each `qr:session:*`, delete the set. Called from:
 
-```
-QR: "https://order.rosterpro.in/{sameToken}"
+| Trigger | Location |
+|---------|----------|
+| Checkout (`checkoutSession`) — `tableSession` → completed | `orders.logic.ts` |
+| Table deleted | `table.logic.ts:delete` |
+| QR token regenerated (version bump) | `table.logic.ts` (new `regenerateQrToken`) |
+| Staff "end session / clear table" action | new staff endpoint `POST /organization/table/:id/end-session` |
 
-Person A scan → POST /session → qr_session[A] created
-Person B scan → POST /session → qr_session[B] created
-Person C scan → POST /session → qr_session[C] created
-Person D scan → POST /session → qr_session[D] created
-```
+Publish `session.ended` on the existing realtime channel (`publishTableEvent`) so connected customer devices immediately show the "session ended" screen instead of failing on next request.
 
-Each gets own `sessionToken`, own device fingerprint, own TTL. All 4 sessions reference same `{tableId, orgId}`.
+### 4.7 Rate limiting & abuse controls
 
-**Order placement**: Person A's orders → `tableSession[X]` (shared per-table session, existing behavior). Person B's orders → same `tableSession[X]`. All orders for that table visible to all 4 via `GET /orders/table/{id}/active`.
+- Issuance: per-IP counter (4.2).
+- Ordering: per-session counter (e.g. 5 orders/min) + `qrMaxOrdersPerSession`.
+- Optional order-value sanity cap per session for unattended abuse.
+- Structured logs on 401/403/429 from public routes for monitoring.
 
-**Why this is safe**: Printed QR is static — anyone can scan it. The defense stack:
-1. **Geofence**: Session creation checks browser location against restaurant address (±100m). Off-site attacker fails here.
-2. **Device binding**: Even if geofence skipped (user denied location), session bound to fingerprint. Shared URL useless on different device.
-3. **Aggressive rate limiting**: Without geofence: 2 sessions/min/device, 1h TTL. Prevents bulk abuse.
-4. **Session isolation**: Each scanner gets own session. One compromised session doesn't leak others.
+---
 
-## Migration Path
+## 5. Staff-side Changes (`apps/web`)
 
-### Phase 1: Parallel Run (no breaking changes)
-1. Add `qr_session` table and schema
-2. Add `POST /table/token/session` endpoint (new, alongside existing)
-3. Add `qrSessionMiddleware` (not yet attached to any route)
-4. Deploy — zero impact
+1. **`generateQrToken` stays** (prints stable QR). Add explicit **"Regenerate QR"** action in `table-qr-code.tsx` modal → new `POST /organization/table/token/regenerate` → new token + version bump + `revokeTableQrSessions`. UI warns printed codes must be replaced.
+2. **Session visibility** on tables view: active QR session count per table (from Redis index), "End session" button.
+3. Checkout flow unchanged — revocation hooks in automatically (4.6).
 
-### Phase 2: Session Creation
-1. Deploy client-web change: on QR scan, call session creation endpoint
-2. Store session token in context
-3. Existing decode endpoint still works — users sharing old links still functional
+---
 
-### Phase 3: Enforce Session
-1. Attach `qrSessionMiddleware` to order endpoints
-2. If no valid session, return 401
-3. Old bookmarks/links break after session expiry (6h) — expected behavior
-4. Monitor error rates
+## 6. Customer-side Changes (`apps/client-web`)
 
-## Security Analysis
+1. **`TableProvider`** (`modules/providers/table-provider.tsx`): on mount, `POST /public/qr/session` with the URL token instead of the bare decode call. On success, context payload replaces `useDecodeToken` data. On 401 (dead/regenerated token) redirect to marketing as today; on 403 show reason ("Ask staff to open the table").
+2. **Axios instance** (`lib/axios.ts`): `withCredentials: true`; 401 `SESSION_EXPIRED` interceptor → one silent re-issue attempt from the URL token, else "Session expired — rescan the QR" screen.
+3. **Hooks** (`use-create-table-order`, `use-active-orders`, `use-cancel-table-order`, `use-modify-table-order`, `use-order`): point at `/public/qr/orders/*`; drop `tableId`/`organizationId` params — cart flow (`responsive-placing-order.tsx`) no longer sends `organizationId`.
+4. **SSE** (`use-active-orders-stream.ts` / `realtime-server.ts`): connect to `/public/qr/stream` with cookie (or stream ticket, 4.2); handle `session.ended` → session-ended screen.
+5. **Session-expiry UX**: full-screen prompt, not a toast — customer must rescan (physical presence re-proof). Cart persists in localStorage across re-issue so nothing is lost.
+
+---
+
+## 7. Security Properties After Implementation
 
 | Threat | Mitigation |
-|--------|------------|
-| QR code photographed, shared on Twitter, 1000 off-site scans | **Geofence is primary defense**: browser location checked against restaurant address (±100m) during session creation. Off-site scanner: browser location won't match → session denied. User denies location: degraded mode (1h TTL, 2/min rate limit, device fingerprint required). |
-| Off-site attacker spoofs browser geolocation | Hard to spoof accurately (requires browser flag or devtools). Even if spoofed: device fingerprint + rate limiting + 1h TTL limit damage window. |
-| Session token leaked (MITM) | Enforce HTTPS. Device binding makes token useless on different device. |
-| Session token brute-forced | 128-bit random (32 bytes hex). Rate limited at 30 req/min. |
-| QR token decryption key leaked | Key rotation via env var. Tokens contain only `{tableId, orgId}` — no PII. |
-| Customer shares QR photo with friend outside | Geofence blocks friend's session creation (friend not at restaurant location). Even if friend spoofs location: device fingerprint + rate limited. |
-| DOS via session creation | 5/min per device fingerprint. Each session = 1 DB insert + 1 Redis set. At 5 req/min × 1000 devices = 5000 writes/min = ~83/sec. Postgres handles this trivially. |
-| Printed QR never expires, table reused daily | Sessions are ephemeral (max 6h). Tomorrow's customers create fresh sessions. No long-term token leakage. `table.qrToken` is just a table identifier, not a credential. |
-| QR displayed on digital menu board (screen) in restaurant | Works fine. Every customer at restaurant scans same screen QR, gets own device-bound session. Geofence passes (all in restaurant). |
+|--------|-----------|
+| Shared/leaked URL used remotely later | Ordering needs a session; sessions expire (30min idle / 3h hard) and die at checkout. Old link alone can only request a *new* session — blocked by staff-activation mode and monitoring, and useless once token regenerated |
+| Order forgery with known tableId/orgId (V1) | Open endpoints removed; scope derived server-side from session |
+| Cross-org data reads (V3) | All customer reads session-scoped; decode returns branding only |
+| Previous party reads/modifies current party's orders (V6) | Ownership = matching `tableSessionId` |
+| Order spam / kitchen flooding (V5) | IP + session rate limits, per-session order caps, concurrent-session cap |
+| Stolen session credential | HttpOnly cookie (no JS access); Redis-side secret hashed; short TTL; revocable |
+| Compromised printed QR | Regenerate + version bump kills it instantly |
 
-## Open Questions
+Residual (accepted or Phase-3+): a person physically at the table can order — that is the product; someone scanning then walking out can order until idle timeout — bounded by TTL, activation mode, and staff visibility. True presence-proof (rotating TOTP QR on a table display, BLE/geofence) is possible later; incompatible with printed codes, so out of scope for the base design.
 
-1. **Idle timeout value**: 30 min reasonable? Configurable per-org?
-2. **Max session duration**: 6h enough for a dinner service? Configurable?
-3. **Device fingerprint**: Required or optional? Privacy implications of hashing browser signals. Needed for degraded mode (when geolocation denied).
-4. **Geofence radius**: 100m reasonable? Configurable per-org? What about restaurants in multi-story buildings (same lat/lng for different floors)?
-5. **Degraded mode UX**: When geolocation denied, show toast "Enable location for full session (6h) or continue with 1h session"?
-6. **Session migration on table change**: If customer moves to different table, do they need new QR? Current design: yes (token bound to tableId). Could add table-transfer endpoint for staff use.
-7. **Digital vs printed QR detection**: Same `generateQrToken` endpoint serves both. If org uses digital displays (auto-rotating QR), could enable shorter token refresh cycles. For printed: never refresh.
+---
+
+## 8. Implementation Phases
+
+**Phase 1 — Backend foundation** (no breaking changes)
+- Redis session store + credential scheme, `qrSessionMiddleware`, `POST/GET/DELETE /public/qr/session`, issuance rate limiting, `qr_token_version` migration, `revokeTableQrSessions` + checkout/delete/regenerate hooks.
+
+**Phase 2 — Public order routes**
+- `/public/qr/orders/*` + session-scoped logic variants (create/active/detail/modify/cancel/invoice), per-session rate limits, SSE via session. Old routes still up.
+
+**Phase 3 — Client migration**
+- `client-web` switches to session flow (6.1–6.5); staff UI regenerate + session visibility (5.1–5.2); org-level config knobs.
+
+**Phase 4 — Lockdown**
+- Remove/staff-gate legacy open endpoints (4.5), slim decode response, deploy monitoring on public-route 4xx.
+
+Each phase ships independently; rollback = client points back at legacy routes until Phase 4.
+
+---
+
+## 9. Testing Checklist
+
+- Session issuance: valid token, tampered token, regenerated (stale version) token, disabled table, rate-limit trip, max-sessions trip.
+- Middleware: missing/malformed/expired credential, wrong secret (constant-time path), idle-TTL refresh, absolute-TTL cutoff despite activity.
+- Ordering: order without session → 401; order with expired session → 401; modify order from previous `tableSession` → 403; cross-table order attempt via forged IDs → impossible (no ID inputs).
+- Revocation: checkout kills all table sessions mid-flight; regenerate kills sessions and old printed QR; `session.ended` reaches connected SSE clients.
+- Load: issuance and order rate limits under burst; Redis TTL cleanup leaves no orphaned index members.
