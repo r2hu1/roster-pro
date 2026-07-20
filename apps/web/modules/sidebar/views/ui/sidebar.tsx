@@ -78,7 +78,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       <SidebarRail />
       <SidebarHeader>
         <SidebarMenu className="space-y-4.5">
-          <SidebarMenuItem className="flex items-center justify-between">
+          <SidebarMenuItem className="flex items-end justify-between">
             <Logo className="h-9 -ml-1.5 w-auto" />
             <SidebarTrigger />
           </SidebarMenuItem>

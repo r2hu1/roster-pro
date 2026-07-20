@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { cva, type VariantProps } from "class-variance-authority"
-import { Sidebar2 } from "reicon-react"
+import { Sidebar as SidebarIcon } from "reicon-react"
 import { Slot } from "radix-ui"
 
 import { cn } from "@workspace/ui/lib/utils"
@@ -261,8 +261,8 @@ function SidebarTrigger({
     <Button
       data-sidebar="trigger"
       data-slot="sidebar-trigger"
-      variant="secondary"
-      size="icon-sm"
+      variant="ghost"
+      size="icon"
       className={cn(className)}
       onClick={(event) => {
         onClick?.(event)
@@ -270,7 +270,7 @@ function SidebarTrigger({
       }}
       {...props}
     >
-      <Sidebar2 />
+      <SidebarIcon />
       <span className="sr-only">Toggle Sidebar</span>
     </Button>
   )

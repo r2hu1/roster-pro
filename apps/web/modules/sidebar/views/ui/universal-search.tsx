@@ -14,6 +14,7 @@ import {
   Settings,
   ShoppingCart,
   Sidebar,
+  ForkKnife,
 } from "reicon-react"
 import { Button } from "@workspace/ui/components/button"
 import { Loader } from "@workspace/ui/components/loader"
@@ -30,6 +31,7 @@ import { useSession } from "@/modules/providers/session-provider"
 import { useSidebar } from "@workspace/ui/components/sidebar"
 import api from "@/lib/axios"
 import { Skeleton } from "@workspace/ui/components/skeleton"
+import { useKitchenMode } from "@/modules/providers/kitchen-mode"
 
 type Table = {
   id: string
@@ -78,6 +80,7 @@ export function UniversalSearch({ children }: { children: React.ReactNode }) {
   const [open, setOpen] = React.useState(false)
   const [query, setQuery] = React.useState("")
   const debouncedQuery = useDebounce(query, 300)
+  const { setKitchenMode,kitchenMode } = useKitchenMode();
 
   const { data: tables, isFetching: tablesLoading } = useQuery({
     queryKey: ["search-tables", orgId],
@@ -319,6 +322,15 @@ export function UniversalSearch({ children }: { children: React.ReactNode }) {
               >
                 <Sidebar className="size-4" />
                 <span>Toggle Sidebar</span>
+              </CommandItem>
+              <CommandItem
+                onSelect={() => {
+                  setOpen(false)
+                  setKitchenMode(!kitchenMode)
+                }}
+              >
+                <ForkKnife className="size-4" />
+                <span>Toggle Kitchen Mode</span>
               </CommandItem>
             </CommandGroup>
           </CommandList>
