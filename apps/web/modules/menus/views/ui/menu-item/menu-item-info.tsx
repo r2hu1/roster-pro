@@ -9,6 +9,7 @@ import {
   SheetFooter,
 } from "@workspace/ui/components/sheet"
 import Image from "next/image"
+import { useQueryState } from "nuqs"
 
 export default function MenuItemInfo({
   item,
@@ -16,9 +17,14 @@ export default function MenuItemInfo({
 }: {
   item: MenuItemResponse
   children: React.ReactNode
-}) {
+  }) {
+  const [currentMenuItem, setCurrentMenuItem] = useQueryState("currentMenuItem");
+
   return (
-    <Sheet>
+    <Sheet open={currentMenuItem === item.id}
+    onOpenChange={(open) => {
+      setCurrentMenuItem(open ? item.id : null)
+    }}>
       <SheetTrigger>{children}</SheetTrigger>
       <SheetContent>
         <SheetHeader>

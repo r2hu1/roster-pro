@@ -250,7 +250,7 @@ export function UniversalSearch({ children }: { children: React.ReactNode }) {
                   <CommandItem
                     key={item.id}
                     value={`${item.name} ${menuName} ${item.description ?? ""}`}
-                    onSelect={() => navigate(`/${orgId}/menus`)}
+                    onSelect={() => navigate(`/${orgId}/menus/${item.menuId}?currentMenuItem=${item.id}`)}
                   >
                     <ChefHat className="size-4" />
                     <div className="flex flex-1 items-center justify-between">
