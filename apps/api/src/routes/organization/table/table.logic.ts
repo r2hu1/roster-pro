@@ -12,6 +12,10 @@ import type {
 import { publishTableEvent } from "../../../lib/realtime-events.js"
 import { cryptoUtil } from "../../../lib/crypto.js"
 import { organization } from "../../../core/db/schemas/auth.js"
+import {
+  qrSessionStore,
+  revokeTableQrSessions,
+} from "../../../lib/qr-session.js"
 
 const TABLE_CACHE_PREFIX = "table:"
 const CACHE_TTL = 300
@@ -195,6 +199,10 @@ export const tableLogic = {
 
     await db.delete(tableSchema).where(eq(tableSchema.id, id))
 
+    void revokeTableQrSessions(id).catch((err) =>
+      console.error("Failed to revoke qr sessions on table delete", err)
+    )
+
     await redisClient.del(`${TABLE_CACHE_PREFIX}${organizationId}:${id}`)
     await redisClient.del(`${TABLE_CACHE_PREFIX}all:${organizationId}`)
 
@@ -276,8 +284,11 @@ export const tableLogic = {
     return { status: "success", code: HTTP_STATUS_CODES.OK, data: tables }
   },
   generateQrToken: async (tableId: string, organizationId: string) => {
-    const [existingToken] = await db
-      .select({ token: tableSchema.qrToken })
+    const [existing] = await db
+      .select({
+        token: tableSchema.qrToken,
+        version: tableSchema.qrTokenVersion,
+      })
       .from(tableSchema)
       .where(
         and(
@@ -286,12 +297,20 @@ export const tableLogic = {
         )
       )
 
-    if (existingToken?.token) {
+    if (!existing) {
+      return {
+        status: "error",
+        code: HTTP_STATUS_CODES.NOT_FOUND,
+        message: "Table not found",
+      }
+    }
+
+    if (existing.token) {
       return {
         status: "success",
         code: HTTP_STATUS_CODES.OK,
         data: {
-          token: existingToken.token,
+          token: existing.token,
         },
       }
     }
@@ -299,6 +318,7 @@ export const tableLogic = {
     const encryptedToken = cryptoUtil.encrypt({
       tableId,
       organizationId,
+      v: existing.version ?? 1,
     })
 
     if (!encryptedToken) {
@@ -327,6 +347,109 @@ export const tableLogic = {
       },
     }
   },
+  // Version bump + new token: old printed QRs and every live session on the
+  // table die instantly.
+  regenerateQrToken: async (tableId: string, organizationId: string) => {
+    const [existing] = await db
+      .select({
+        id: tableSchema.id,
+        version: tableSchema.qrTokenVersion,
+      })
+      .from(tableSchema)
+      .where(
+        and(
+          eq(tableSchema.id, tableId),
+          eq(tableSchema.organizationId, organizationId)
+        )
+      )
+
+    if (!existing) {
+      return {
+        status: "error",
+        code: HTTP_STATUS_CODES.NOT_FOUND,
+        message: "Table not found",
+      }
+    }
+
+    const newVersion = (existing.version ?? 1) + 1
+    const encryptedToken = cryptoUtil.encrypt({
+      tableId,
+      organizationId,
+      v: newVersion,
+    })
+
+    if (!encryptedToken) {
+      return {
+        status: "error",
+        code: HTTP_STATUS_CODES.INTERNAL_SERVER_ERROR,
+        message: "Failed to generate QR token",
+      }
+    }
+
+    await db
+      .update(tableSchema)
+      .set({ qrToken: encryptedToken, qrTokenVersion: newVersion })
+      .where(eq(tableSchema.id, tableId))
+
+    await revokeTableQrSessions(tableId)
+    await redisClient.del(`${TABLE_CACHE_PREFIX}${organizationId}:${tableId}`)
+    await redisClient.del(`${TABLE_CACHE_PREFIX}all:${organizationId}`)
+
+    return {
+      status: "success",
+      code: HTTP_STATUS_CODES.OK,
+      data: {
+        token: encryptedToken,
+        version: newVersion,
+      },
+    }
+  },
+  endQrSessions: async (tableId: string, organizationId: string) => {
+    const [existing] = await db
+      .select({ id: tableSchema.id })
+      .from(tableSchema)
+      .where(
+        and(
+          eq(tableSchema.id, tableId),
+          eq(tableSchema.organizationId, organizationId)
+        )
+      )
+
+    if (!existing) {
+      return {
+        status: "error",
+        code: HTTP_STATUS_CODES.NOT_FOUND,
+        message: "Table not found",
+      }
+    }
+
+    const revoked = await revokeTableQrSessions(tableId)
+
+    publishTableEvent(organizationId, "session.ended", { tableId })
+
+    return {
+      status: "success",
+      code: HTTP_STATUS_CODES.OK,
+      data: { revoked },
+    }
+  },
+  getQrSessionCounts: async (organizationId: string) => {
+    const tables = await db
+      .select({ id: tableSchema.id })
+      .from(tableSchema)
+      .where(eq(tableSchema.organizationId, organizationId))
+
+    const counts: Record<string, number> = {}
+    await Promise.all(
+      tables.map(async (t) => {
+        counts[t.id] = await qrSessionStore.countActiveForTable(t.id)
+      })
+    )
+
+    return { status: "success", code: HTTP_STATUS_CODES.OK, data: counts }
+  },
+  // Branding-only decode: no IDs leave the server — ordering scope travels
+  // exclusively inside QR sessions.
   decodeQrToken: async (token: string) => {
     const decryptedToken = cryptoUtil.decrypt<{
       organizationId: string
@@ -374,16 +497,13 @@ export const tableLogic = {
       code: HTTP_STATUS_CODES.OK,
       data: {
         organization: {
-          id: org?.id,
           name: org?.name,
           logo: org?.logo,
           phone: org?.phone,
           address: org?.address,
         },
         table: {
-          id: decryptedToken.tableId,
           name: table?.name,
-          status: table?.status,
           number: table?.number,
         },
       },

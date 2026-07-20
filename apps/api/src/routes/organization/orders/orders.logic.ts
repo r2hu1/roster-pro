@@ -24,7 +24,6 @@ import type {
   CreateOrderDto,
   UpdateOrderDto,
 } from "@workspace/shared/schemas/order/index"
-import type { CreateTableOrderDto } from "./orders.validation.js"
 import { organization } from "../../../core/db/schemas/auth.js"
 import {
   publishOrderEvent,
@@ -32,7 +31,12 @@ import {
 } from "../../../lib/realtime-events.js"
 import { menuItem, type Price } from "../../../core/db/schemas/menu.js"
 import { isParcelOrder } from "@workspace/shared/constants/index"
-import { cryptoUtil } from "../../../lib/crypto.js"
+import {
+  qrSessionStore,
+  revokeTableQrSessions,
+  QR_MAX_ORDERS_PER_SESSION,
+  type QrSessionContext,
+} from "../../../lib/qr-session.js"
 
 const TABLE_CACHE_PREFIX = "table:"
 
@@ -126,6 +130,18 @@ async function releaseTableIfNeeded(
           .where(eq(tableSchema.id, t.id))
       }
     })
+    const [completed] = await db
+      .select({ tableId: tableSession.tableId })
+      .from(tableSession)
+      .where(eq(tableSession.id, tableSessionId))
+    if (completed) {
+      void revokeTableQrSessions(completed.tableId).catch((err) =>
+        console.error("Failed to revoke qr sessions on table release", err)
+      )
+      publishTableEvent(organizationId, "session.ended", {
+        tableId: completed.tableId,
+      })
+    }
     void emitTableStatus(organizationId, tableNumber)
   }
 }
@@ -639,15 +655,41 @@ export const orderLogic = {
     return { status: "success", code: HTTP_STATUS_CODES.CREATED, data: created }
   },
 
-  createOrAppend: async (tableId: string, body: CreateTableOrderDto) => {
-    const organizationId = body.organizationId
-    if (!organizationId) {
+
+  // ---- QR-session-scoped customer operations -------------------------------
+  // Scope (org/table/tableSession) always comes from the validated session
+  // record, never from client input.
+
+  createBySession: async (
+    qrSession: QrSessionContext,
+    body: {
+      customerName?: string | null
+      customerPhone?: string | null
+      customerEmail?: string | null
+      paymentMethod?: string | null
+      discount?: number
+      items: {
+        menuItemId: string
+        variant: "half" | "full"
+        quantity: number
+        notes?: string | null
+      }[]
+      notes?: string | null
+    }
+  ) => {
+    const { organizationId, tableId, tableNumber, tableSessionId } = qrSession
+
+    const withinRate = await qrSessionStore.checkOrderRateLimit(
+      qrSession.sessionId
+    )
+    if (!withinRate) {
       return {
         status: "error" as const,
-        code: HTTP_STATUS_CODES.NOT_FOUND,
-        message: "Organization not found",
+        code: HTTP_STATUS_CODES.TOO_MANY_REQUESTS,
+        message: "Too many orders, please slow down",
       }
     }
+
     const [org] = await db
       .select()
       .from(organization)
@@ -659,15 +701,22 @@ export const orderLogic = {
         message: "Organization not found",
       }
     }
-    const tableNumber = await orderLogic.resolveTableNumber(
-      tableId,
-      organizationId
-    )
-    if (tableNumber === null) {
+
+    const [boundSession] = await db
+      .select()
+      .from(tableSession)
+      .where(
+        and(
+          eq(tableSession.id, tableSessionId),
+          eq(tableSession.status, "active")
+        )
+      )
+    if (!boundSession) {
       return {
         status: "error" as const,
-        code: HTTP_STATUS_CODES.NOT_FOUND,
-        message: "Table not found",
+        code: HTTP_STATUS_CODES.UNAUTHORIZED,
+        errorCode: "SESSION_EXPIRED",
+        message: "Table session has ended, scan the QR code again",
       }
     }
 
@@ -691,51 +740,34 @@ export const orderLogic = {
         message: resolvedResult.message,
       }
     }
-    const resolvedIncoming = resolvedResult.items
+
+    const orderCount = await qrSessionStore.incrementOrderCount(
+      qrSession.sessionId
+    )
+    if (orderCount === null || orderCount > QR_MAX_ORDERS_PER_SESSION) {
+      return {
+        status: "error" as const,
+        code: HTTP_STATUS_CODES.TOO_MANY_REQUESTS,
+        message: "Order limit reached for this session, please ask the staff",
+      }
+    }
 
     const subtotal = resolvedResult.subtotal
     const discount = body.discount ?? 0
     const taxableAmount = +(subtotal - discount).toFixed(2)
 
     const created = await db.transaction(async (tx) => {
-      const [activeSession] = await tx
-        .select()
-        .from(tableSession)
-        .where(
-          and(
-            eq(tableSession.organizationId, organizationId),
-            eq(tableSession.tableId, tableId),
-            eq(tableSession.status, "active")
-          )
-        )
-        .limit(1)
-        .for("update")
-
-      let session = activeSession
-      if (!session) {
-        const [newSession] = await tx
-          .insert(tableSession)
-          .values({
-            organizationId,
-            tableId,
-            tableNumber,
-            status: "active",
-          })
-          .returning()
-        session = newSession
-      }
-
       return insertOrderInTransaction(
         tx,
         {
           organizationId,
-          tableSessionId: session.id,
+          tableSessionId,
           tableNumber,
           customerName: body.customerName,
           customerPhone: body.customerPhone,
           customerEmail: body.customerEmail,
           paymentMethod: body.paymentMethod,
-          items: resolvedIncoming,
+          items: resolvedResult.items,
           subtotal,
           discount,
           taxableAmount,
@@ -751,55 +783,43 @@ export const orderLogic = {
 
     return {
       status: "success" as const,
-      code: HTTP_STATUS_CODES.OK,
+      code: HTTP_STATUS_CODES.CREATED,
       data: created,
-      appended: true,
     }
   },
 
-  // Validates that a QR `token` authorizes mutating `orderId` on `tableId`,
-  // and that the order is still customer-editable (status "pending").
-  verifyCustomerOrderAccess: async (
-    tableId: string,
-    orderId: string,
-    token: string
-  ) => {
-    const decoded = cryptoUtil.decrypt<{
-      tableId: string
-      organizationId: string
-    }>(token)
-    if (!decoded || decoded.tableId !== tableId) {
-      return {
-        ok: false as const,
-        code: HTTP_STATUS_CODES.UNAUTHORIZED,
-        message: "Invalid or expired code",
-      }
-    }
-    const { organizationId } = decoded
-
-    const [table] = await db
-      .select({ number: tableSchema.number, qrToken: tableSchema.qrToken })
-      .from(tableSchema)
+  getActiveBySession: async (qrSession: QrSessionContext) => {
+    const orders = await db
+      .select()
+      .from(order)
       .where(
         and(
-          eq(tableSchema.id, tableId),
-          eq(tableSchema.organizationId, organizationId)
+          eq(order.tableSessionId, qrSession.tableSessionId),
+          eq(order.organizationId, qrSession.organizationId)
         )
       )
-    // token must match the table's current stored token (revocable via regen)
-    if (!table || table.qrToken !== token) {
-      return {
-        ok: false as const,
-        code: HTTP_STATUS_CODES.UNAUTHORIZED,
-        message: "Invalid or expired code",
-      }
-    }
+      .orderBy(desc(order.createdAt))
 
+    return {
+      status: "success" as const,
+      code: HTTP_STATUS_CODES.OK,
+      data: orders,
+      tableNumber: qrSession.tableNumber,
+      tableSessionId: qrSession.tableSessionId,
+    }
+  },
+
+  // Ownership rule: the order must belong to the session's tableSession —
+  // a new party never sees or touches the previous party's orders.
+  getOwnedOrder: async (qrSession: QrSessionContext, orderId: string) => {
     const [existing] = await db
       .select()
       .from(order)
       .where(
-        and(eq(order.id, orderId), eq(order.organizationId, organizationId))
+        and(
+          eq(order.id, orderId),
+          eq(order.organizationId, qrSession.organizationId)
+        )
       )
     if (!existing) {
       return {
@@ -808,32 +828,42 @@ export const orderLogic = {
         message: "Order not found",
       }
     }
-    if (existing.tableNumber !== String(table.number)) {
+    if (existing.tableSessionId !== qrSession.tableSessionId) {
       return {
         ok: false as const,
         code: HTTP_STATUS_CODES.FORBIDDEN,
-        message: "Order does not belong to this table",
+        message: "Order does not belong to this session",
       }
     }
-
-    return { ok: true as const, order: existing, organizationId }
+    return { ok: true as const, order: existing }
   },
 
-  cancelByCustomer: async (tableId: string, orderId: string, token: string) => {
-    const access = await orderLogic.verifyCustomerOrderAccess(
-      tableId,
-      orderId,
-      token
-    )
-    if (!access.ok) {
+  getByIdForSession: async (qrSession: QrSessionContext, orderId: string) => {
+    const owned = await orderLogic.getOwnedOrder(qrSession, orderId)
+    if (!owned.ok) {
       return {
         status: "error" as const,
-        code: access.code,
-        message: access.message,
+        code: owned.code,
+        message: owned.message,
       }
     }
+    return {
+      status: "success" as const,
+      code: HTTP_STATUS_CODES.OK,
+      data: owned.order,
+    }
+  },
 
-    if (access.order.status !== "pending") {
+  cancelBySession: async (qrSession: QrSessionContext, orderId: string) => {
+    const owned = await orderLogic.getOwnedOrder(qrSession, orderId)
+    if (!owned.ok) {
+      return {
+        status: "error" as const,
+        code: owned.code,
+        message: owned.message,
+      }
+    }
+    if (owned.order.status !== "pending") {
       return {
         status: "error" as const,
         code: HTTP_STATUS_CODES.CONFLICT,
@@ -841,14 +871,16 @@ export const orderLogic = {
           "This order is already being prepared and can no longer be cancelled.",
       }
     }
-
-    return orderLogic.updateStatus(orderId, "cancelled", access.organizationId)
+    return orderLogic.updateStatus(
+      orderId,
+      "cancelled",
+      qrSession.organizationId
+    )
   },
 
-  modifyByCustomer: async (
-    tableId: string,
+  modifyBySession: async (
+    qrSession: QrSessionContext,
     orderId: string,
-    token: string,
     items: {
       menuItemId: string
       variant: "half" | "full"
@@ -856,21 +888,17 @@ export const orderLogic = {
       notes?: string | null
     }[]
   ) => {
-    const access = await orderLogic.verifyCustomerOrderAccess(
-      tableId,
-      orderId,
-      token
-    )
-    if (!access.ok) {
+    const owned = await orderLogic.getOwnedOrder(qrSession, orderId)
+    if (!owned.ok) {
       return {
         status: "error" as const,
-        code: access.code,
-        message: access.message,
+        code: owned.code,
+        message: owned.message,
       }
     }
 
-    const existing = access.order
-    const organizationId = access.organizationId
+    const existing = owned.order
+    const organizationId = qrSession.organizationId
 
     if (existing.status !== "pending") {
       return {
@@ -890,7 +918,6 @@ export const orderLogic = {
       }
     }
 
-    // Preserve the original discount; re-price everything else server-side.
     const discount = existing.discount ?? 0
     const taxableAmount = +(resolved.subtotal - discount).toFixed(2)
     const gstRate = Number(existing.gstRate ?? 5)
@@ -927,6 +954,18 @@ export const orderLogic = {
       code: HTTP_STATUS_CODES.OK,
       data: updated,
     }
+  },
+
+  invoiceForSession: async (qrSession: QrSessionContext, orderId: string) => {
+    const owned = await orderLogic.getOwnedOrder(qrSession, orderId)
+    if (!owned.ok) {
+      return {
+        status: "error" as const,
+        code: owned.code,
+        message: owned.message,
+      }
+    }
+    return orderLogic.invoice(orderId, qrSession.organizationId)
   },
 
   update: async (body: UpdateOrderDto, organizationId: string) => {
@@ -1424,6 +1463,13 @@ export const orderLogic = {
     }
 
     void emitTableStatus(organizationId, session.tableNumber)
+
+    void revokeTableQrSessions(session.tableId).catch((err) =>
+      console.error("Failed to revoke qr sessions on checkout", err)
+    )
+    publishTableEvent(organizationId, "session.ended", {
+      tableId: session.tableId,
+    })
 
     for (const ord of sessionOrders) {
       publishOrderEvent(organizationId, ord.id, "order.updated", {

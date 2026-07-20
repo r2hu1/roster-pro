@@ -40,14 +40,11 @@ export default function ResponsivePlacingOrder({
   const confettiFrameRef = useRef<number | null>(null)
   const isMountedRef = useRef(true)
 
-  const { data: tableData } = useTableContext()
+  const { data: session } = useTableContext()
   const { items, clearCart, totalPrice, totalItems, estimateTime } = useCart()
   const { mutate, isPending } = useCreateTableOrder()
 
-  const tableId = tableData?.table.id
-  const organizationId = tableData?.organization.id
-  const canSubmit =
-    Boolean(tableId && organizationId && items.length) && !isPending
+  const canSubmit = Boolean(session && items.length) && !isPending
 
   useEffect(() => {
     isMountedRef.current = true
@@ -117,9 +114,7 @@ export default function ResponsivePlacingOrder({
 
     mutate(
       {
-        tableId: tableId!,
         data: {
-          organizationId: organizationId!,
           notes: orderNotes?.trim() || null,
           items: items.map((i) => ({
             menuItemId: i.menuItemId,

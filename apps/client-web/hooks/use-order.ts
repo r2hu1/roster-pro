@@ -8,17 +8,13 @@ type OrderResponseEnvelope =
   | { status: "success"; code: number; data: OrderResponse }
   | { status: "error"; code: number; message: string }
 
-export function useOrder(
-  orderId?: string | null,
-  organizationId?: string | null
-) {
+export function useOrder(orderId?: string | null) {
   return useQuery({
-    queryKey: ["order", organizationId, orderId],
-    enabled: Boolean(orderId && organizationId),
+    queryKey: ["order", orderId],
+    enabled: Boolean(orderId),
     queryFn: async (): Promise<OrderResponse> => {
       const res = await api.get<OrderResponseEnvelope>(
-        `organization/orders/${orderId}`,
-        { params: { organizationId } }
+        `public/qr/orders/${orderId}`
       )
 
       if (res.data.status !== "success") {

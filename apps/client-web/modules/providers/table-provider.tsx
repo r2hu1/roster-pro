@@ -1,13 +1,17 @@
 "use client"
 
 import Preloader from "@/components/preloader"
-import { useDecodeToken } from "@/hooks/use-decode-token"
-import { DecodedToken } from "@workspace/shared/types/organization/table/token/types"
+import {
+  useQrSession,
+  qrTokenStorage,
+  SessionEndedError,
+  type QrSessionData,
+} from "@/hooks/use-qr-session"
 import { useParams, useRouter } from "next/navigation"
 import { createContext, useContext, useEffect } from "react"
 
 interface TableContextProps {
-  data: DecodedToken | undefined
+  data: QrSessionData | undefined
   isPending: boolean
   error: Error | null
   token: string | undefined
@@ -15,22 +19,40 @@ interface TableContextProps {
 
 const TableContext = createContext<TableContextProps | null>(null)
 
+// Context comes from the server-side QR session (httpOnly cookie), not from
+// decoding the URL token. No session → back to the scanner to re-prove
+// physical presence.
 export function TableProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter()
   const { token } = useParams<{ token: string }>()
-  const { data: decodedToken, isPending, error } = useDecodeToken(token)
+  const { data: session, isPending, error } = useQrSession()
+
+  useEffect(() => {
+    if (!token) return
+    qrTokenStorage.setRouteToken(token)
+    // Scrub the token from the address bar and history: the visible URL
+    // becomes "/", while the in-memory route (and client nav) keeps working.
+    try {
+      window.history.replaceState(window.history.state, "", "/")
+    } catch {
+      /* noop */
+    }
+  }, [token])
 
   useEffect(() => {
     if (isPending) return
-    if (!decodedToken) {
-      router.push(`${process.env.NEXT_PUBLIC_MARKETING_URL}`)
+    if (!session) {
+      if (error instanceof SessionEndedError) {
+        router.replace("/thank-you")
+        return
+      }
+      if (token) qrTokenStorage.setPendingToken(token)
+      router.replace("/")
     }
-  }, [decodedToken, isPending, router])
+  }, [session, isPending, error, router, token])
 
   return (
-    <TableContext.Provider
-      value={{ data: decodedToken, isPending, error, token }}
-    >
+    <TableContext.Provider value={{ data: session, isPending, error, token }}>
       {children}
       {isPending && <Preloader />}
     </TableContext.Provider>

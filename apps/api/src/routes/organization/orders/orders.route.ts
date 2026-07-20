@@ -5,9 +5,6 @@ import { sessionMiddleware } from "../../../middleware/session.js"
 import { orderLogic } from "./orders.logic.js"
 import {
   createOrderSchema,
-  createTableOrderSchema,
-  cancelTableOrderSchema,
-  updateTableOrderSchema,
   updateOrderSchema,
   updateOrderStatusSchema,
 } from "./orders.validation.js"
@@ -54,34 +51,16 @@ orderRouter.get("/stats", sessionMiddleware, async (c) => {
   return c.json(result, result.code)
 })
 
-orderRouter.get("/table/:tableId/active", async (c) => {
-  const organizationId = c.req.query("organizationId")
+orderRouter.get("/:id", sessionMiddleware, async (c) => {
+  const organizationId = c.get("organizationId")
   if (!organizationId) {
     return c.json(
       {
         status: "error",
-        code: HTTP_STATUS_CODES.BAD_REQUEST,
-        message: "organizationId query parameter is required",
+        code: HTTP_STATUS_CODES.UNAUTHORIZED,
+        message: "Organization not found",
       },
-      HTTP_STATUS_CODES.BAD_REQUEST
-    )
-  }
-
-  const tableId = c.req.param("tableId")!
-  const result = await orderLogic.getActiveByTableId(tableId, organizationId)
-  return c.json(result, result.code)
-})
-
-orderRouter.get("/:id", async (c) => {
-  const organizationId = c.req.query("organizationId")
-  if (!organizationId) {
-    return c.json(
-      {
-        status: "error",
-        code: HTTP_STATUS_CODES.BAD_REQUEST,
-        message: "organizationId query parameter is required",
-      },
-      HTTP_STATUS_CODES.BAD_REQUEST
+      HTTP_STATUS_CODES.UNAUTHORIZED
     )
   }
 
@@ -91,47 +70,12 @@ orderRouter.get("/:id", async (c) => {
 })
 
 orderRouter.post(
-  "/table/:tableId",
-  zvalidator("json", createTableOrderSchema),
+  "/",
+  sessionMiddleware,
+  zvalidator("json", createOrderSchema),
   async (c) => {
-    const tableId = c.req.param("tableId")!
     const body = c.req.valid("json")
-    const result = await orderLogic.createOrAppend(tableId, body)
-    return c.json(result, result.code)
-  }
-)
-
-orderRouter.post("/", zvalidator("json", createOrderSchema), async (c) => {
-  const body = c.req.valid("json")
-  const result = await orderLogic.create(body)
-  return c.json(result, result.code)
-})
-
-orderRouter.patch(
-  "/table/:tableId/:orderId/cancel",
-  zvalidator("json", cancelTableOrderSchema),
-  async (c) => {
-    const tableId = c.req.param("tableId")!
-    const orderId = c.req.param("orderId")!
-    const { token } = c.req.valid("json")
-    const result = await orderLogic.cancelByCustomer(tableId, orderId, token)
-    return c.json(result, result.code)
-  }
-)
-
-orderRouter.put(
-  "/table/:tableId/:orderId",
-  zvalidator("json", updateTableOrderSchema),
-  async (c) => {
-    const tableId = c.req.param("tableId")!
-    const orderId = c.req.param("orderId")!
-    const { token, items } = c.req.valid("json")
-    const result = await orderLogic.modifyByCustomer(
-      tableId,
-      orderId,
-      token,
-      items
-    )
+    const result = await orderLogic.create(body)
     return c.json(result, result.code)
   }
 )
@@ -246,8 +190,8 @@ orderRouter.post(
   }
 )
 
-orderRouter.get("/:orderId/invoice", async (c) => {
-  const organizationId = c.req.query("organizationId")
+orderRouter.get("/:orderId/invoice", sessionMiddleware, async (c) => {
+  const organizationId = c.get("organizationId")
   if (!organizationId) {
     return c.json(
       {

@@ -44,16 +44,14 @@ export function OrderCustomerActions({ order }: { order: OrderResponse }) {
 function CancelOrderModal({ order }: { order: OrderResponse }) {
   const [open, setOpen] = useState(false)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
-  const { data: tableData, token } = useTableContext()
+  const { data: session } = useTableContext()
   const { mutate, isPending } = useCancelTableOrder()
 
-  const tableId = tableData?.table.id
-
   function cancelOrder() {
-    if (!tableId || !token) return
+    if (!session) return
     setErrorMsg(null)
     mutate(
-      { tableId, orderId: order.id, token },
+      { orderId: order.id },
       {
         onSuccess: () => setOpen(false),
         onError: (err) =>
@@ -119,10 +117,8 @@ function ModifyOrderModal({ order }: { order: OrderResponse }) {
   const [open, setOpen] = useState(false)
   const [items, setItems] = useState<EditItem[]>([])
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
-  const { data: tableData, token } = useTableContext()
+  const { data: session } = useTableContext()
   const { mutate, isPending } = useModifyTableOrder()
-
-  const tableId = tableData?.table.id
 
   function seed() {
     setItems(
@@ -151,10 +147,10 @@ function ModifyOrderModal({ order }: { order: OrderResponse }) {
   }
 
   const total = items.reduce((sum, it) => sum + it.unitPrice * it.quantity, 0)
-  const canSave = items.length > 0 && !isPending && Boolean(tableId && token)
+  const canSave = items.length > 0 && !isPending && Boolean(session)
 
   function save() {
-    if (!canSave || !tableId || !token) return
+    if (!canSave) return
     setErrorMsg(null)
     const payload: ModifyTableOrderItem[] = items.map((it) => ({
       menuItemId: it.menuItemId,
@@ -163,7 +159,7 @@ function ModifyOrderModal({ order }: { order: OrderResponse }) {
       notes: it.notes,
     }))
     mutate(
-      { tableId, orderId: order.id, token, items: payload },
+      { orderId: order.id, items: payload },
       {
         onSuccess: () => setOpen(false),
         onError: (err) =>

@@ -41,7 +41,6 @@ export interface LayoutProps {
 
 export default function Layout({ children }: LayoutProps) {
   return (
-    <ReactQueryProvider>
       <TableProvider>
         <CartProvider>
           <OrdersStreamProvider>
@@ -70,6 +69,5 @@ export default function Layout({ children }: LayoutProps) {
           </OrdersStreamProvider>
         </CartProvider>
       </TableProvider>
-    </ReactQueryProvider>
   )
 }

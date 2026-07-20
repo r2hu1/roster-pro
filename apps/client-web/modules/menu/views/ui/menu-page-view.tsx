@@ -40,7 +40,7 @@ export default function MenuPageView() {
     data: menus,
     isPending: menusPending,
     error: menusError,
-  } = useMenus(data?.organization.id)
+  } = useMenus(Boolean(data))
 
   const [searchQuery, setSearchQuery] = useState("")
   const columns = useColumns()

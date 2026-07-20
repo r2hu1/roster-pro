@@ -13,21 +13,15 @@ type ActiveOrdersResponse =
     }
   | { status: "error"; code: number; message: string }
 
-export function useActiveOrders(
-  tableId?: string | null,
-  organizationId?: string | null
-) {
+export function useActiveOrders(enabled = true) {
   return useQuery({
-    queryKey: ["active-orders", organizationId, tableId],
-    enabled: Boolean(tableId && organizationId),
+    queryKey: ["active-orders"],
+    enabled,
     queryFn: async (): Promise<{
       orders: OrderResponse[]
       tableSessionId: string | null
     }> => {
-      const res = await api.get<ActiveOrdersResponse>(
-        `organization/orders/table/${tableId}/active`,
-        { params: { organizationId } }
-      )
+      const res = await api.get<ActiveOrdersResponse>("public/qr/orders/active")
 
       if (res.data.status !== "success") {
         throw new Error(res.data.message ?? "Failed to load active orders")

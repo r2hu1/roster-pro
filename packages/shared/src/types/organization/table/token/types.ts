@@ -1,15 +1,12 @@
 export type DecodedToken = {
   organization: {
-    id: string
-    name: string
+    name: string | null
     logo: string | null
     phone: string | null
     address: string | null
   }
   table: {
-    id: string
     name: string | null
-    status: string
     number: number
   }
 }

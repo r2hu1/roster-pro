@@ -8,6 +8,7 @@ import { routeLogger } from "./lib/logger.js"
 import { corsMiddleware } from "./middleware/cors.js"
 import { requestLogger } from "./middleware/request-logger.js"
 import { onError, notFound } from "./middleware/error.js"
+import type { QrSessionContext } from "./lib/qr-session.js"
 
 export type AppEnv = {
   Variables: {
@@ -15,6 +16,7 @@ export type AppEnv = {
     session: typeof auth.$Infer.Session.session | null
     organizationId: string | null
     requestId: string
+    qrSession: QrSessionContext
   }
 }
 export type AppHono = Hono<AppEnv>

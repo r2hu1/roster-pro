@@ -123,8 +123,6 @@ function OrderRoundCard({
 
 export default function ResponsiveOrdersStatus() {
   const { data: tableData } = useTableContext()
-  const tableId = tableData?.table.id
-  const organizationId = tableData?.organization.id
 
   const {
     data: result,
@@ -132,7 +130,7 @@ export default function ResponsiveOrdersStatus() {
     refetch,
     isPending,
     isRefetching,
-  } = useActiveOrders(tableId, organizationId)
+  } = useActiveOrders(Boolean(tableData))
 
   const orders = result?.orders ?? []
   const tableSessionId = result?.tableSessionId

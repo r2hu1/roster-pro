@@ -2,7 +2,7 @@ import { realtime } from "./realtime.js"
 import { channels } from "@workspace/shared/realtime"
 
 type OrderEvent = "order.created" | "order.updated" | "order.deleted"
-type TableEvent = "table.status" | "table.deleted"
+type TableEvent = "table.status" | "table.deleted" | "session.ended"
 
 async function safeEmit(
   channel: string,
