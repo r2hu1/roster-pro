@@ -20,6 +20,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@workspace/ui/components/tooltip"
+import { useQueryState } from "nuqs"
 
 const SEARCH_DEBOUNCE_MS = 350
 
@@ -73,10 +74,14 @@ export default function OrdersPageView() {
   const { organization } = useSession()
   const organizationId = organization?.id
   const { kitchenMode } = useKitchenMode()
-  const [activeFilter, setActiveFilter] = useState<string>("All")
-  const [search, setSearch] = useState("")
-  const [debouncedSearch, setDebouncedSearch] = useState("")
+  const [activeFilter, setActiveFilter] =
+    useQueryState("activeFilter", { defaultValue: "All" })
+  const [search, setSearch] = useQueryState("search", {
+    defaultValue: "",
+  })
   const clock = useClock()
+
+  const [debouncedSearch, setDebouncedSearch] = useState(search)
 
   useEffect(() => {
     const t = setTimeout(() => setDebouncedSearch(search), SEARCH_DEBOUNCE_MS)
