@@ -10,8 +10,6 @@ export default function ThankYouPage() {
   const router = useRouter()
 
   useEffect(() => {
-    // The seating is over: drop everything tied to it so a later visit
-    // starts fresh at the scanner.
     qrTokenStorage.clearRouteToken()
     qrTokenStorage.clearPendingToken()
   }, [])

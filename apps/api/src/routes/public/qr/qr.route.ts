@@ -98,8 +98,6 @@ qrRouter.post(
         )
       )
 
-    // Token must be the table's current one; regeneration bumps the version
-    // and rewrites qr_token, so stale printed codes fail here.
     if (
       !table ||
       table.qrToken !== qrToken ||
@@ -143,8 +141,6 @@ qrRouter.post(
       )
     }
 
-    // Attach to the active tableSession, creating one if absent (same
-    // seating-grouping rule createOrAppend uses).
     let [activeTableSession] = await db
       .select()
       .from(tableSession)
@@ -190,8 +186,6 @@ qrRouter.post(
         status: "success",
         code: HTTP_STATUS_CODES.CREATED,
         data: {
-          // credential also returned for clients that can't use the cookie
-          // (cross-origin SSE); primary transport is the httpOnly cookie
           credential,
           expiresAt,
           organization: {

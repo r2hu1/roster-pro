@@ -347,8 +347,6 @@ export const tableLogic = {
       },
     }
   },
-  // Version bump + new token: old printed QRs and every live session on the
-  // table die instantly.
   regenerateQrToken: async (tableId: string, organizationId: string) => {
     const [existing] = await db
       .select({
@@ -448,8 +446,6 @@ export const tableLogic = {
 
     return { status: "success", code: HTTP_STATUS_CODES.OK, data: counts }
   },
-  // Branding-only decode: no IDs leave the server — ordering scope travels
-  // exclusively inside QR sessions.
   decodeQrToken: async (token: string) => {
     const decryptedToken = cryptoUtil.decrypt<{
       organizationId: string

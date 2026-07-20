@@ -21,8 +21,6 @@ type SessionEnvelope =
   | { status: "success"; code: number; data: QrSessionData }
   | { status: "error"; code: number; errorCode?: string; message: string }
 
-// Thrown when the server reports the session was deliberately ended
-// (checkout, staff "end session", QR regeneration) rather than expired.
 export class SessionEndedError extends Error {
   constructor() {
     super("Session ended")
@@ -33,8 +31,6 @@ export class SessionEndedError extends Error {
 const ROUTE_TOKEN_KEY = "qr-route-token"
 const PENDING_TOKEN_KEY = "qr-pending-token"
 
-// The route token is only a navigation key (which /{token} page to show);
-// ordering authority lives in the httpOnly session cookie.
 export const qrTokenStorage = {
   getRouteToken: () =>
     typeof window === "undefined"
