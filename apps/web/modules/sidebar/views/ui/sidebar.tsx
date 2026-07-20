@@ -93,7 +93,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           </SidebarMenuItem>
           <SidebarMenuItem>
             <UniversalSearch>
-              <InputGroup className="h-10 px-1 bg-background shadow-sm text-[14.5px] rounded-md">
+              <InputGroup className="h-10 px-1 bg-background shadow-xs text-[14.5px] rounded-md">
                 <InputGroupAddon>
                   <Kbd>⌘k</Kbd>
                 </InputGroupAddon>
