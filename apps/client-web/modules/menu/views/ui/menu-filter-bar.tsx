@@ -93,7 +93,7 @@ export default function MenuFilterBar({
                   duration: 0.22,
                   ease: "easeOut",
                 }}
-                className="overflow-hidden shrink-0"
+                className="shrink-0"
               >
                 <CartSheet>
                   <Button size="icon-lg" className="relative">

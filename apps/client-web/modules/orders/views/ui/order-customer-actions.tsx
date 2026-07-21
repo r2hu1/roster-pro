@@ -20,6 +20,7 @@ import {
   useModifyTableOrder,
   type ModifyTableOrderItem,
 } from "@/hooks/use-modify-table-order"
+import { Trash2 } from "reicon-react"
 
 type EditItem = {
   menuItemId: string
@@ -244,13 +245,15 @@ function ModifyOrderModal({ order }: { order: OrderResponse }) {
                       +
                     </button>
                   </div>
-                  <button
+                  <Button
+                    variant="destructive"
+                    size="icon"
                     type="button"
                     onClick={() => removeItem(i)}
                     className="text-xs text-destructive"
                   >
-                    Remove
-                  </button>
+                    <Trash2/>
+                  </Button>
                 </div>
               </div>
             ))}
