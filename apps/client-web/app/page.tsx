@@ -192,8 +192,8 @@ export default function ScannerPage() {
         </p>
       </div>
 
-      <div className="w-full bg-secondary max-w-sm mx-auto flex flex-col justify-center items-center rounded-2xl">
-        <div className="relative w-full aspect-square overflow-hidden rounded-xl bg-neutral-950 rounded-b-none!">
+      <div className="w-full bg-secondary p-2 max-w-sm mx-auto flex flex-col justify-center items-center rounded-xl">
+        <div className="relative w-full aspect-square overflow-hidden rounded-lg bg-neutral-950">
           <video
             ref={videoRef}
             className="h-full w-full object-cover opacity-90"
@@ -239,11 +239,11 @@ export default function ScannerPage() {
           )}
         </div>
 
-        <div className="w-full grid border-0! -mt-0.5">
+        <div className="w-full grid border-0! mt-2">
           {state === "scanning" || state === "starting" ? (
             <Button
               size="lg"
-              className="h-10 w-full rounded-t-none!"
+              className="h-10 w-full"
               onClick={() => {
                 stopCamera()
                 setState("idle")
@@ -255,7 +255,7 @@ export default function ScannerPage() {
           ) : state !== "issuing" ? (
             <Button
               size="lg"
-              className="h-10 w-full rounded-t-none!"
+              className="h-10 w-full"
               onClick={() => void startScanner()}
             >
               {state === "error" || state === "denied"
