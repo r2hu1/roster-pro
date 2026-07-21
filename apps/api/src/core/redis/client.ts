@@ -87,6 +87,37 @@ export const redisClient = {
     return deleted
   },
 
+  async expire(key: string, ttlSeconds: number): Promise<void> {
+    const client = getClient()
+    await client.expire(key, ttlSeconds)
+  },
+
+  async incrWithTtl(key: string, ttlSeconds: number): Promise<number> {
+    const client = getClient()
+    const value: unknown = await client.incr(key)
+    const n = Number(value)
+    if (n === 1) {
+      await client.expire(key, ttlSeconds)
+    }
+    return n
+  },
+
+  async sadd(key: string, member: string): Promise<void> {
+    const client = getClient()
+    await client.sadd(key, member)
+  },
+
+  async srem(key: string, member: string): Promise<void> {
+    const client = getClient()
+    await client.srem(key, member)
+  },
+
+  async smembers(key: string): Promise<string[]> {
+    const client = getClient()
+    const result: unknown = await client.smembers(key)
+    return Array.isArray(result) ? result.map(String) : []
+  },
+
   async setMultiple(
     entries: Array<{ key: string; value: unknown; ttl?: number }>
   ): Promise<void> {

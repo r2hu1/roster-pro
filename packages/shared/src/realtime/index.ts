@@ -3,6 +3,7 @@ import { z } from "zod"
 export const realtimeSchema = {
   order: { created: z.any(), updated: z.any(), deleted: z.any() },
   table: { status: z.any(), deleted: z.any() },
+  session: { ended: z.any() },
   analytics: { updated: z.any() },
 }
 

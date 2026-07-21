@@ -8,14 +8,12 @@ type MenusResponseEnvelope =
   | { status: "success"; code: number; data: MenuWithItemsListResponse }
   | { status: "error"; code: number; message: string }
 
-export function useMenus(organizationId?: string | null) {
+export function useMenus(enabled = true) {
   return useQuery({
-    queryKey: ["menus", organizationId],
-    enabled: Boolean(organizationId),
+    queryKey: ["menus"],
+    enabled,
     queryFn: async (): Promise<MenuWithItemsListResponse> => {
-      const res = await api.get<MenusResponseEnvelope>(
-        `organization/menu/all/${organizationId}`
-      )
+      const res = await api.get<MenusResponseEnvelope>("public/qr/menu")
 
       if (res.data.status !== "success") {
         throw new Error(res.data.message ?? "Failed to load menus")

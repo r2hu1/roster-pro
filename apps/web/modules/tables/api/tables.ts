@@ -61,3 +61,24 @@ export async function decodeQrToken(token: string) {
   })
   return data.data
 }
+
+export async function regenerateQrToken(
+  tableId: string
+): Promise<{ token: string; version: number }> {
+  const { data } = await api.post("/organization/table/token/regenerate", {
+    tableId,
+  })
+  return data.data
+}
+
+export async function endTableQrSessions(
+  tableId: string
+): Promise<{ revoked: number }> {
+  const { data } = await api.post(`/organization/table/${tableId}/end-session`)
+  return data.data
+}
+
+export async function fetchQrSessionCounts(): Promise<Record<string, number>> {
+  const { data } = await api.get("/organization/table/sessions/counts")
+  return data.data
+}

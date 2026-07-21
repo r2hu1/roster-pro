@@ -20,19 +20,15 @@ export function useModifyTableOrder() {
 
   return useMutation({
     mutationFn: async ({
-      tableId,
       orderId,
-      token,
       items,
     }: {
-      tableId: string
       orderId: string
-      token: string
       items: ModifyTableOrderItem[]
     }): Promise<OrderResponse> => {
       const res = await api.put<ModifyTableOrderResponse>(
-        `organization/orders/table/${tableId}/${orderId}`,
-        { token, items }
+        `public/qr/orders/${orderId}`,
+        { items }
       )
 
       if (res.data.status !== "success") {

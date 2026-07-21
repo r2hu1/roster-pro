@@ -15,8 +15,8 @@ import { toast } from "sonner"
 import { Button } from "@workspace/ui/components/button"
 import QR from "@/components/qr-code"
 import type { QRHandle } from "@/components/qr-code"
-import { IconDownload } from "@tabler/icons-react"
-import { generateQrToken } from "../../api/tables"
+import { IconDownload, IconRefresh } from "@tabler/icons-react"
+import { generateQrToken, regenerateQrToken } from "../../api/tables"
 import { Skeleton } from "@workspace/ui/components/skeleton"
 import { useQueryState } from "nuqs"
 
@@ -33,8 +33,29 @@ export default function TableQrCodeModal({
 
   const [token, setToken] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  const [regenerating, setRegenerating] = useState(false)
 
   const open = currentTable === table.id
+
+  async function regenerate() {
+    if (
+      !window.confirm(
+        "Regenerate the QR code? The printed code on this table will stop working immediately and must be replaced. All active customer sessions on this table will be ended."
+      )
+    ) {
+      return
+    }
+    setRegenerating(true)
+    try {
+      const result = await regenerateQrToken(table.id)
+      setToken(result.token)
+      toast.success("QR code regenerated — replace the printed code")
+    } catch {
+      toast.error("Failed to regenerate QR code")
+    } finally {
+      setRegenerating(false)
+    }
+  }
 
   useEffect(() => {
     if (!open) {
@@ -79,9 +100,7 @@ export default function TableQrCodeModal({
         setCurrentTable(nextOpen ? table.id : null)
       }}
     >
-      <ResponsiveModalTrigger asChild>
-        {children}
-      </ResponsiveModalTrigger>
+      <ResponsiveModalTrigger asChild>{children}</ResponsiveModalTrigger>
 
       <ResponsiveModalContent>
         <ResponsiveModalHeader>
@@ -105,8 +124,8 @@ export default function TableQrCodeModal({
         {token && (
           <ResponsiveModalFooter>
             <Button
-              className="w-full"
               size="lg"
+              className="w-full"
               onClick={() =>
                 qrRef.current?.download({
                   extension: "png",
@@ -116,6 +135,16 @@ export default function TableQrCodeModal({
             >
               <IconDownload />
               Download
+            </Button>
+            <Button
+              className="hidden!"
+              size="lg"
+              variant="outline"
+              disabled={regenerating}
+              onClick={regenerate}
+            >
+              <IconRefresh />
+              {regenerating ? "Regenerating…" : "Regenerate QR"}
             </Button>
           </ResponsiveModalFooter>
         )}

@@ -1,16 +1,26 @@
 "use client"
 
 import { useMutation, useQueryClient } from "@tanstack/react-query"
-import type {
-  OrderResponse,
-  CreateTableOrderDto,
-} from "@workspace/shared/schemas/order/index"
+import type { OrderResponse } from "@workspace/shared/schemas/order/index"
 import api from "@/lib/axios"
 
-export type CreateTableOrderInput = CreateTableOrderDto
+export interface CreateTableOrderInput {
+  customerName?: string | null
+  customerPhone?: string | null
+  customerEmail?: string | null
+  paymentMethod?: string | null
+  discount?: number
+  items: {
+    menuItemId: string
+    variant: "half" | "full"
+    quantity: number
+    notes?: string | null
+  }[]
+  notes?: string | null
+}
 
 type CreateTableOrderResponse =
-  | { status: "success"; code: number; data: OrderResponse; appended?: boolean }
+  | { status: "success"; code: number; data: OrderResponse }
   | { status: "error"; code: number; message: string }
 
 export function useCreateTableOrder() {
@@ -18,14 +28,12 @@ export function useCreateTableOrder() {
 
   return useMutation({
     mutationFn: async ({
-      tableId,
       data,
     }: {
-      tableId: string
       data: CreateTableOrderInput
     }): Promise<OrderResponse> => {
       const res = await api.post<CreateTableOrderResponse>(
-        `organization/orders/table/${tableId}`,
+        "public/qr/orders",
         data
       )
 

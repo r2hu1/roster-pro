@@ -66,7 +66,8 @@ const CartContext = createContext<CartContextProps | null>(null)
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const { data: tableData } = useTableContext()
-  const orgId = tableData?.organization.id
+  // Org IDs no longer reach the client — key the cart by org name instead.
+  const orgId = tableData?.organization.name ?? undefined
 
   const prevOrgId = useRef(orgId)
   const skipNextSave = useRef(false)

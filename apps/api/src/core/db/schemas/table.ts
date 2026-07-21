@@ -27,6 +27,7 @@ export const tableSchema = pgTable(
       }),
     status: text("status").$type<TableStatus>().notNull(),
     qrToken: text("qr_token"),
+    qrTokenVersion: integer("qr_token_version").default(1).notNull(),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at")
       .$onUpdate(() => /* @__PURE__ */ new Date())

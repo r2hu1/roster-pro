@@ -13,17 +13,12 @@ export function useCancelTableOrder() {
 
   return useMutation({
     mutationFn: async ({
-      tableId,
       orderId,
-      token,
     }: {
-      tableId: string
       orderId: string
-      token: string
     }): Promise<OrderResponse> => {
       const res = await api.patch<CancelTableOrderResponse>(
-        `organization/orders/table/${tableId}/${orderId}/cancel`,
-        { token }
+        `public/qr/orders/${orderId}/cancel`
       )
 
       if (res.data.status !== "success") {

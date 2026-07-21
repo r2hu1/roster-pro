@@ -11,15 +11,11 @@ type StreamState = {
 
 const POLL_INTERVAL = 10_000
 
-export function useActiveOrdersStream(
-  tableId?: string | null,
-  organizationId?: string | null
-): StreamState {
+export function useActiveOrdersStream(enabled = true): StreamState {
   const [orders, setOrders] = useState<OrderResponse[]>([])
   const [connected, setConnected] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const mapRef = useRef<Map<string, OrderResponse>>(new Map())
-  const tableRef = useRef<string | null>(null)
 
   const sync = () =>
     setOrders(
@@ -30,25 +26,40 @@ export function useActiveOrdersStream(
     )
 
   useEffect(() => {
-    if (!tableId || !organizationId) return
+    if (!enabled) return
 
     mapRef.current = new Map()
     setOrders([])
     setError(null)
     setConnected(false)
 
+    let stopped = false
+
     const fetchOrders = () => {
-      fetch(
-        `/api/organization/orders/table/${tableId}/active?organizationId=${organizationId}`
-      )
-        .then((res) => res.json())
+      fetch("/api/public/qr/orders/active", { credentials: "include" })
+        .then((res) => {
+          if (res.status === 401) {
+            stopped = true
+            // SESSION_ENDED (checkout / staff action / regen) → thank-you;
+            // plain expiry → back to the scanner.
+            return res
+              .json()
+              .catch(() => null)
+              .then((body) => {
+                window.location.href =
+                  body?.errorCode === "SESSION_ENDED" ? "/thank-you" : "/"
+                return null
+              })
+          }
+          return res.json()
+        })
         .then((result) => {
+          if (!result || stopped) return
           if (result.status === "success") {
             mapRef.current = new Map(
               result.data.map((o: OrderResponse) => [o.id, o])
             )
             sync()
-            tableRef.current = result.tableNumber
             setConnected(true)
             setError(null)
           }
@@ -60,8 +71,11 @@ export function useActiveOrdersStream(
 
     fetchOrders()
     const interval = setInterval(fetchOrders, POLL_INTERVAL)
-    return () => clearInterval(interval)
-  }, [tableId, organizationId])
+    return () => {
+      stopped = true
+      clearInterval(interval)
+    }
+  }, [enabled])
 
   return { orders, connected, error }
 }

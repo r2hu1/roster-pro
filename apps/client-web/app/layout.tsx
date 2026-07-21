@@ -2,6 +2,7 @@ import { Geist } from "next/font/google"
 import "@workspace/ui/globals.css"
 import { cn } from "@workspace/ui/lib/utils"
 import type { Metadata } from "next"
+import { ReactQueryProvider } from "@/modules/providers/query-client"
 
 const geist = Geist({
   subsets: ["latin"],
@@ -26,7 +27,9 @@ export default function RootLayout({
       suppressHydrationWarning
       className={cn("antialiased ", geist.className)}
     >
-      <body>{children}</body>
+      <body>
+        <ReactQueryProvider>{children}</ReactQueryProvider>
+      </body>
     </html>
   )
 }

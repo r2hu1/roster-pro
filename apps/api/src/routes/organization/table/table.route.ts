@@ -150,6 +150,62 @@ tableRouter.post("/token", sessionMiddleware, async (c) => {
   return c.json(result, result.code)
 })
 
+tableRouter.post("/token/regenerate", sessionMiddleware, async (c) => {
+  const body = await c.req.raw.json()
+  const organizationId = c.get("organizationId")
+  if (!organizationId) {
+    return c.json(
+      {
+        message: "Unauthorized, organization ID is required",
+        status: "error",
+        code: HTTP_STATUS_CODES.UNAUTHORIZED,
+      },
+      HTTP_STATUS_CODES.UNAUTHORIZED
+    )
+  }
+
+  const result = await tableLogic.regenerateQrToken(
+    body.tableId,
+    organizationId
+  )
+  return c.json(result, result.code)
+})
+
+tableRouter.post("/:id/end-session", sessionMiddleware, async (c) => {
+  const organizationId = c.get("organizationId")
+  if (!organizationId) {
+    return c.json(
+      {
+        message: "Unauthorized, organization ID is required",
+        status: "error",
+        code: HTTP_STATUS_CODES.UNAUTHORIZED,
+      },
+      HTTP_STATUS_CODES.UNAUTHORIZED
+    )
+  }
+
+  const id = c.req.param("id")!
+  const result = await tableLogic.endQrSessions(id, organizationId)
+  return c.json(result, result.code)
+})
+
+tableRouter.get("/sessions/counts", sessionMiddleware, async (c) => {
+  const organizationId = c.get("organizationId")
+  if (!organizationId) {
+    return c.json(
+      {
+        message: "Unauthorized, organization ID is required",
+        status: "error",
+        code: HTTP_STATUS_CODES.UNAUTHORIZED,
+      },
+      HTTP_STATUS_CODES.UNAUTHORIZED
+    )
+  }
+
+  const result = await tableLogic.getQrSessionCounts(organizationId)
+  return c.json(result, result.code)
+})
+
 tableRouter.get("/token/decode", async (c) => {
   const token = c.req.query("token")
   if (!token) {

@@ -18,14 +18,9 @@ export function OrdersStreamProvider({
 }: {
   children: React.ReactNode
 }) {
-  const { data: tableData } = useTableContext()
-  const tableId = tableData?.table.id
-  const organizationId = tableData?.organization.id
+  const { data: session } = useTableContext()
 
-  const { orders, connected, error } = useActiveOrdersStream(
-    tableId,
-    organizationId
-  )
+  const { orders, connected, error } = useActiveOrdersStream(Boolean(session))
 
   return (
     <OrdersStreamContext.Provider value={{ orders, connected, error }}>
