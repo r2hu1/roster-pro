@@ -9,6 +9,8 @@ import {
   qrTokenStorage,
 } from "@/hooks/use-qr-session"
 import Preloader from "@/components/preloader"
+import { Camera, CameraOff } from "reicon-react"
+import { Logo } from "@/components/roster-logo"
 
 type ScanState =
   | "idle"
@@ -124,7 +126,9 @@ export default function ScannerPage() {
 
     const BarcodeDetectorCtor = (
       window as unknown as {
-        BarcodeDetector?: new (opts: { formats: string[] }) => {
+        BarcodeDetector?: new (opts: {
+          formats: string[]
+        }) => {
           detect: (src: CanvasImageSource) => Promise<{ rawValue: string }[]>
         }
       }
@@ -177,75 +181,91 @@ export default function ScannerPage() {
   if (sessionPending) return <Preloader />
 
   return (
-    <main className="min-h-svh flex flex-col items-center justify-center gap-6 px-6 text-center">
+    <main className="min-h-svh flex flex-col items-center justify-center gap-8 px-6 text-center bg-gradient-to-b from-background to-muted/40">
       <div className="space-y-2">
-        <h1 className="text-xl font-semibold">Scan the table QR code</h1>
-        <p className="text-sm text-muted-foreground max-w-sm">
+        <h1 className="text-2xl font-medium tracking-tight">
+          Scan the table qr
+        </h1>
+        <p className="text-sm text-muted-foreground max-w-[22rem] leading-relaxed">
           Point your camera at the QR code on your table to view the menu and
           start ordering.
         </p>
       </div>
 
-      <div className="relative w-full max-w-sm aspect-square overflow-hidden rounded-2xl border bg-muted/30">
-        <video
-          ref={videoRef}
-          className="h-full w-full object-cover"
-          muted
-          playsInline
-        />
-        {(state === "idle" || state === "error" || state === "denied") && (
-          <div className="absolute inset-0 grid place-content-center bg-background/80 p-6">
-            {state === "denied" ? (
-              <p className="text-sm text-muted-foreground">
-                Camera access was denied. Allow camera permission in your
-                browser settings, or open the table QR with your phone&apos;s
-                camera app and tap the link.
-              </p>
-            ) : (
-              <p className="text-sm text-muted-foreground">
-                {errorMsg ?? "Camera is off"}
-              </p>
-            )}
-          </div>
-        )}
-        {state === "issuing" && (
-          <div className="absolute inset-0 grid place-content-center bg-background/80">
-            <p className="text-sm text-muted-foreground">Starting session…</p>
-          </div>
-        )}
-      </div>
-
-      {state === "scanning" || state === "starting" ? (
-        <Button
-          variant="secondary"
-          onClick={() => {
-            stopCamera()
-            setState("idle")
-          }}
-        >
-          Stop camera
-        </Button>
-      ) : state !== "issuing" ? (
-        <Button size="lg" onClick={() => void startScanner()}>
-          {state === "error" || state === "denied"
-            ? "Try again"
-            : "Open camera"}
-        </Button>
-      ) : null}
-
-      {pendingToken && state !== "issuing" && (
-        <div className="space-y-2">
-          <p className="text-xs text-muted-foreground">
-            Came here from a table link?
-          </p>
-          <Button
-            variant="outline"
-            onClick={() => issueSession(pendingToken)}
-          >
-            Start session for this table
-          </Button>
+      <div className="w-full bg-secondary max-w-sm mx-auto flex flex-col justify-center items-center rounded-2xl">
+        <div className="relative w-full aspect-square overflow-hidden rounded-xl bg-neutral-950 rounded-b-none!">
+          <video
+            ref={videoRef}
+            className="h-full w-full object-cover opacity-90"
+            muted
+            playsInline
+          />
+          {state === "scanning" && (
+            <div className="pointer-events-none absolute inset-6">
+              {[
+                "top-4 left-4 border-t-2 border-l-2 rounded-tl-xl",
+                "top-4 right-4 border-t-2 border-r-2 rounded-tr-xl",
+                "bottom-4 left-4 border-b-2 border-l-2 rounded-bl-xl",
+                "bottom-4 right-4 border-b-2 border-r-2 rounded-br-xl",
+              ].map((pos, i) => (
+                <span
+                  key={i}
+                  className={`absolute h-8 w-8 border-primary ${pos}`}
+                />
+              ))}
+              <div className="absolute inset-x-4 top-1/2 h-px bg-primary shadow-[0_0_12px_2px_rgba(251,191,36,0.6)] animate-pulse" />
+            </div>
+          )}
+          {(state === "idle" || state === "error" || state === "denied") && (
+            <div className="absolute inset-0 grid place-content-center bg-neutral-950/85 p-8 backdrop-blur-sm">
+              {state === "denied" ? (
+                <p className="text-sm text-neutral-300 leading-relaxed max-w-[16rem]">
+                  Camera access was denied. Allow camera permission in your
+                  browser settings, or open the table QR with your phone&apos;s
+                  camera app and tap the link.
+                </p>
+              ) : (
+                <p className="text-sm text-neutral-300">
+                  {errorMsg ?? "Camera is off"}
+                </p>
+              )}
+            </div>
+          )}
+          {state === "issuing" && (
+            <div className="absolute inset-0 grid place-content-center gap-2 bg-neutral-950/85 backdrop-blur-sm">
+              <div className="mx-auto size-5 animate-spin rounded-full border-2 border-primary/30 border-t-primary" />
+              <p className="text-sm text-neutral-300">Starting session...</p>
+            </div>
+          )}
         </div>
-      )}
+
+        <div className="w-full grid border-0! -mt-0.5">
+          {state === "scanning" || state === "starting" ? (
+            <Button
+              size="lg"
+              className="h-10 w-full rounded-t-none!"
+              onClick={() => {
+                stopCamera()
+                setState("idle")
+              }}
+            >
+              Stop camera
+              <CameraOff />
+            </Button>
+          ) : state !== "issuing" ? (
+            <Button
+              size="lg"
+              className="h-10 w-full rounded-t-none!"
+              onClick={() => void startScanner()}
+            >
+              {state === "error" || state === "denied"
+                ? "Try again"
+                : "Open camera"}
+              <Camera />
+            </Button>
+          ) : null}
+        </div>
+      </div>
     </main>
   )
 }

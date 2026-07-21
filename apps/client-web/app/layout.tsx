@@ -28,10 +28,7 @@ export default function RootLayout({
       className={cn("antialiased ", geist.className)}
     >
       <body>
-        <ReactQueryProvider>
-
-      {children}
-    </ReactQueryProvider>
+        <ReactQueryProvider>{children}</ReactQueryProvider>
       </body>
     </html>
   )

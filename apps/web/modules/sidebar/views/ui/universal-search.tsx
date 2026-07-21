@@ -80,7 +80,7 @@ export function UniversalSearch({ children }: { children: React.ReactNode }) {
   const [open, setOpen] = React.useState(false)
   const [query, setQuery] = React.useState("")
   const debouncedQuery = useDebounce(query, 300)
-  const { setKitchenMode,kitchenMode } = useKitchenMode();
+  const { setKitchenMode, kitchenMode } = useKitchenMode()
 
   const { data: tables, isFetching: tablesLoading } = useQuery({
     queryKey: ["search-tables", orgId],
@@ -210,13 +210,20 @@ export function UniversalSearch({ children }: { children: React.ReactNode }) {
                   <CommandItem
                     key={order.id}
                     value={`${order.invoiceNumber} ${order.customerName ?? ""} ${order.grandTotal} ${order.tableNumber} ${order.status}`}
-                    onSelect={() => navigate(`/${orgId}?currentOrderInfo=${order.invoiceNumber}`)}
+                    onSelect={() =>
+                      navigate(
+                        `/${orgId}?currentOrderInfo=${order.invoiceNumber}`
+                      )
+                    }
                   >
                     <Cart className="size-4" />
                     <div className="flex flex-1 items-center justify-between">
                       <span>{order.invoiceNumber}</span>
                       <span className="text-xs text-muted-foreground capitalize">
-                        {order.tableNumber !== "parcel" ? `Table ${order.tableNumber}` : order.tableNumber} · ₹{order.grandTotal}
+                        {order.tableNumber !== "parcel"
+                          ? `Table ${order.tableNumber}`
+                          : order.tableNumber}{" "}
+                        · ₹{order.grandTotal}
                       </span>
                     </div>
                   </CommandItem>
@@ -230,7 +237,9 @@ export function UniversalSearch({ children }: { children: React.ReactNode }) {
                   <CommandItem
                     key={table.id}
                     value={`Table ${table.number} ${table.name ?? ""} ${table.status}`}
-                    onSelect={() => navigate(`/${orgId}/tables?currentTable=${table.id}`)}
+                    onSelect={() =>
+                      navigate(`/${orgId}/tables?currentTable=${table.id}`)
+                    }
                   >
                     <Armchair2 className="size-4" />
                     <div className="flex flex-1 items-center justify-between">
@@ -253,7 +262,11 @@ export function UniversalSearch({ children }: { children: React.ReactNode }) {
                   <CommandItem
                     key={item.id}
                     value={`${item.name} ${menuName} ${item.description ?? ""}`}
-                    onSelect={() => navigate(`/${orgId}/menus/${item.menuId}?currentMenuItem=${item.id}`)}
+                    onSelect={() =>
+                      navigate(
+                        `/${orgId}/menus/${item.menuId}?currentMenuItem=${item.id}`
+                      )
+                    }
                   >
                     <ChefHat className="size-4" />
                     <div className="flex flex-1 items-center justify-between">

@@ -100,9 +100,7 @@ export default function TableQrCodeModal({
         setCurrentTable(nextOpen ? table.id : null)
       }}
     >
-      <ResponsiveModalTrigger asChild>
-        {children}
-      </ResponsiveModalTrigger>
+      <ResponsiveModalTrigger asChild>{children}</ResponsiveModalTrigger>
 
       <ResponsiveModalContent>
         <ResponsiveModalHeader>

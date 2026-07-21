@@ -45,7 +45,9 @@ const modifyOrderSchema = z.object({
   items: z.array(orderItemSchema).min(1, "At least one item is required"),
 })
 
-function clientIp(c: { req: { header: (name: string) => string | undefined } }) {
+function clientIp(c: {
+  req: { header: (name: string) => string | undefined }
+}) {
   return (
     c.req.header("x-forwarded-for")?.split(",")[0]?.trim() ||
     c.req.header("x-real-ip") ||

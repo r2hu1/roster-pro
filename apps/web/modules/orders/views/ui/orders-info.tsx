@@ -33,12 +33,15 @@ export default function OrdersInfo({
   children: React.ReactNode
 }) {
   const showSession = Boolean(order.tableSessionId) && multiRound
-  const [currentOrderInfo, setCurrentOrderInfo] = useQueryState("currentOrderInfo");
+  const [currentOrderInfo, setCurrentOrderInfo] =
+    useQueryState("currentOrderInfo")
   return (
-    <Sheet open={currentOrderInfo === order.invoiceNumber}
-    onOpenChange={(open) => {
-      setCurrentOrderInfo(open ? order.invoiceNumber : null)
-    }}>
+    <Sheet
+      open={currentOrderInfo === order.invoiceNumber}
+      onOpenChange={(open) => {
+        setCurrentOrderInfo(open ? order.invoiceNumber : null)
+      }}
+    >
       <SheetTrigger asChild>{children}</SheetTrigger>
       <SheetContent side="right" className="flex flex-col w-full sm:max-w-md!">
         <SheetHeader className="border-b">

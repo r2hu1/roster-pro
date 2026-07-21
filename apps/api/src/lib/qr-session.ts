@@ -92,9 +92,7 @@ export const qrSessionStore = {
     }
   },
 
-  async validate(
-    credential: string
-  ): Promise<
+  async validate(credential: string): Promise<
     | { ok: true; session: QrSessionContext }
     | {
         ok: false

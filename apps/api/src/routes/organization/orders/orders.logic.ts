@@ -655,7 +655,6 @@ export const orderLogic = {
     return { status: "success", code: HTTP_STATUS_CODES.CREATED, data: created }
   },
 
-
   // ---- QR-session-scoped customer operations -------------------------------
   // Scope (org/table/tableSession) always comes from the validated session
   // record, never from client input.
