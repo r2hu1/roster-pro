@@ -242,11 +242,9 @@ function ModifyOrderModal({ order }: { order: OrderResponse }) {
                     </button>
                   </div>
                   <Button
-                    variant="destructive"
                     size="icon"
                     type="button"
                     onClick={() => removeItem(i)}
-                    type="button"
                     variant="destructive"
                   >
                     <Trash2/>
