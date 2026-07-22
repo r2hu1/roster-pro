@@ -29,7 +29,7 @@ export default function TableQrCodeModal({
 }) {
   const qrRef = useRef<QRHandle>(null)
 
-  const [currentTable, setCurrentTable] = useQueryState("currentTable")
+  const [currentTable, setCurrentTable] = useQueryState("qr")
 
   const [token, setToken] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
@@ -115,7 +115,7 @@ export default function TableQrCodeModal({
 
         <ResponsiveModalBody className="flex justify-center">
           {loading ? (
-            <Skeleton className="h-70 w-full" />
+            <Skeleton className="h-84 w-full" />
           ) : token ? (
             <QR ref={qrRef} token={token} />
           ) : null}
@@ -148,6 +148,7 @@ export default function TableQrCodeModal({
             </Button>
           </ResponsiveModalFooter>
         )}
+        {loading && <Skeleton className="h-9 w-full" />}
       </ResponsiveModalContent>
     </ResponsiveModal>
   )

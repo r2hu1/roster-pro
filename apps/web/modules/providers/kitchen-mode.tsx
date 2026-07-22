@@ -1,12 +1,13 @@
 "use client"
 
 import { usePathname, useRouter } from "next/navigation"
-import React from "react"
+import React, { useEffect } from "react"
 import { useSession } from "./session-provider"
+import { useQueryState, parseAsBoolean } from "nuqs"
 
 interface KitchenModeContextType {
   kitchenMode: boolean
-  setKitchenMode: React.Dispatch<React.SetStateAction<boolean>>
+  setKitchenMode: (kitchenMode: boolean) => void
 }
 
 const KitchenModeContext = React.createContext<KitchenModeContextType>({
@@ -22,8 +23,13 @@ export function KitchenModeProvider({
   const path = usePathname()
   const { organization } = useSession()
   const router = useRouter()
-  const [kitchenMode, setKitchenMode] = React.useState(false)
-  React.useEffect(() => {
+
+  const [kitchenMode, setKitchenMode] = useQueryState(
+    "kitchen",
+    parseAsBoolean.withDefault(false)
+  )
+
+  useEffect(() => {
     if (path.split("/").length > 2) {
       if (!kitchenMode) return
       router.push(`/${organization?.id}`)

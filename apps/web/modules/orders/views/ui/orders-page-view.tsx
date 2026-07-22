@@ -74,10 +74,10 @@ export default function OrdersPageView() {
   const { organization } = useSession()
   const organizationId = organization?.id
   const { kitchenMode } = useKitchenMode()
-  const [activeFilter, setActiveFilter] = useQueryState("activeFilter", {
+  const [activeFilter, setActiveFilter] = useQueryState("filters", {
     defaultValue: "All",
   })
-  const [search, setSearch] = useQueryState("search", {
+  const [search, setSearch] = useQueryState("query", {
     defaultValue: "",
   })
   const clock = useClock()

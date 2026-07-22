@@ -33,8 +33,7 @@ export default function OrdersInfo({
   children: React.ReactNode
 }) {
   const showSession = Boolean(order.tableSessionId) && multiRound
-  const [currentOrderInfo, setCurrentOrderInfo] =
-    useQueryState("currentOrderInfo")
+  const [currentOrderInfo, setCurrentOrderInfo] = useQueryState("order")
   return (
     <Sheet
       open={currentOrderInfo === order.invoiceNumber}

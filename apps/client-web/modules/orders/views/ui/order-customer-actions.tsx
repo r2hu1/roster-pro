@@ -247,7 +247,7 @@ function ModifyOrderModal({ order }: { order: OrderResponse }) {
                     onClick={() => removeItem(i)}
                     variant="destructive"
                   >
-                    <Trash2/>
+                    <Trash2 />
                   </Button>
                 </div>
               </div>

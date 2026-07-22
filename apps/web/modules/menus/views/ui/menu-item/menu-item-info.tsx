@@ -18,7 +18,7 @@ export default function MenuItemInfo({
   item: MenuItemResponse
   children: React.ReactNode
 }) {
-  const [currentMenuItem, setCurrentMenuItem] = useQueryState("currentMenuItem")
+  const [currentMenuItem, setCurrentMenuItem] = useQueryState("menu-item")
 
   return (
     <Sheet
