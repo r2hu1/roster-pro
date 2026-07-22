@@ -14,6 +14,7 @@ import { isParcelOrder } from "@workspace/shared/constants/index"
 type Order = z.infer<typeof OrderSchema>
 
 import { OrderStatus } from "@workspace/shared/enums"
+import { useQueryState } from "nuqs"
 
 const statusConfig: Partial<
   Record<OrderStatus, { label: string; next: OrderStatus }>
@@ -54,10 +55,13 @@ function RenderUpdateStatusButton({
 
   return (
     <Button
-      variant="secondary"
+      variant="ghost"
       size="xs"
       onClick={(e) => {
-        e.stopPropagation()
+        if (config.next === "completed") {
+          return;
+        }
+        e.stopPropagation();
         updateOrder({
           id: orderId,
           status: config.next,
