@@ -360,24 +360,6 @@ export function generateReceiptHtml(invoice: InvoiceData) {
     THANK YOU! VISIT AGAIN
     </div>
 
-    <br/>
-
-    <div>
-    This is a computer generated receipt.
-    </div>
-
-    ${
-      invoice.organization.gstin
-        ? `
-    <div>
-    GST Included As Applicable.
-    </div>
-    `
-        : ""
-    }
-
-    <br/>
-
     <div class="small">
     Powered by Roster Pro
     </div>

@@ -144,10 +144,10 @@ app/
 | `orders/` | Order list, status controls, realtime |
 | `tables/` | Table CRUD, QR codes, status |
 | `receipts/` | Print receipts, data table |
-| `sidebar/` | Navigation, kitchen mode toggle |
+| `sidebar/` | Navigation, kitchen display link |
 | `settings/` | Organization settings |
 | `onboarding/` | Auth flow, subscription |
-| `providers/` | React Query, session, kitchen mode |
+| `providers/` | React Query, session, subscription |
 
 **Module pattern:** `views/ui/` (client components), `api/` (API calls), `hooks/` (realtime streams, mutations).
 

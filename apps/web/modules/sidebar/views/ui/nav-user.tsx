@@ -1,7 +1,6 @@
 "use client"
 
 import { authClient } from "@/lib/better-auth/client"
-import { useKitchenMode } from "@/modules/providers/kitchen-mode"
 import {
   IconCreditCard,
   IconDotsVertical,
@@ -31,14 +30,13 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@workspace/ui/components/sidebar"
-import { Switch } from "@workspace/ui/components/switch"
+import { ForkKnife } from "reicon-react"
 import { useRouter } from "next/navigation"
 import { CreditCard, Logout2Newicons, Settings, UserCircle } from "reicon-react"
 import { toast } from "sonner"
 
 export function NavUser({ org }: { org: OrganizationResponse }) {
   const { isMobile } = useSidebar()
-  const { kitchenMode, setKitchenMode } = useKitchenMode()
 
   const handleLogout = async () => {
     try {
@@ -59,9 +57,12 @@ export function NavUser({ org }: { org: OrganizationResponse }) {
         <SidebarMenuButton
           variant="outline"
           className="flex shadow-sm border-none hover:shadow-sm items-center h-9 text-sm! justify-between"
+          onClick={() => router.push(`/${org.id}/kitchen`)}
         >
-          Kitchen Mode
-          <Switch checked={kitchenMode} onCheckedChange={setKitchenMode} />
+          <span className="flex items-center gap-2">
+            <ForkKnife className="size-4" />
+            Kitchen Mode
+          </span>
         </SidebarMenuButton>
       </SidebarMenuItem>
       <SidebarMenuItem>

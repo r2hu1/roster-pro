@@ -19,17 +19,23 @@ import { toast } from "sonner"
 export function OrderStatusSelect({
   orderId,
   initial,
+  excludeCompleted,
 }: {
   orderId: string
   initial: OrderStatus
+  excludeCompleted?: boolean
 }) {
   const [value, setValue] = useState(initial)
   const [pending, setPending] = useState<OrderStatus | null>(null)
   const [confirming, setConfirming] = useState<OrderStatus | null>(null)
 
+  const statuses: OrderStatus[] = excludeCompleted
+    ? ["pending", "preparing", "ready", "served", "cancelled"]
+    : ["pending", "preparing", "ready", "served", "completed", "cancelled"]
+
   async function handleUpdate(s: OrderStatus) {
     if (s === value || pending) return
-    if (s === "completed" || s === "cancelled") {
+    if (s === "cancelled" || (!excludeCompleted && s === "completed")) {
       setConfirming(s)
       return
     }
@@ -57,16 +63,7 @@ export function OrderStatusSelect({
         <span className="lowercase text-[10px]">(click to update)</span>
       </label>
       <div className="flex-wrap flex gap-1 items-center">
-        {(
-          [
-            "pending",
-            "preparing",
-            "ready",
-            "served",
-            "completed",
-            "cancelled",
-          ] as OrderStatus[]
-        ).map((s) => (
+        {statuses.map((s) => (
           <Button
             className="capitalize rounded-md! disabled:opacity-100! disabled:cursor-not-allowed! disabled:pointer-events-auto!"
             variant={value !== s ? "secondary" : "default"}

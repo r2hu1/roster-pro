@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import * as React from "react"
 import {
   ResponsiveModal,
   ResponsiveModalTrigger,
@@ -30,8 +30,8 @@ export default function PrintReceiptVersionModal({
   children,
 }: PrintReceiptVersionModalProps) {
   const { organization } = useSession()
-  const [open, setOpen] = useState(false)
-  const [printing, setPrinting] = useState<"session" | "ticket" | null>(null)
+  const [open, setOpen] = React.useState(false)
+  const [printing, setPrinting] = React.useState<"session" | "ticket" | null>(null)
 
   async function handlePrint(mode: "session" | "ticket") {
     if (!organization?.id) {
@@ -61,7 +61,21 @@ export default function PrintReceiptVersionModal({
   }
 
   if (!sessionId) {
-    return <div onClick={() => handlePrint("ticket")}>{children}</div>
+    const child = React.Children.only(children) as React.ReactElement
+    return (
+      <div onClick={printing ? undefined : () => handlePrint("ticket")}>
+        {printing
+          ? React.cloneElement(child as React.ReactElement<Record<string, unknown>>, {
+              disabled: true,
+              children: (
+                <>
+                  <Loader /> Print
+                </>
+              ),
+            })
+          : children}
+      </div>
+    )
   }
 
   return (

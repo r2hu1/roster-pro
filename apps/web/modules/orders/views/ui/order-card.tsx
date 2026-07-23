@@ -7,72 +7,9 @@ import {
   statusStyles,
 } from "./orders-constants"
 import OrdersInfo from "./orders-info"
-import { Button } from "@workspace/ui/components/button"
-import { updateOrder } from "../../api/orders"
 import { isParcelOrder } from "@workspace/shared/constants/index"
 
 type Order = z.infer<typeof OrderSchema>
-
-import { OrderStatus } from "@workspace/shared/enums"
-import { useQueryState } from "nuqs"
-
-const statusConfig: Partial<
-  Record<OrderStatus, { label: string; next: OrderStatus }>
-> = {
-  pending: {
-    label: "Mark Preparing",
-    next: "preparing",
-  },
-  confirmed: {
-    label: "Mark Preparing",
-    next: "preparing",
-  },
-  preparing: {
-    label: "Mark Ready",
-    next: "ready",
-  },
-  ready: {
-    label: "Mark Served",
-    next: "served",
-  },
-  served: {
-    label: "Mark Completed",
-    next: "completed",
-  },
-}
-
-function RenderUpdateStatusButton({
-  status,
-  orderId,
-}: {
-  status?: OrderStatus
-  orderId: string
-}) {
-  if (!status) return null
-
-  const config = statusConfig[status]
-  if (!config) return null
-
-  return (
-    <Button
-      variant="ghost"
-      size="xs"
-      onClick={(e) => {
-        if (config.next === "completed") {
-          return;
-        }
-        e.stopPropagation();
-        updateOrder({
-          id: orderId,
-          status: config.next,
-        })
-      }}
-      className="isolate border-border!"
-    >
-      {config.label}
-    </Button>
-  )
-}
 
 export function OrderCard({
   order,
@@ -83,14 +20,17 @@ export function OrderCard({
   status?: string
   multiRound?: boolean
 }) {
-  const time = new Date(order.createdAt).toLocaleTimeString("en-IN", {
+  const time = new Date(order.createdAt).toLocaleDateString("en-IN", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
     hour: "2-digit",
     minute: "2-digit",
   })
 
   return (
     <OrdersInfo order={order} multiRound={multiRound}>
-      <div className="rounded-lg border hover:shadow-sm bg-background">
+      <div className="rounded-lg border hover:-translate-y-0.5 hover:shadow-sm bg-background">
         <div
           className={cn(
             "group relative p-4",
@@ -98,7 +38,6 @@ export function OrderCard({
             "cursor-pointer"
           )}
         >
-          <div className="flex items-start justify-between">
             <div>
               <p className="text-base font-semibold leading-tight">
                 {isParcelOrder(order.tableNumber)
@@ -109,11 +48,6 @@ export function OrderCard({
                 {order.invoiceNumber}
               </p>
             </div>
-            <RenderUpdateStatusButton
-              status={status as OrderStatus}
-              orderId={order.id}
-            />
-          </div>
 
           {order.customerName && (
             <p className="mt-2 truncate text-sm text-muted-foreground">
@@ -138,7 +72,7 @@ export function OrderCard({
         </div>
         <div className="flex items-center justify-between bg-muted/40 border-t p-2.5">
           <span className={cn("text-xs")}>
-            {new Date(order.createdAt).toDateString()}
+            {time}
           </span>
           {/*{order.discount > 0 && (
             <span className="text-xs text-muted-foreground">

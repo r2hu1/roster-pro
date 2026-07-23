@@ -179,7 +179,7 @@ apps/web/
 │   ├── page.tsx                     # Server component — checks session → org → subscription, redirects
 │   ├── error.tsx                    # Client error boundary, auto-reload every 5s
 │   ├── (dashboard)/
-│   │   └── layout.tsx              # ReactQueryProvider > SessionProvider > SubscriptionMiddleware > KitchenModeProvider > DashboardShell
+│   │   └── layout.tsx              # SessionProvider > SubscriptionMiddleware > DashboardShell
 │   │   └── [Id]/
 │   │       ├── layout.tsx          # Pass-through
 │   │       ├── page.tsx            # → OrdersPageView (default dashboard page)
@@ -190,6 +190,10 @@ apps/web/
 │   │       ├── receipts/page.tsx
 │   │       ├── settings/page.tsx   # Empty placeholder
 │   │       └── subscribe/page.tsx  # Upgrade to Pro upsell
+│   ├── (kitchen)/
+│   │   └── layout.tsx              # SessionProvider > SubscriptionMiddleware (no sidebar)
+│   │   └── [Id]/
+│   │       └── kitchen/page.tsx    # → KitchenDisplayView
 │   ├── (onboarding)/
 │   │   ├── (auth)/
 │   │   │   ├── layout.tsx          # SessionProvider wrapper
@@ -208,7 +212,10 @@ apps/web/
 │   │   │   ├── use-order-stream.ts        # Single order realtime subscription
 │   │   │   └── use-orders-mutations.ts    # useCreateOrder, useUpdateOrder, useDeleteOrder
 │   │   └── views/ui/
-│   │       ├── orders-page-view.tsx       # Normal + kitchen mode layouts, infinite scroll
+│   │       ├── orders-page-view.tsx       # Real-time order list with infinite scroll
+│   │       ├── kitchen-display-view.tsx   # Full-screen kitchen display
+│   │       ├── kitchen-order-card.tsx     # Kitchen card with inline status buttons
+│   │       ├── load-more-sentinel.tsx     # Shared infinite scroll trigger
 │   │       ├── order-card.tsx
 │   │       ├── order-items-list.tsx
 │   │       ├── order-totals-summary.tsx
@@ -266,7 +273,7 @@ apps/web/
 │   │       ├── nav-main.tsx
 │   │       ├── nav-secondary.tsx
 │   │       ├── nav-user.tsx
-│   │       └── kitchen-mode-toggle.tsx   # FAB toggle
+│   │       └── kitchen-mode-toggle.tsx   # Kitchen display link
 │   ├── onboarding/
 │   │   └── views/ui/
 │   │       ├── auth/auth-page-view.tsx   # Google OAuth sign-in
@@ -278,10 +285,9 @@ apps/web/
 │   └── providers/
 │       ├── session-provider.tsx          # SessionContext — user, org, loading
 │       ├── query-client.tsx              # React Query provider
-│       ├── kitchen-mode.tsx              # Kitchen mode context + redirect
 │       └── subscription-middleware.tsx   # Subscription check → redirect to /subscribe
 ├── components/
-│   ├── dashboard-shell.tsx          # SidebarProvider + AppSidebar + main content
+│   ├── dashboard-shell.tsx          # SidebarProvider + AppSidebar
 │   ├── page-header.tsx              # Reusable header with title/description/actions
 │   ├── realtime-provider.tsx        # Upstash RealtimeProvider (max 20 reconnects)
 │   ├── logo.tsx
