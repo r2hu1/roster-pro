@@ -3,9 +3,9 @@ import { ScrollArea } from "@workspace/ui/components/scroll-area"
 
 const inr = (n: number) => n.toLocaleString("en-IN")
 
-export function OrderItemsList({ items }: { items: OrderResponse["items"] }) {
+export function OrderItemsList({ items, className }: { items: OrderResponse["items"]; className?: string }) {
   return (
-    <div className="space-y-2">
+    <div className={`space-y-2 ${className}`}>
       <p className="text-[11px] text-muted-foreground uppercase tracking-widest font-medium">
         Items ({items.length})
       </p>

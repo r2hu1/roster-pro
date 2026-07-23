@@ -210,7 +210,7 @@ export const KitchenOrderCard = memo(function KitchenOrderCard({
           </ResponsiveModalTitle>
         </ResponsiveModalHeader>
 
-        <ScrollArea className="max-h-[70vh]">
+        <ScrollArea className="md:max-h-[70vh] h-full">
           <ResponsiveModalBody>
             <div className="space-y-5 pt-4">
               {order.status !=="served" && order.status !== "completed" && (
@@ -242,7 +242,7 @@ export const KitchenOrderCard = memo(function KitchenOrderCard({
                 </div>
               )}
 
-              <OrderItemsList items={order.items} />
+              <OrderItemsList className="max-h-40 overflow-y-scroll" items={order.items} />
               <OrderTotalsSummary order={order} />
             </div>
           </ResponsiveModalBody>
