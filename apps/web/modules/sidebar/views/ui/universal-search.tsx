@@ -80,7 +80,6 @@ export function UniversalSearch({ children }: { children: React.ReactNode }) {
   const [query, setQuery] = React.useState("")
   const debouncedQuery = useDebounce(query, 300)
 
-
   const { data: tables, isFetching: tablesLoading } = useQuery({
     queryKey: ["search-tables", orgId],
     queryFn: async () => {
@@ -195,7 +194,7 @@ export function UniversalSearch({ children }: { children: React.ReactNode }) {
             onValueChange={setQuery}
           />
           <CommandList>
-            {loading && (
+            {hasQuery && loading && (
               <div className="p-2">
                 <Skeleton className="h-8 w-full" />
               </div>
@@ -210,7 +209,9 @@ export function UniversalSearch({ children }: { children: React.ReactNode }) {
                     key={order.id}
                     value={`${order.invoiceNumber} ${order.customerName ?? ""} ${order.grandTotal} ${order.tableNumber} ${order.status}`}
                     onSelect={() =>
-                      navigate(`/${orgId}?order=${order.invoiceNumber}`)
+                      navigate(
+                        `/${orgId}?query=${order.invoiceNumber}&order=${order.invoiceNumber}`
+                      )
                     }
                   >
                     <Cart className="size-4" />
