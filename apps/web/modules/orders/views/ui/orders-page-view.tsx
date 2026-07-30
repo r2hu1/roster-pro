@@ -10,7 +10,7 @@ import { OrdersStats } from "./orders-stats"
 import { OrdersFilters } from "./orders-filters"
 import { OrderCard } from "./order-card"
 import { useSession } from "@/modules/providers/session-provider"
-import { ForkKnife, PlusCircle, Wifi, WifiOff } from "reicon-react"
+import { ForkKnife, PlusCircle, ReceiptEdit, Wifi, WifiOff } from "reicon-react"
 import {
   Tooltip,
   TooltipContent,
@@ -94,7 +94,7 @@ export default function OrdersPageView() {
             </Tooltip>
             <CreateManualOrderModal>
               <Button>
-                New Order <PlusCircle />
+                New Order <ReceiptEdit />
               </Button>
             </CreateManualOrderModal>
           </div>
