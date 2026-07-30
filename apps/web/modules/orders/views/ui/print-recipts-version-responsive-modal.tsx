@@ -31,7 +31,9 @@ export default function PrintReceiptVersionModal({
 }: PrintReceiptVersionModalProps) {
   const { organization } = useSession()
   const [open, setOpen] = React.useState(false)
-  const [printing, setPrinting] = React.useState<"session" | "ticket" | null>(null)
+  const [printing, setPrinting] = React.useState<"session" | "ticket" | null>(
+    null
+  )
 
   async function handlePrint(mode: "session" | "ticket") {
     if (!organization?.id) {
@@ -65,14 +67,17 @@ export default function PrintReceiptVersionModal({
     return (
       <div onClick={printing ? undefined : () => handlePrint("ticket")}>
         {printing
-          ? React.cloneElement(child as React.ReactElement<Record<string, unknown>>, {
-              disabled: true,
-              children: (
-                <>
-                  <Loader /> Print
-                </>
-              ),
-            })
+          ? React.cloneElement(
+              child as React.ReactElement<Record<string, unknown>>,
+              {
+                disabled: true,
+                children: (
+                  <>
+                    <Loader /> Print
+                  </>
+                ),
+              }
+            )
           : children}
       </div>
     )
