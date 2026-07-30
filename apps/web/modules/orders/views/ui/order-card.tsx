@@ -38,16 +38,16 @@ export function OrderCard({
             "cursor-pointer"
           )}
         >
-            <div>
-              <p className="text-base font-semibold leading-tight">
-                {isParcelOrder(order.tableNumber)
-                  ? "Parcel"
-                  : `Table ${order.tableNumber}`}
-              </p>
-              <p className="text-xs text-muted-foreground">
-                {order.invoiceNumber}
-              </p>
-            </div>
+          <div>
+            <p className="text-base font-semibold leading-tight">
+              {isParcelOrder(order.tableNumber)
+                ? "Parcel"
+                : `Table ${order.tableNumber}`}
+            </p>
+            <p className="text-xs text-muted-foreground">
+              {order.invoiceNumber}
+            </p>
+          </div>
 
           {order.customerName && (
             <p className="mt-2 truncate text-sm text-muted-foreground">
@@ -71,9 +71,7 @@ export function OrderCard({
           </div>
         </div>
         <div className="flex items-center justify-between bg-muted/40 border-t p-2.5">
-          <span className={cn("text-xs")}>
-            {time}
-          </span>
+          <span className={cn("text-xs")}>{time}</span>
           {/*{order.discount > 0 && (
             <span className="text-xs text-muted-foreground">
               −₹{order.discount}
