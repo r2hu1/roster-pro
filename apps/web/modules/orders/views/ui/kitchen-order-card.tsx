@@ -89,8 +89,10 @@ function NextStatusButton({
           <>
             Updating
             <Loader />
-        </>
-        ) : `Mark ${config.label}`}
+          </>
+        ) : (
+          `Mark ${config.label}`
+        )}
       </Button>
     </div>
   )
@@ -121,7 +123,6 @@ export const KitchenOrderCard = memo(function KitchenOrderCard({
     <ResponsiveModal open={open} onOpenChange={setOpen}>
       <ResponsiveModalTrigger asChild>
         <div className="group flex h-full flex-col overflow-hidden rounded-lg border bg-background cursor-pointer transition-all hover:-translate-y-0.5 hover:shadow-sm">
-
           <div className="flex-1 space-y-3 p-4">
             <div className="flex items-start justify-between gap-2">
               <div className="min-w-0">
@@ -189,7 +190,6 @@ export const KitchenOrderCard = memo(function KitchenOrderCard({
             )}
           </div>
 
-
           <div className="flex items-center justify-between border-t bg-muted/30 px-4 py-2.5">
             <p className="text-xs text-muted-foreground">{time}</p>
             <p className="font-mono text-base font-semibold">
@@ -204,7 +204,9 @@ export const KitchenOrderCard = memo(function KitchenOrderCard({
         <ResponsiveModalHeader>
           <ResponsiveModalTitle className="flex items-center gap-2">
             <span className="text-muted-foreground font-normal">
-              {isParcelOrder(order.tableNumber) ? "Parcel" : `Table ${order.tableNumber}`}
+              {isParcelOrder(order.tableNumber)
+                ? "Parcel"
+                : `Table ${order.tableNumber}`}
             </span>
             <span className="font-mono text-sm">{order.invoiceNumber}</span>
           </ResponsiveModalTitle>
@@ -213,8 +215,12 @@ export const KitchenOrderCard = memo(function KitchenOrderCard({
         <ScrollArea className="md:max-h-[70vh] h-full">
           <ResponsiveModalBody>
             <div className="space-y-5 pt-4">
-              {order.status !=="served" && order.status !== "completed" && (
-                <OrderStatusSelect orderId={order.id} initial={order.status} excludeCompleted />
+              {order.status !== "served" && order.status !== "completed" && (
+                <OrderStatusSelect
+                  orderId={order.id}
+                  initial={order.status}
+                  excludeCompleted
+                />
               )}
 
               {order.notes && (
@@ -242,7 +248,10 @@ export const KitchenOrderCard = memo(function KitchenOrderCard({
                 </div>
               )}
 
-              <OrderItemsList className="max-h-40 overflow-y-scroll" items={order.items} />
+              <OrderItemsList
+                className="max-h-40 overflow-y-scroll"
+                items={order.items}
+              />
               <OrderTotalsSummary order={order} />
             </div>
           </ResponsiveModalBody>
