@@ -84,14 +84,15 @@ export default function KitchenDisplayView() {
             <h1 className="text-base font-medium leading-tight truncate">
               {organization?.name}
             </h1>
-            <p className="text-xs text-muted-foreground truncate">Taking Live Orders</p>
+            <p className="text-xs text-muted-foreground truncate">
+              Taking Live Orders
+            </p>
           </div>
         </div>
         <div className="flex items-center gap-4 shrink-0">
           <Tooltip>
             <TooltipTrigger asChild>
-              <div
-                className="flex items-center gap-1.5 text-xs md:text-sm bg-secondary p-2 rounded-full px-3 font-medium">
+              <div className="flex items-center gap-1.5 text-xs md:text-sm bg-secondary p-2 rounded-full px-3 font-medium">
                 {connected ? (
                   <Wifi className="size-4" />
                 ) : (
