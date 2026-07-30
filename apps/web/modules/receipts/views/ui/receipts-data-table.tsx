@@ -6,7 +6,6 @@ import {
   SortingState,
   flexRender,
   getCoreRowModel,
-  getPaginationRowModel,
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table"
@@ -21,7 +20,6 @@ import {
   TableRow,
 } from "@workspace/ui/components/table"
 import { Button } from "@workspace/ui/components/button"
-import { IconChevronLeft, IconChevronRight } from "@tabler/icons-react"
 import { formatCurrency } from "@workspace/shared/utils/formatter"
 import { isParcelOrder } from "@workspace/shared/constants/index"
 import PrintReceiptVersionModal from "@/modules/orders/views/ui/print-recipts-version-responsive-modal"
@@ -134,14 +132,10 @@ export default function ReceiptsDataTable({ orders }: ReceiptsDataTableProps) {
     data: orders,
     columns,
     getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
     onSortingChange: setSorting,
     getSortedRowModel: getSortedRowModel(),
     state: {
       sorting,
-    },
-    initialState: {
-      pagination: { pageSize: 12 },
     },
   })
 
@@ -191,26 +185,6 @@ export default function ReceiptsDataTable({ orders }: ReceiptsDataTableProps) {
             )}
           </TableBody>
         </Table>
-      </div>
-      <div className="flex items-center justify-end space-x-2 py-4">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => table.previousPage()}
-          disabled={!table.getCanPreviousPage()}
-        >
-          <IconChevronLeft className="size-4" />
-          Previous
-        </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => table.nextPage()}
-          disabled={!table.getCanNextPage()}
-        >
-          Next
-          <IconChevronRight className="size-4" />
-        </Button>
       </div>
     </div>
   )

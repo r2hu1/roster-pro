@@ -1,8 +1,8 @@
 "use client"
 
-import { useQuery } from "@tanstack/react-query"
+import { useInfiniteQuery } from "@tanstack/react-query"
 import { useSession } from "@/modules/providers/session-provider"
-import { useMemo, useState } from "react"
+import { useState, useEffect, useMemo, useCallback } from "react"
 import { IconSearch } from "@tabler/icons-react"
 import { Skeleton } from "@workspace/ui/components/skeleton"
 import {
@@ -13,32 +13,49 @@ import {
 import { fetchOrders } from "@/modules/orders/api/orders"
 import ReceiptsDataTable from "./receipts-data-table"
 import PageHeader from "@/components/page-header"
+import { LoadMoreSentinel } from "@/modules/orders/views/ui/load-more-sentinel"
+
+const SEARCH_DEBOUNCE_MS = 350
 
 export default function ReceiptsPageView() {
   const { organization } = useSession()
   const [search, setSearch] = useState("")
+  const [debouncedSearch, setDebouncedSearch] = useState("")
 
-  const { data, isLoading, error } = useQuery({
-    queryKey: ["orders"],
-    queryFn: () => fetchOrders({ limit: 100 }),
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedSearch(search), SEARCH_DEBOUNCE_MS)
+    return () => clearTimeout(t)
+  }, [search])
+
+  const {
+    data,
+    isLoading,
+    isError,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfiniteQuery({
+    queryKey: ["receipts", organization?.id, debouncedSearch],
+    queryFn: ({ pageParam }) =>
+      fetchOrders({
+        cursor: pageParam,
+        limit: 12,
+        search: debouncedSearch.trim() || undefined,
+      }),
+    initialPageParam: undefined as string | undefined,
+    getNextPageParam: (lastPage) =>
+      lastPage.hasMore ? lastPage.nextCursor : undefined,
     enabled: !!organization?.id,
   })
 
-  const orders = data?.data ?? []
+  const orders = useMemo(
+    () => data?.pages.flatMap((p) => p.data) ?? [],
+    [data]
+  )
 
-  const filtered = useMemo(() => {
-    let result = orders
-    if (search.trim()) {
-      const q = search.toLowerCase()
-      result = result.filter(
-        (o) =>
-          o.invoiceNumber.toLowerCase().includes(q) ||
-          o.tableNumber.toLowerCase().includes(q) ||
-          o.customerName?.toLowerCase().includes(q)
-      )
-    }
-    return result
-  }, [orders, search])
+  const handleLoadMore = useCallback(() => {
+    void fetchNextPage()
+  }, [fetchNextPage])
 
   if (isLoading) {
     return (
@@ -59,7 +76,7 @@ export default function ReceiptsPageView() {
     )
   }
 
-  if (error) {
+  if (isError) {
     return (
       <div className="space-y-4">
         <PageHeader
@@ -87,7 +104,12 @@ export default function ReceiptsPageView() {
           <IconSearch />
         </InputGroupAddon>
       </InputGroup>
-      <ReceiptsDataTable orders={filtered} />
+      <ReceiptsDataTable orders={orders} />
+      <LoadMoreSentinel
+        hasMore={hasNextPage}
+        loadingMore={isFetchingNextPage}
+        onLoadMore={handleLoadMore}
+      />
     </div>
   )
 }
