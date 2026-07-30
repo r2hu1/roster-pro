@@ -23,7 +23,15 @@ export function OrdersFilters({
 }) {
   const filters = excludeCompleted
     ? ["All", "Pending", "Preparing", "Ready", "Served", "Cancelled"]
-    : ["All", "Pending", "Preparing", "Ready", "Served", "Completed", "Cancelled"]
+    : [
+        "All",
+        "Pending",
+        "Preparing",
+        "Ready",
+        "Served",
+        "Completed",
+        "Cancelled",
+      ]
 
   return (
     <div className="flex flex-col md:flex-row md:items-center gap-3">
