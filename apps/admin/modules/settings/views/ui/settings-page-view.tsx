@@ -1,0 +1,57 @@
+"use client"
+import { useSession } from "@/modules/providers/session-provider"
+import SettingsNavbar from "./navbar"
+import { useQueryState } from "nuqs"
+import GeneralSettings from "./general-settings"
+import { Button } from "@workspace/ui/components/button"
+import PageHeader from "@/components/page-header"
+import { authClient } from "@/lib/better-auth/client"
+import { toast } from "sonner"
+import BillingSettings from "./billing-settings"
+import SubscriptionSettings from "./subscription-settings"
+import { Logout2Newicons } from "reicon-react"
+
+export default function SettingPageView() {
+  const { organization, isLoading } = useSession()
+  const [tab] = useQueryState("tab", { defaultValue: "general" })
+
+  const handleLogout = async () => {
+    try {
+      await authClient.signOut()
+      window.location.href = "/"
+    } catch (error) {
+      toast.error("Failed to logout", {
+        description: error instanceof Error ? error.message : String(error),
+      })
+    }
+  }
+
+  if (isLoading) {
+    return <div>Loading...</div>
+  }
+
+  if (!organization) {
+    return <div>Organization not found</div>
+  }
+
+  return (
+    <div>
+      <PageHeader
+        title="Settings"
+        actions={
+          <Button onClick={handleLogout}>
+            Logout <Logout2Newicons />
+          </Button>
+        }
+      />
+      <div className="md:flex grid gap-10">
+        <SettingsNavbar />
+        <div className="flex-1 min-w-0">
+          {tab === "general" && <GeneralSettings />}
+          {tab === "billing" && <BillingSettings />}
+          {tab === "subscription" && <SubscriptionSettings />}
+        </div>
+      </div>
+    </div>
+  )
+}
