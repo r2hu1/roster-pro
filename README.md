@@ -1,94 +1,107 @@
 # Roster Pro
 
-B2B SaaS for restaurants. End-to-end type-safe monorepo.
+Modern, end-to-end type-safe B2B SaaS restaurant management and contactless dine-in ordering platform.
 
-## Apps
+Built with Next.js 16, React 19, Hono, Drizzle ORM, PostgreSQL, and Upstash Redis.
 
-| App | Directory | Stack | Purpose |
-|-----|-----------|-------|---------|
-| **api** | `apps/api` | Hono, Drizzle ORM, Postgres, Bun | Backend API |
-| **web** | `apps/web` | Next.js 16, React 19, TanStack Query | Restaurant owner dashboard |
-| **client-web** | `apps/client-web` | Next.js 16, React 19 | Customer-facing menu & ordering |
-| **marketing** | `apps/marketing` | Next.js 16, React 19 | Public landing page |
+---
 
-## Packages
+## Highlights & Features
 
-| Package | Purpose |
-|---------|---------|
-| `@workspace/shared` | Zod schemas, types, enums, constants |
-| `@workspace/ui` | Shared shadcn/ui components |
-| `@workspace/eslint-config` | ESLint flat config presets |
-| `@workspace/typescript-config` | TS config presets |
+- **Digital QR Dine-In & Contactless Ordering**: Guests scan table QR codes from their phone cameras to view interactive digital menus, select variations, customize items, and place orders directly to the kitchen without waiting for staff.
+- **Kitchen & Order Management**: Realtime order dispatch board with automatic status transitions (`PENDING` → `CONFIRMED` → `PREPARING` → `READY` → `SERVED` → `COMPLETED`).
+- **Interactive Menu Builder**: Create dynamic menu categories, dishes, multi-pricing options (Half / Full / Portions), tags, dietary filters, and dish photos.
+- **Table & Floor Plan Operations**: Manage dining tables, capacities, occupancies, and generate secure QR codes.
+- **Analytics & Revenue Insights**: Track daily sales, top-selling dishes, peak dining hours, and average ticket sizes in real-time.
+- **Multi-Tenant Organizations & Role-Based Access**: Role-based access control (Owner, Admin, Staff) with team invitations and Google OAuth.
+- **Realtime Kitchen Updates**: Powered by Upstash Redis Pub/Sub for zero-refresh kitchen tickets and customer status tracking.
+- **End-to-End Type Safety**: Shared validation schemas and TypeScript types across backend and frontends via `@workspace/shared`.
 
-## Prerequisites
+---
 
-- **Bun** 1.x (package manager + runtime)
-- **Postgres** (local or remote)
-- **Upstash Redis** (cache + realtime pub/sub)
-- **Google OAuth** credentials
-- **Polar.sh** account (payments)
-- **ImageKit** account (image uploads)
+## Monorepo Apps & Packages
 
-## Getting Started
+| Component | Path | Tech Stack | Role |
+|-----------|------|------------|------|
+| **api** | `apps/api` | Hono, Drizzle ORM, PostgreSQL, Bun | High-speed REST backend API & realtime engine |
+| **web** | `apps/web` | Next.js 16, React 19, TanStack Query | Management dashboard for restaurant owners and staff |
+| **client-web** | `apps/client-web` | Next.js 16, React 19, Tailwind v4 | Mobile-optimized guest ordering interface |
+| **marketing** | `apps/marketing` | Next.js 16, React 19, Tailwind v4 | Public-facing landing page and marketing site |
+| **@workspace/shared** | `packages/shared` | Zod, TypeScript | Shared schemas, enums, DTO contracts, and types |
+| **@workspace/ui** | `packages/ui` | shadcn/ui, Tailwind CSS | Reusable UI component library |
 
+---
+
+## Quick Start (Local Development)
+
+### 1. Prerequisites
+- **Bun** 1.x
+- **PostgreSQL** (local or cloud instance)
+- **Upstash Redis** (or local Redis instance)
+- **Google OAuth** Client ID & Secret
+
+### 2. Installation
 ```sh
-git clone <repo>
+# Clone repository
+git clone https://github.com/your-org/roster-pro.git
 cd roster-pro
 
-# Copy env files
+# Copy environment templates
 cp apps/api/.env.example apps/api/.env
 cp apps/web/.env.example apps/web/.env
 cp apps/client-web/.env.example apps/client-web/.env
 
-# Install
+# Install dependencies
 bun install
+```
 
-# Push DB schema
+### 3. Database Setup
+```sh
+# Push schema to database
 bun run db:push
+```
 
-# Start all apps
+### 4. Run Development Servers
+```sh
 bun run dev
 ```
 
-Individual apps: `bun run dev:api`, `bun run dev:web`, `bun run dev:client-web`, `bun run dev:marketing`.
+App default URLs:
+- API: [http://localhost:3000](http://localhost:3000)
+- Dashboard: [http://localhost:3001](http://localhost:3001)
+- Marketing: [http://localhost:3002](http://localhost:3002)
+- Customer Ordering: [http://localhost:3003](http://localhost:3003)
 
-## Scripts
+---
+
+## Scripts Reference
 
 | Command | Action |
 |---------|--------|
-| `bun run dev` | Start all apps in dev mode |
-| `bun run build` | Build all apps |
-| `bun run lint` | Lint all packages |
-| `bun run format` | Format all packages |
-| `bun run typecheck` | TypeScript check all packages |
-| `bun run fix` | Auto-fix lint issues |
-| `bun run db:push` | Push Drizzle schema to DB |
-| `bun run db:migrate` | Run pending migrations |
-| `bun run db:generate` | Generate migration files |
-| `bun run db:studio` | Open Drizzle Studio |
-| `bun run clean` | Clean build artifacts |
+| `bun run dev` | Start all apps concurrently in development mode |
+| `bun run dev:api` | Start only backend API (`apps/api`) |
+| `bun run dev:web` | Start only dashboard app (`apps/web`) |
+| `bun run dev:client-web` | Start only guest ordering app (`apps/client-web`) |
+| `bun run dev:marketing` | Start only marketing landing page (`apps/marketing`) |
+| `bun run build` | Build all apps and packages |
+| `bun run lint` | Run Biome & ESLint checks across repo |
+| `bun run typecheck` | Run TypeScript validation across repo |
+| `bun run db:push` | Push Drizzle schema changes directly to DB |
+| `bun run db:generate` | Generate Drizzle SQL migration files |
+| `bun run db:migrate` | Execute pending Drizzle migrations |
+| `bun run db:studio` | Open interactive Drizzle Studio interface |
 
-## Project Structure
+---
 
-Refer to [STRUCTURE.md](./STRUCTURE.md) for full architecture guide.
+## Documentation Links
 
-## Tech Stack
+- [DOCUMENTATION.md](./DOCUMENTATION.md) — Comprehensive API reference, architecture, database schemas, and event flows.
+- [SELFHOST.md](./SELFHOST.md) — Production self-hosting guide, environment configs, PM2, and Nginx reverse proxy.
+- [STRUCTURE.md](./STRUCTURE.md) — Monorepo code standards, file organization, and patterns.
+- [SECURE-QR-FLOW.md](./SECURE-QR-FLOW.md) — Security model and architecture for dine-in QR ordering sessions.
 
-- **Runtime**: Bun 1.x
-- **Monorepo**: Turborepo v2
-- **Backend**: Hono, Drizzle ORM, Postgres, Upstash Redis
-- **Auth**: Better Auth (Google OAuth + org plugin + Polar plugin), Redis secondary storage
-- **Payments**: Polar.sh (checkout, portal, webhooks)
-- **Media**: ImageKit (upload/delete)
-- **Frontend**: Next.js 16, React 19, Tailwind v4, shadcn/ui
-- **Data Fetching**: TanStack React Query v5, Axios
-- **Linting**: Biome v2, ESLint 9
-- **Realtime**: Upstash Realtime (Redis pub/sub)
+---
 
-## Key Conventions
+## License
 
-- **Schema-first**: `@workspace/shared` is single source of truth — never duplicate types
-- **API 3-file pattern**: `{feature}.route.ts` → `{feature}.logic.ts` → `{feature}.validation.ts`
-- **Feature-organized modules**: `modules/{feature}/views/ui/`, `hooks/`, `api/`
-- **Pages are server components** — client interactivity via `"use client"` subcomponents
-- **Realtime**: Upstash Realtime for orders, table status, analytics
+Private / Proprietary. All rights reserved.
