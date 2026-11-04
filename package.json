@@ -1,6 +1,7 @@
 {
   "name": "roster-pro",
   "version": "0.0.1",
+  "author": "r2hu1 - Rahul Rajput",
   "devDependencies": {
     "@biomejs/biome": "^2.5.6",
     "@workspace/eslint-config": "workspace:*",
